@@ -8,21 +8,9 @@ import xsched.ThreadPool.Worker;
 public class Activation<R> implements ThreadPool.WorkItem {
 	
 	static final ThreadPool POOL = new ThreadPool();
+	static boolean kickedOff = false;
 	static final ThreadLocal<Activation<?>> NOW = new ThreadLocal<Activation<?>>();
-	
-	//private void scheduleActivationImmediately(Activation<?> activation) {
-	//	assert(NOW.get() == null);
-	//	NOW.set(activation);
-	//	//kick it off
-	//	activation.release();
-	//}
-	
-	//@Override
-	//public static <T, R> void main(T object, String taskName, Class<?>[] parameterTypes, Object... params) {
-	//	Activation<T, R> activation = new Activation<T, R>(object, taskName, parameterTypes, params);
-	//	scheduleActivationImmediately(activation);
-	//}
-	
+		
 	/*
 	 * 
 	 */
@@ -32,6 +20,9 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	private R result;
 	
 	private void scheduleActivationAfterNow(Activation<?> activation) {
+		if(! kickedOff)
+			return;
+		
 		Activation<?> now = NOW.get();
 		assert(now != null) : "no now activation found!!!";
 		now.successors.add(activation);
@@ -44,8 +35,28 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	public static final int RETIRED = -84; //flag to indicate that this activation has been executed
 	private int retainCount = 1;
 	ArrayList<Activation<?>> successors = new ArrayList<Activation<?>>(); //synchronized with this
-			
-	public Activation(Object object, String taskName, Object... params) {
+	
+	public Activation(Object object, String taskName) {
+		init(object, taskName);
+		scheduleActivationAfterNow(this);
+	}
+	
+	public Activation(Object object, String taskName, Object param) {
+		init(object, taskName, param);
+		scheduleActivationAfterNow(this);
+	}
+	
+	public Activation(Object object, String taskName, Object param1, Object param2) {
+		init(object, taskName, param1, param2);
+		scheduleActivationAfterNow(this);
+	}
+	
+	public Activation(Object object, String taskName, Object param1, Object param2, Object param3) {
+		init(object, taskName, param1, param2, param3);
+		scheduleActivationAfterNow(this);
+	}
+	
+	private void init(Object object, String taskName, Object... params) {
 		this.object = object;
 		this.params = params;
 		
@@ -63,28 +74,9 @@ public class Activation<R> implements ThreadPool.WorkItem {
             }
         }
 		if(this.method == null)
-			throw new Error("no task with name " + taskName + " and " + params.length + " params found in " + object.getClass());
-		
-		scheduleActivationAfterNow(this);
+			throw new Error("no task with name " + taskName + " and " + params.length + " params found in " + object.getClass());		
 	}
-	
-	public Activation(Object object, String taskName, Class<?>[] parameterTypes, Object... params) {
-		assert(parameterTypes.length == params.length);
-		
-		this.object = object;
-		this.params = params;
-		
-		try {
-			this.method = object.getClass().getMethod(taskName, parameterTypes);
-		} catch (SecurityException e) {
-			throw new Error(e);
-		} catch (NoSuchMethodException e) {
-			throw new Error(e);
-		}
-		
-		scheduleActivationAfterNow(this);
-	}
-	
+
 	public Object object() {
 		return this.object;
 	}
@@ -132,7 +124,7 @@ public class Activation<R> implements ThreadPool.WorkItem {
 			Debug.activationStateChange(this);
 	}
 	
-	synchronized void release() {
+	private synchronized void release() {
 		assert(this.isInFuture());
 		this.retainCount--;
 		if(Debug.ENABLED)
@@ -166,6 +158,17 @@ public class Activation<R> implements ThreadPool.WorkItem {
 			((Activation<?>)later).retain();
 			this.successors.add(later);
 		}
+	}
+	
+	//this is only for the runtime, a normal program should never call this.
+	//only called once in the beginning of a program
+	//the analysis does not see this method because it has to happen "before"
+	void kickOffMain() {
+		assert(NOW.get() == null);
+		NOW.set(this);
+		kickedOff = true;
+		//kick it off
+		this.release();
 	}
 	
 	@SuppressWarnings("unchecked")
