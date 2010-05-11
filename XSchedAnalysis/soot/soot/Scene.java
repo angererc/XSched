@@ -151,6 +151,10 @@ public class Scene  //extends AbstractHost
             return s;
     }
     
+    public boolean hasMainClass() {
+    	return mainClass != null;
+    }
+    
     public SootClass getMainClass()
     {
         if(mainClass == null) {
