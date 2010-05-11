@@ -1,1 +1,9 @@
 XSched is a framework for eXplicit Scheduling in Java.
+
+Currently it consists of two eclipse projects and a shared tests folder.
+
+Because we "trick" the points-to analysis to not see what happens internally, the implementations of xsched.Activation in the runtime and the analysis are different. There is nothing that really holds them together (from the Java perspective) so we have to make sure that both implementations can function as "drop in replacements".
+
+The shared tests use the Activation API (and therefore test, that the runtime implementation and analysis implementation are compatible). However, the SharedTests is not an eclipse project but just a folder. Instead, the eclipse projects of the runtime and the analysis contain a soft-link to the shared tests. This way, the shared tests are always compiled with the correct Activation implementation.
+
+Also, the shared tests do not contain JUnit tests, but only the source code that contains test cases that use explicit scheduling.
