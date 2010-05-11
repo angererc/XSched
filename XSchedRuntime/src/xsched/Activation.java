@@ -31,10 +31,10 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	}
 		
 	/** retain count; once retain count drops to 0 the activation can start */
-	public static final int EXECUTING = -42; //flag to indicate that this activation has been executed
-	public static final int RETIRED = -84; //flag to indicate that this activation has been executed
+	private static final int EXECUTING = -42; //flag to indicate that this activation has been executed
+	private static final int RETIRED = -84; //flag to indicate that this activation has been executed
 	private int retainCount = 1;
-	ArrayList<Activation<?>> successors = new ArrayList<Activation<?>>(); //synchronized with this
+	private ArrayList<Activation<?>> successors = new ArrayList<Activation<?>>(); //synchronized with this
 	
 	public Activation(Object object, String taskName) {
 		init(object, taskName);
