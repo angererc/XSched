@@ -93,10 +93,6 @@ public class Activation<R> implements ThreadPool.WorkItem {
 		return this.result;
 	}
 	
-	public synchronized int retainCount() {
-		return this.retainCount;
-	}
-	
 	//scheduled in the future
 	public synchronized boolean isInFuture() {
 		return this.retainCount > 0;
@@ -115,6 +111,11 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	//done executing and is retired now
 	public synchronized boolean hasRetired() {
 		return this.retainCount == RETIRED;
+	}
+	
+	//used by Debug()
+	int retainCount() {
+		return this.retainCount;
 	}
 	
 	private synchronized void retain() {

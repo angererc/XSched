@@ -1,14 +1,13 @@
 package xsched;
 
 import org.junit.Test;
-
 import xsched.tests._1.SimpleTriangle;
 
 
 public class Test_1 {
 
 	@Test
-	public void doTest() {
+	public void activateMain() {
 		SimpleTriangle st = new SimpleTriangle();
 		Activation<Void> main = new Activation<Void>(st, "main");
 		main.kickOffMain();
