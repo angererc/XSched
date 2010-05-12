@@ -1,10 +1,11 @@
 package xsched.analysis.schedule;
 
 import soot.Context;
+import soot.MethodContext;
+import soot.MethodOrMethodContext;
+import soot.Scene;
 import soot.SootMethod;
 import soot.jimple.spark.pag.AllocNode;
-import soot.jimple.spark.pag.MethodPAG;
-import soot.jimple.spark.pag.PAG;
 
 public class ScheduleNode implements Context {
 	public final AllocNode object;
@@ -15,9 +16,8 @@ public class ScheduleNode implements Context {
 		this.task = task;
 	}
 		
-	void addToPAG(PAG pag) {
-		MethodPAG amp = MethodPAG.v(pag, task);
-        amp.build();
-        amp.addToPAG(this);        
+	public void addToCallGraph() {
+		MethodOrMethodContext context = MethodContext.v(task, this);
+		Scene.v().getReachableMethods().addCustomMethodOrMethodContext(context);
 	}
 }

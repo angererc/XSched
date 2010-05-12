@@ -5,21 +5,30 @@ import java.util.HashMap;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
+import soot.SourceLocator;
 import soot.Type;
 import soot.jimple.spark.builder.ContextInsensitiveBuilder;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.PAG;
+import soot.jimple.spark.pag.PAGDumper;
+import soot.jimple.spark.solver.PropIter;
+import soot.jimple.spark.solver.Propagator;
 import soot.options.SparkOptions;
 
 import xsched.Activation;
 import xsched.analysis.schedule.Schedule;
 import xsched.analysis.schedule.ScheduleNode;
 
+/*
+ * the XSchedAnalyzer is modelled after the SparkTransformer
+ */
 public class XSchedAnalyzer {
 
 	private SparkOptions sparkOptions;
-	private Schedule schedule;
 	private PAG pag;
+	private Schedule schedule;
+	protected String outputDir;
+	private Propagator propagator;
 	
 	static {
 		soot.options.Options.v().set_keep_line_number(true);
@@ -27,21 +36,26 @@ public class XSchedAnalyzer {
 	}
 	
 	public void analyzeMainActivation(String taskMethodSignature) {
-				
+		outputDir = SourceLocator.v().getOutputDir();
 		sparkOptions = createDefaultSparkOptions();
 		
 		loadInitialSootClasses(taskMethodSignature);
+		createPAG();
+		ScheduleNode enterNode = initSchedule(taskMethodSignature);
 		
-		internalAnalyze(taskMethodSignature);
+		new PAGDumper( pag, outputDir ).dump();
+		propagator = new PropIter(pag);
+		analyzeScheduleNode(enterNode);
 	}
 	
-	private void internalAnalyze(String taskMethodSignature)
+	private void analyzeScheduleNode(ScheduleNode node) {
+		propagator.propagate();
+	}
+	
+	private ScheduleNode initSchedule(String taskMethodSignature)
     {
 		SootMethod initialTask = Scene.v().getMethod(taskMethodSignature);
 		
-        // Build pointer assignment graph
-        ContextInsensitiveBuilder b = new ContextInsensitiveBuilder();
-        pag = b.setup(sparkOptions);
         this.schedule = new Schedule(pag);
         
         Type activationType = Scene.v().getRefType(Activation.class.getName());
@@ -50,9 +64,22 @@ public class XSchedAnalyzer {
         
         this.schedule.addHappensBefore(enterNode, this.schedule.exitNode);
         
-        b.build();
-        System.out.println(pag);
+        //update the call graph
+        pag.getOnFlyCallGraph().build();
+        return enterNode;
     }
+	
+	private void createPAG() {
+		// Build pointer assignment graph
+        ContextInsensitiveBuilder b = new ContextInsensitiveBuilder();
+        pag = b.setup(sparkOptions);
+        b.build();
+        
+        pag.getTypeManager().makeTypeMask();
+        //see SparkTransformer for more cleaning options
+        pag.cleanUpMerges();
+                
+	}
 	
 	private void loadInitialSootClasses(String taskMethodSignature) {
 		//soot default classes
@@ -64,7 +91,7 @@ public class XSchedAnalyzer {
 		c = Scene.v().loadClassAndSupport(activationClassName);
 		c.setApplicationClass();
 		
-		//.. and the main task class
+		//.. and the class of the main task
 		String mainTaskClassName = Scene.v().signatureToClass(taskMethodSignature);
 		c = Scene.v().loadClassAndSupport(mainTaskClassName);
 		c.setApplicationClass();

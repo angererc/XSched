@@ -59,6 +59,14 @@ public class ReachableMethods
                 reachables.add( m );
             }
     }
+    public void addCustomMethodOrMethodContext(MethodOrMethodContext m) {
+    	if (set.add(m)) {
+    		reachables.add( m );    		
+    		Iterator<Edge> targets = cg.edgesOutOf( m );
+            if( filter != null ) targets = filter.wrap( targets );
+            addMethods( new Targets( targets ) );
+    	}
+    }
     /** Causes the QueueReader objects to be filled up with any methods
      * that have become reachable since the last call. */
     public void update() {

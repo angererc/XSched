@@ -96,7 +96,8 @@ public class EntryPoints
     public List<SootMethod> all() {
         List<SootMethod> ret = new ArrayList<SootMethod>();
         ret.addAll( application() );
-        ret.addAll( implicit() );
+        System.err.println("Warning: in EntryPoints.all() implicit entry points are not added!");
+        //ret.addAll( implicit() );
         return ret;
     }
     /** Returns a list of all static initializers. */

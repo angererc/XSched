@@ -34,7 +34,10 @@ public class Schedule {
 		ScheduleNode node = new ScheduleNode(allocSite, task);
 		nodesByAllocationNode.put(allocSite, node);
 		
-		node.addToPAG(pag);
+		//make sure that the soot method is considered to be reachable
+		//this will have the effect that the OnFlyCallGraph creates new nodes in the pag through the MethodPAG
+		node.addToCallGraph();
+		
 		return node;
 	}
 	

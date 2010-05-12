@@ -626,7 +626,7 @@ public final class OnFlyCallGraphBuilder
 
     private void processNewMethodContext( MethodOrMethodContext momc ) {
         SootMethod m = momc.method();
-        Object ctxt = momc.context();
+        
         Iterator it = cicg.edgesOutOf(m);
         while( it.hasNext() ) {
             Edge e = (Edge) it.next();
