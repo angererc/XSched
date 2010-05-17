@@ -47,6 +47,8 @@ public final class CallGraphBuilder
     public ReachableMethods reachables() { return reachables; }
 
     public static ContextManager makeContextManager( CallGraph cg ) {
+    	//note, that the contextinsensitive context manager doesn't work too well for the xschedule analysis
+    	//because it strips the schedule node as the context from the source of a call
         return new OneCFAContextManager( cg );
     }
 

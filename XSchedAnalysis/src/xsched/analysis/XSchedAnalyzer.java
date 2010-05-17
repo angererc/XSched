@@ -1,7 +1,7 @@
 package xsched.analysis;
 
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 import soot.Scene;
 import soot.SootClass;
@@ -15,11 +15,14 @@ import soot.jimple.spark.pag.PAGDumper;
 import soot.jimple.spark.solver.PropIter;
 import soot.jimple.spark.solver.Propagator;
 import soot.options.SparkOptions;
+import soot.toolkits.scalar.Pair;
 
 import xsched.Activation;
 import xsched.analysis.schedule.Heap;
 import xsched.analysis.schedule.Schedule;
 import xsched.analysis.schedule.ScheduleNode;
+import xsched.analysis.schedule.Heap.NewActivationRecord;
+import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
 
 /*
  * the XSchedAnalyzer is modelled after the SparkTransformer
@@ -79,9 +82,10 @@ public class XSchedAnalyzer {
 		
 		node.setResultHeap(resultHeap);
 		
-		List<AllocNode> newHBDeclarations = resultHeap.findNewHBDeclarations();
+		Pair<Collection<NewActivationRecord>, Collection<NewHBRelationshipRecord>> newDeclarations = resultHeap.findNewHBDeclarations();
 		
-		System.out.println(newHBDeclarations);
+		System.out.println(newDeclarations.getO1());
+		System.out.println(newDeclarations.getO2());
 	}
 	
 	private ScheduleNode initSchedule(String taskMethodSignature)
