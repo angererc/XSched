@@ -667,7 +667,16 @@ public class PAG implements PointsToAnalysis {
 
     protected ChunkedQueue edgeQueue = new ChunkedQueue();
     public QueueReader edgeReader() { return edgeQueue.reader(); }
-
+    
+    protected ChunkedQueue<Pair<InvokeExpr,Pair<Node,Node>>> callAssignsQueue = new ChunkedQueue<Pair<InvokeExpr,Pair<Node,Node>>>();
+    public QueueReader<Pair<InvokeExpr,Pair<Node,Node>>> callAssignsReader() { return callAssignsQueue.reader(); }
+    protected Pair<?,?> addToCallAssigns(InvokeExpr expr, Pair<?,?> pair) {
+    	callAssigns.put(expr, pair);
+    	Pair<Node,Node> assignment = (Pair<Node,Node>)pair;
+    	callAssignsQueue.add(new Pair<InvokeExpr, Pair<Node,Node>>(expr, assignment));
+    	return assignment;
+    }
+    
     public int getNumAllocNodes() {
         return allocNodeNumberer.size();
     }
@@ -730,7 +739,7 @@ public class PAG implements PointsToAnalysis {
                 thiz = thiz.getReplacement();
 
                 addEdge( parm, thiz );
-                callAssigns.put(ie, new Pair(parm, thiz));
+                addToCallAssigns(ie, new Pair(parm, thiz));
                 callToMethod.put(ie, srcmpag.getMethod());
 
                 if( e.srcUnit() instanceof AssignStmt ) {
@@ -745,7 +754,7 @@ public class PAG implements PointsToAnalysis {
                     lhs = lhs.getReplacement();
 
                     addEdge( ret, lhs );
-                    callAssigns.put(ie, new Pair(ret, lhs));
+                    addToCallAssigns(ie, new Pair(ret, lhs));
                     callToMethod.put(ie, srcmpag.getMethod());
                 }
             } else if( e.kind() == Kind.FINALIZE ) {
@@ -779,7 +788,7 @@ public class PAG implements PointsToAnalysis {
                     asLHS = asLHS.getReplacement();
                     addEdge( newObject, asLHS);
                 }
-                callAssigns.put(s.getInvokeExpr(), new Pair(newObject, initThis));
+                addToCallAssigns(s.getInvokeExpr(), new Pair(newObject, initThis));
                 callToMethod.put(s.getInvokeExpr(), srcmpag.getMethod());
             } else if( e.kind() == Kind.REFL_INVOKE ) {
             	// Flow (1) from first parameter of invoke(..) invocation
@@ -802,7 +811,7 @@ public class PAG implements PointsToAnalysis {
 	                thiz = thiz.getReplacement();
 	
 	                addEdge( parm0, thiz );
-	                callAssigns.put(ie, new Pair(parm0, thiz));
+	                addToCallAssigns(ie, new Pair(parm0, thiz));
 	                callToMethod.put(ie, srcmpag.getMethod());
                 }
 
@@ -825,7 +834,7 @@ public class PAG implements PointsToAnalysis {
 	                    tgtParmI = tgtParmI.getReplacement();
 	
 	                    addEdge( parm1contents, tgtParmI );
-	                    callAssigns.put(ie, new Pair(parm1contents, tgtParmI));
+	                    addToCallAssigns(ie, new Pair(parm1contents, tgtParmI));
 	                }
                 }
 
@@ -844,7 +853,7 @@ public class PAG implements PointsToAnalysis {
                     lhs = lhs.getReplacement();
 
                     addEdge( ret, lhs );
-                    callAssigns.put(ie, new Pair(ret, lhs));
+                    addToCallAssigns(ie, new Pair(ret, lhs));
                 }
             } else if( e.kind() == Kind.REFL_CLASS_NEWINSTANCE || e.kind() == Kind.REFL_CONSTR_NEWINSTANCE) {
             	// (1) create a fresh node for the new object
@@ -896,7 +905,7 @@ public class PAG implements PointsToAnalysis {
 		                    tgtParmI = tgtParmI.getReplacement();
 		
 		                    addEdge( parm1contents, tgtParmI );
-		                    callAssigns.put(iie, new Pair(parm1contents, tgtParmI));
+		                    addToCallAssigns(iie, new Pair(parm1contents, tgtParmI));
 		                }
 	                }
                 }
@@ -909,7 +918,7 @@ public class PAG implements PointsToAnalysis {
                     asLHS = asLHS.getReplacement();
                     addEdge( newObject, asLHS);
                 }
-                callAssigns.put(s.getInvokeExpr(), new Pair(newObject, initThis));
+                addToCallAssigns(s.getInvokeExpr(), new Pair(newObject, initThis));
                 callToMethod.put(s.getInvokeExpr(), srcmpag.getMethod());
             } else {
                 throw new RuntimeException( "Unhandled edge "+e );
@@ -946,7 +955,7 @@ public class PAG implements PointsToAnalysis {
             parm = parm.getReplacement();
 
             addEdge( argNode, parm );
-            callAssigns.put(ie, new Pair(argNode, parm));
+            addToCallAssigns(ie, new Pair(argNode, parm));
             callToMethod.put(ie, srcmpag.getMethod());
             
         }
@@ -961,7 +970,7 @@ public class PAG implements PointsToAnalysis {
             thisRef = tgtmpag.parameterize( thisRef, tgtContext );
             thisRef = thisRef.getReplacement();
             addEdge( baseNode, thisRef );
-            callAssigns.put(ie, new Pair(baseNode, thisRef));
+            addToCallAssigns(ie, new Pair(baseNode, thisRef));
             callToMethod.put(ie, srcmpag.getMethod());
             if (virtualCall && !virtualCallsToReceivers.containsKey(ie)) {
                 virtualCallsToReceivers.put(ie, baseNode);
@@ -980,7 +989,7 @@ public class PAG implements PointsToAnalysis {
                 retNode = retNode.getReplacement();
 
                 addEdge( retNode, destNode );
-                callAssigns.put(ie, new Pair(retNode, destNode));
+                addToCallAssigns(ie, new Pair(retNode, destNode));
                 callToMethod.put(ie, srcmpag.getMethod());
             }
         }

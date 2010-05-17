@@ -18,6 +18,8 @@
  */
 
 package soot.jimple.spark.sets;
+import java.util.List;
+
 import soot.Scene;
 import soot.Type;
 import soot.jimple.spark.internal.TypeManager;
@@ -142,7 +144,7 @@ public final class HybridPointsToSet extends PointsToSetInternal {
             return superAddAll( other, exclude );
         return nativeAddAll( (HybridPointsToSet) other, (HybridPointsToSet) exclude );
     }
-
+    
     /** Calls v's visit method on all nodes in this set. */
     public final boolean forall( P2SetVisitor v ) {
        if( bits == null ) {

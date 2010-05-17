@@ -21,6 +21,7 @@ package soot.jimple.spark.sets;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import java.util.*;
+
 import soot.Type;
 
 /** HashSet implementation of points-to set.
@@ -47,6 +48,10 @@ public final class HashPointsToSet extends PointsToSetInternal {
         } else {
             return super.addAll( other, exclude );
         }
+    }
+    @Override
+    public List<Node> contents() {
+    	return new ArrayList<Node>(s);
     }
     /** Calls v's visit method on all nodes in this set. */
     public final boolean forall( P2SetVisitor v ) {

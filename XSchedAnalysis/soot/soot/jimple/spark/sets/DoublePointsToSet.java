@@ -21,6 +21,7 @@ package soot.jimple.spark.sets;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import java.util.*;
+
 import soot.*;
 
 /** Implementation of points-to set that holds two sets: one for new
@@ -59,6 +60,14 @@ public class DoublePointsToSet extends PointsToSetInternal {
             throw new RuntimeException( "NYI" );
         }
         return newSet.addAll( other, oldSet );
+    }
+    
+    @Override
+    public List<Node> contents() {
+    	ArrayList<Node> result = new ArrayList<Node>();
+    	result.addAll(newSet.contents());
+    	result.addAll(oldSet.contents());
+    	return result;
     }
     /** Calls v's visit method on all nodes in this set. */
     public boolean forall( P2SetVisitor v ) {

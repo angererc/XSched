@@ -66,6 +66,7 @@ public class OnFlyCallGraph {
         }
     }
     private void processCallEdges() {
+    	//Christoph: callEdges should contain my context-sensitive call targets!
         while(callEdges.hasNext()) {
             Edge e = (Edge) callEdges.next();
             MethodPAG amp = MethodPAG.v( pag, e.tgt() );

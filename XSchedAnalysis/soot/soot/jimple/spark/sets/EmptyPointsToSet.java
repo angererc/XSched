@@ -43,6 +43,10 @@ public class EmptyPointsToSet extends PointsToSetInternal {
             PointsToSetInternal exclude ) {
         throw new RuntimeException( "can't add into empty immutable set" );
     }
+    @Override
+    public List<Node> contents() {
+    	return Arrays.asList(new Node[0]);
+    }
     /** Calls v's visit method on all nodes in this set. */
     public boolean forall( P2SetVisitor v ) {
         return false;

@@ -1,6 +1,7 @@
 package xsched.analysis;
 
 import java.util.HashMap;
+import java.util.List;
 
 import soot.Scene;
 import soot.SootClass;
@@ -25,6 +26,13 @@ import xsched.analysis.schedule.ScheduleNode;
  */
 public class XSchedAnalyzer {
 
+	public static final Type ACTIVATION_TYPE;
+	public static final SootMethod HB_METHOD;
+	public static final SootMethod ACTIVATION_CONSTRUCTOR0;
+	public static final SootMethod ACTIVATION_CONSTRUCTOR1;
+	public static final SootMethod ACTIVATION_CONSTRUCTOR2;
+	public static final SootMethod ACTIVATION_CONSTRUCTOR3;
+	
 	private SparkOptions sparkOptions;
 	private PAG pag;
 	private Schedule schedule;
@@ -34,6 +42,17 @@ public class XSchedAnalyzer {
 	static {
 		soot.options.Options.v().set_keep_line_number(true);
 		soot.options.Options.v().set_whole_program(true);
+		
+		String activationClassName = Activation.class.getName();
+		SootClass c = Scene.v().loadClassAndSupport(activationClassName);
+		c.setApplicationClass();
+		
+		ACTIVATION_TYPE = Scene.v().getRefType(Activation.class.getName());
+		HB_METHOD = Scene.v().getMethod("<xsched.Activation: void hb(xsched.Activation)>");
+		ACTIVATION_CONSTRUCTOR0 = Scene.v().getMethod("<xsched.Activation: void <init>(java.lang.Object,java.lang.String)>");
+		ACTIVATION_CONSTRUCTOR1 = Scene.v().getMethod("<xsched.Activation: void <init>(java.lang.Object,java.lang.String,java.lang.Object)>");
+		ACTIVATION_CONSTRUCTOR2 = Scene.v().getMethod("<xsched.Activation: void <init>(java.lang.Object,java.lang.String,java.lang.Object,java.lang.Object)>");
+		ACTIVATION_CONSTRUCTOR3 = Scene.v().getMethod("<xsched.Activation: void <init>(java.lang.Object,java.lang.String,java.lang.Object,java.lang.Object,java.lang.Object)>");
 	}
 	
 	public void analyzeMainActivation(String taskMethodSignature) {
@@ -52,9 +71,17 @@ public class XSchedAnalyzer {
 	private void analyzeScheduleNode(ScheduleNode node) {
 		PAG incomingPAG = pag;
 		propagator.setPAG(incomingPAG);
+		Heap resultHeap = new Heap(incomingPAG);
+		
 		propagator.propagate();
+		
 		propagator.donePropagating();
-		node.setResultHeap(new Heap(propagator.pag()));
+		
+		node.setResultHeap(resultHeap);
+		
+		List<AllocNode> newHBDeclarations = resultHeap.findNewHBDeclarations();
+		
+		System.out.println(newHBDeclarations);
 	}
 	
 	private ScheduleNode initSchedule(String taskMethodSignature)
@@ -63,8 +90,7 @@ public class XSchedAnalyzer {
 		
         this.schedule = new Schedule(pag);
         
-        Type activationType = Scene.v().getRefType(Activation.class.getName());
-        AllocNode enter = pag.makeAllocNode(this, activationType, null);
+        AllocNode enter = pag.makeAllocNode(this, ACTIVATION_TYPE, null);
         ScheduleNode enterNode = this.schedule.addNode(enter, initialTask);
         
         this.schedule.addHappensBefore(enterNode, this.schedule.exitNode);
@@ -91,11 +117,7 @@ public class XSchedAnalyzer {
 		
 		//our stuff
 		SootClass c;
-		//we use Activation...
-		String activationClassName = Activation.class.getName();
-		c = Scene.v().loadClassAndSupport(activationClassName);
-		c.setApplicationClass();
-		
+				
 		//.. and the class of the main task
 		String mainTaskClassName = Scene.v().signatureToClass(taskMethodSignature);
 		c = Scene.v().loadClassAndSupport(mainTaskClassName);

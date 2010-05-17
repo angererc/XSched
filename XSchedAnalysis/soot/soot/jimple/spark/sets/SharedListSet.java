@@ -1,5 +1,8 @@
 package soot.jimple.spark.sets;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import soot.Type;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
@@ -77,6 +80,15 @@ public class SharedListSet extends PointsToSetInternal
 	public boolean isEmpty()
 	{
 		return data == null;
+	}
+	
+	@Override
+    public List<Node> contents() {
+		ArrayList<Node> result = new ArrayList<Node>();
+		for (ListNode i = data; i != null; i = i.next) {
+			result.add(i.elem);
+		}
+		return result;
 	}
 	
 	public boolean forall(P2SetVisitor v) 

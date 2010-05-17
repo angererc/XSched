@@ -18,6 +18,11 @@
  */
 
 package soot.jimple.spark.sets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.util.*;
@@ -92,6 +97,10 @@ public final class SortedArraySet extends PointsToSetInternal {
             return ret;
         }
         return super.addAll( other, exclude );
+    }
+    @Override
+    public List<Node> contents() {
+    	return Arrays.asList(nodes);
     }
     /** Calls v's visit method on all nodes in this set. */
     public final boolean forall( P2SetVisitor v ) {

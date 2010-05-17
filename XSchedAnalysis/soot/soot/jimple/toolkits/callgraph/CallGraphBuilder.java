@@ -47,7 +47,7 @@ public final class CallGraphBuilder
     public ReachableMethods reachables() { return reachables; }
 
     public static ContextManager makeContextManager( CallGraph cg ) {
-        return new ContextInsensitiveContextManager( cg );
+        return new OneCFAContextManager( cg );
     }
 
     /** This constructor builds a complete call graph using the given

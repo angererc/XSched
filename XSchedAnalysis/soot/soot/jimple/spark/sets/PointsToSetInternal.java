@@ -60,6 +60,17 @@ public abstract class PointsToSetInternal implements PointsToSet, EqualsSupporti
             }
         } );
     }
+    
+    public List<Node> contents() {
+    	final ArrayList<Node> result = new ArrayList<Node>();
+    	this.forall(new P2SetVisitor() {
+			@Override
+			public void visit(Node n) {
+				result.add(n);
+			}
+    	});
+    	return result;
+    }
     /** Calls v's visit method on all nodes in this set. */
     public abstract boolean forall( P2SetVisitor v );
     /** Adds n to this set, returns true if n was not already in this set. */

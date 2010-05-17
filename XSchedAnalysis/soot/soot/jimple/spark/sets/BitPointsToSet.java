@@ -18,6 +18,9 @@
  */
 
 package soot.jimple.spark.sets;
+import java.util.ArrayList;
+import java.util.List;
+
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.internal.*;
@@ -67,6 +70,7 @@ public final class BitPointsToSet extends PointsToSetInternal {
             return superAddAll( other, exclude );
         return nativeAddAll( (BitPointsToSet) other, (BitPointsToSet) exclude );
     }
+    
     /** Calls v's visit method on all nodes in this set. */
     public final boolean forall( P2SetVisitor v ) {
         for( BitSetIterator it = bits.iterator(); it.hasNext(); ) {
