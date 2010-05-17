@@ -16,6 +16,7 @@ import soot.jimple.spark.solver.Propagator;
 import soot.options.SparkOptions;
 
 import xsched.Activation;
+import xsched.analysis.schedule.Heap;
 import xsched.analysis.schedule.Schedule;
 import xsched.analysis.schedule.ScheduleNode;
 
@@ -49,7 +50,11 @@ public class XSchedAnalyzer {
 	}
 	
 	private void analyzeScheduleNode(ScheduleNode node) {
+		PAG incomingPAG = pag;
+		propagator.setPAG(incomingPAG);
 		propagator.propagate();
+		propagator.donePropagating();
+		node.setResultHeap(new Heap(propagator.pag()));
 	}
 	
 	private ScheduleNode initSchedule(String taskMethodSignature)

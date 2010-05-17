@@ -19,12 +19,33 @@
 
 package soot.jimple.spark.solver;
 
+import soot.jimple.spark.pag.PAG;
+
 /** Abstract base class for a propagator that propagates points-to sets
  * along pointer assignment graph.
  * @author Ondrej Lhotak
  */
 
 public abstract class Propagator {
+	protected PAG pag;
+	
+	public Propagator(PAG pag) {
+		this.pag = pag;
+	}
+	
+	public PAG pag() {
+		return this.pag;
+	}
+	
+	public void setPAG(PAG pag) {
+		this.pag = pag;
+	}
+	
+	//called  by XSchedAnalyzer to make sure that everything is sane...
+	public void donePropagating() {
+		this.pag = null;
+	}
+	
     /** Actually does the propagation. */
     public abstract void propagate();
 }

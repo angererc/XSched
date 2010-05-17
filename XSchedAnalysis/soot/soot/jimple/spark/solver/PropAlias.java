@@ -37,7 +37,7 @@ public final class PropAlias extends Propagator {
     protected Set<FieldRefNode> outFieldRefWorkList = new HashSet<FieldRefNode>();
 
     public PropAlias( PAG pag ) {
-        this.pag = pag;
+    	super(pag);        
         loadSets = new LargeNumberedMap( pag.getFieldRefNodeNumberer() );
     }
 
@@ -233,7 +233,6 @@ public final class PropAlias extends Propagator {
         return varNodeWorkList.add( n );
     }
 
-    protected PAG pag;
     protected MultiMap fieldToBase = new HashMultiMap();
     protected MultiMap aliasEdges = new HashMultiMap();
     protected LargeNumberedMap loadSets;

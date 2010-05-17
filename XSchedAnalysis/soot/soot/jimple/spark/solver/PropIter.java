@@ -29,7 +29,7 @@ import java.util.*;
  */
 
 public final class PropIter extends Propagator {
-    public PropIter( PAG pag ) { this.pag = pag; }
+    public PropIter( PAG pag ) { super(pag); }
     /** Actually does the propagation. */
     public final void propagate() {
         final OnFlyCallGraph ofcg = pag.getOnFlyCallGraph();
@@ -147,7 +147,6 @@ public final class PropIter extends Propagator {
         return ret;
     }
 
-    protected PAG pag;
 }
 
 

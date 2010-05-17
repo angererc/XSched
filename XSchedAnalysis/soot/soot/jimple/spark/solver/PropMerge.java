@@ -31,7 +31,7 @@ import java.util.*;
 public final class PropMerge extends Propagator {
     protected final Set<Node> varNodeWorkList = new TreeSet<Node>();
 
-    public PropMerge( PAG pag ) { this.pag = pag; }
+    public PropMerge( PAG pag ) { super(pag); }
     /** Actually does the propagation. */
     public final void propagate() {
         new TopoSorter( pag, false ).sort();
@@ -152,7 +152,6 @@ public final class PropMerge extends Propagator {
 	return ret;
     }
 
-    protected PAG pag;
 }
 
 

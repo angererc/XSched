@@ -2,6 +2,8 @@ package xsched.analysis.schedule;
 
 import java.util.HashMap;
 
+import soot.MethodContext;
+import soot.MethodOrMethodContext;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Type;
@@ -13,17 +15,15 @@ public class Schedule {
 
 	private HashMap<AllocNode, ScheduleNode> nodesByAllocationNode = new HashMap<AllocNode, ScheduleNode>();
 	
-	private final PAG pag;
-	
 	public final ScheduleNode exitNode;
 	
 	public Schedule(PAG pag) {
-		this.pag = pag;
 		Type activationType = Scene.v().getRefType(Activation.class.getName());
-        AllocNode exit = this.pag.makeAllocNode(this, activationType, null);
+        AllocNode exit = pag.makeAllocNode(this, activationType, null);
 		this.exitNode = new ScheduleNode(exit, null);
 		nodesByAllocationNode.put(exit, exitNode);
 	}
+	
 		
 	public ScheduleNode addNode(AllocNode allocSite, SootMethod task) {
 		assert(allocSite.getType().equals(Scene.v().getRefType(Activation.class.getName()))) : "alloc node is not an activation";
@@ -36,7 +36,8 @@ public class Schedule {
 		
 		//make sure that the soot method is considered to be reachable
 		//this will have the effect that the OnFlyCallGraph creates new nodes in the pag through the MethodPAG
-		node.addToCallGraph();
+		MethodOrMethodContext context = MethodContext.v(task, node);
+		Scene.v().getReachableMethods().addCustomMethodOrMethodContext(context);
 		
 		return node;
 	}

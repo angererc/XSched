@@ -32,7 +32,7 @@ import java.util.*;
 public final class PropWorklist extends Propagator {
     protected final Set<VarNode> varNodeWorkList = new TreeSet<VarNode>();
 
-    public PropWorklist( PAG pag ) { this.pag = pag; }
+    public PropWorklist( PAG pag ) { super(pag); }
     /** Actually does the propagation. */
     public final void propagate() {
         ofcg = pag.getOnFlyCallGraph();
@@ -255,7 +255,6 @@ public final class PropWorklist extends Propagator {
 	} );
     }
     
-    protected PAG pag;
     protected OnFlyCallGraph ofcg;
 }
 
