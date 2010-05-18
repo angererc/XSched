@@ -33,6 +33,7 @@ import soot.util.queue.*;
 import soot.options.SparkOptions;
 import soot.tagkit.*;
 import soot.toolkits.scalar.Pair;
+import xsched.analysis.XSchedAnalyzer;
 
 /** Pointer assignment graph.
  * @author Ondrej Lhotak
@@ -636,7 +637,7 @@ public class PAG implements PointsToAnalysis {
 
     public boolean addAllocEdge( AllocNode from, VarNode to ) {
         FastHierarchy fh = typeManager.getFastHierarchy();
-        if( fh == null || to.getType() == null 
+        if( fh == null || to.getType() == null         
         || fh.canStoreType( from.getType(), to.getType() ) ) {
             if( doAddAllocEdge( from, to ) ) {
                 edgeQueue.add( from );

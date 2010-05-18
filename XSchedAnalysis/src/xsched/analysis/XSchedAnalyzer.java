@@ -1,5 +1,6 @@
 package xsched.analysis;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 
@@ -12,15 +13,16 @@ import soot.jimple.spark.builder.ContextInsensitiveBuilder;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.PAGDumper;
+import soot.jimple.spark.sets.PointsToSetInternal;
 import soot.jimple.spark.solver.PropIter;
 import soot.jimple.spark.solver.Propagator;
 import soot.options.SparkOptions;
 import soot.toolkits.scalar.Pair;
 
 import xsched.Activation;
+import xsched.analysis.schedule.ActivationNode;
 import xsched.analysis.schedule.Heap;
 import xsched.analysis.schedule.Schedule;
-import xsched.analysis.schedule.ScheduleNode;
 import xsched.analysis.schedule.Heap.NewActivationRecord;
 import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
 
@@ -64,16 +66,18 @@ public class XSchedAnalyzer {
 		
 		loadInitialSootClasses(taskMethodSignature);
 		createPAG();
-		ScheduleNode enterNode = initSchedule(taskMethodSignature);
+		ActivationNode enterNode = initSchedule(taskMethodSignature);
 		
 		new PAGDumper( pag, outputDir ).dump();
 		propagator = new PropIter(pag);
 		analyzeScheduleNode(enterNode);
 	}
 	
-	private void analyzeScheduleNode(ScheduleNode node) {
+	private void analyzeScheduleNode(ActivationNode node) {
 		PAG incomingPAG = pag;
 		propagator.setPAG(incomingPAG);
+		node.initializePAG(incomingPAG);
+		
 		Heap resultHeap = new Heap(incomingPAG);
 		
 		propagator.propagate();
@@ -88,14 +92,15 @@ public class XSchedAnalyzer {
 		System.out.println(newDeclarations.getO2());
 	}
 	
-	private ScheduleNode initSchedule(String taskMethodSignature)
+	private ActivationNode initSchedule(String taskMethodSignature)
     {
 		SootMethod initialTask = Scene.v().getMethod(taskMethodSignature);
 		
-        this.schedule = new Schedule(pag);
+        this.schedule = new Schedule();
         
-        AllocNode enter = pag.makeAllocNode(this, ACTIVATION_TYPE, null);
-        ScheduleNode enterNode = this.schedule.addNode(enter, initialTask);
+        AllocNode enterActivation = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
+        AllocNode enterInstance = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
+        ActivationNode enterNode = this.schedule.addActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<PointsToSetInternal>());
         
         this.schedule.addHappensBefore(enterNode, this.schedule.exitNode);
         

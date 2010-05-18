@@ -105,7 +105,7 @@ public class Heap {
 
 				} else if (which.equals(0)) {
 					assert (act.receiver == null);
-					//TODO: here, src.p2set is currently null, because the assignment of r0 to this doesn't do anything...
+					assert(src.getP2SetForReal() != null);
 					act.receiver = src.getP2Set();
 				} else if (which.equals(1)) {
 					assert (act.task == null);

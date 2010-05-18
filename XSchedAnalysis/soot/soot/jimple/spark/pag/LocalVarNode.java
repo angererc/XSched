@@ -18,39 +18,47 @@
  */
 
 package soot.jimple.spark.pag;
+
 import soot.*;
 import java.util.*;
 
-/** Represents a simple variable node (Green) in the pointer assignment graph
+/**
+ * Represents a simple variable node (Green) in the pointer assignment graph
  * that is specific to a particular method invocation.
+ * 
  * @author Ondrej Lhotak
  */
 public class LocalVarNode extends VarNode {
-    public ContextVarNode context( Object context ) 
-    { return cvns == null ? null : cvns.get( context ); }
+	public ContextVarNode context(Object context) {
+		return cvns == null ? null : cvns.get(context);
+	}
 
-    public SootMethod getMethod() {
-        return method;
-    }
-    public String toString() {
-	return "LocalVarNode "+getNumber()+" "+variable+" "+method;
-    }
-    /* End of public methods. */
+	public SootMethod getMethod() {
+		return method;
+	}
 
-    LocalVarNode( PAG pag, Object variable, Type t, SootMethod m ) {
-	super( pag, variable, t );
-        this.method = m;
-        //if( m == null ) throw new RuntimeException( "method shouldn't be null" );
-    }
-    /** Registers a cvn as having this node as its base. */
-    void addContext( ContextVarNode cvn, Object context ) {
-	if( cvns == null ) cvns = new HashMap<Object, ContextVarNode>();
-	cvns.put( context, cvn );
-    }
+	public String toString() {
+		return "LocalVarNode " + getNumber() + " " + variable + " " + method;
+	}
 
-    /* End of package methods. */
+	/* End of public methods. */
 
-    protected Map<Object, ContextVarNode> cvns;
-    protected SootMethod method;
+	LocalVarNode(PAG pag, Object variable, Type t, SootMethod m) {
+		super(pag, variable, t);
+		this.method = m;
+		// if( m == null ) throw new RuntimeException(
+		// "method shouldn't be null" );
+	}
+
+	/** Registers a cvn as having this node as its base. */
+	void addContext(ContextVarNode cvn, Object context) {
+		if (cvns == null)
+			cvns = new HashMap<Object, ContextVarNode>();
+		cvns.put(context, cvn);
+	}
+
+	/* End of package methods. */
+
+	protected Map<Object, ContextVarNode> cvns;
+	protected SootMethod method;
 }
-

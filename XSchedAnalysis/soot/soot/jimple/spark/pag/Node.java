@@ -86,6 +86,20 @@ public class Node implements ReferenceVariable, Numberable {
         }
         return rep.getP2Set();
     }
+    
+    public PointsToSetInternal getP2SetForReal() {
+    	return p2set;
+    }
+    
+    public void setP2Set(PointsToSetInternal p2set) {
+    	assert(this.p2set== null);
+    	if(replacement == this) {
+    		this.p2set = p2set;
+    	} else {
+    		replacement.setP2Set(p2set);
+    	}    	
+    }
+    
     /** Returns the points-to set for this node, makes it if necessary. */
     public PointsToSetInternal makeP2Set() {
         if( p2set != null ) {
