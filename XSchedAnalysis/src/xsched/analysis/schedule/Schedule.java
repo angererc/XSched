@@ -8,7 +8,7 @@ import soot.MethodOrMethodContext;
 import soot.Scene;
 import soot.SootMethod;
 import soot.jimple.spark.pag.AllocNode;
-import soot.jimple.spark.sets.PointsToSetInternal;
+import soot.jimple.spark.pag.Node;
 import xsched.analysis.XSchedAnalyzer;
 
 public class Schedule {
@@ -20,8 +20,12 @@ public class Schedule {
 	public Schedule() {		        
 		this.exitNode = new ExitNode();		
 	}
+	
+	public BranchNode addBranchNode(List<ScheduleNode> options) {
+		return new BranchNode(options);
+	}
 			
-	public ActivationNode addActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<PointsToSetInternal> params) {
+	public ActivationNode addActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
 		assert(activation.getType().equals(XSchedAnalyzer.ACTIVATION_TYPE)) : "alloc node is not an activation";
 		
 		if(nodesByAllocationNode.containsKey(activation)) {
@@ -42,6 +46,10 @@ public class Schedule {
 		Scene.v().getReachableMethods().addCustomMethodOrMethodContext(context);
 		
 		return node;
+	}
+	
+	public ActivationNode activationNodeForAllocNode(AllocNode node) {
+		return nodesByAllocationNode.get(node);
 	}
 	
 	public void addHappensBefore(ScheduleNode earlier, ScheduleNode later) {

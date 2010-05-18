@@ -3,6 +3,7 @@ package xsched.analysis;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 
 import soot.Scene;
 import soot.SootClass;
@@ -11,9 +12,8 @@ import soot.SourceLocator;
 import soot.Type;
 import soot.jimple.spark.builder.ContextInsensitiveBuilder;
 import soot.jimple.spark.pag.AllocNode;
+import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
-import soot.jimple.spark.pag.PAGDumper;
-import soot.jimple.spark.sets.PointsToSetInternal;
 import soot.jimple.spark.solver.PropIter;
 import soot.jimple.spark.solver.Propagator;
 import soot.options.SparkOptions;
@@ -23,6 +23,7 @@ import xsched.Activation;
 import xsched.analysis.schedule.ActivationNode;
 import xsched.analysis.schedule.Heap;
 import xsched.analysis.schedule.Schedule;
+import xsched.analysis.schedule.ScheduleNode;
 import xsched.analysis.schedule.Heap.NewActivationRecord;
 import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
 import xsched.utils.PAG2DOT;
@@ -74,12 +75,42 @@ public class XSchedAnalyzer {
 		analyzeScheduleNode(enterNode);
 	}
 	
-	private void analyzeScheduleNode(ActivationNode node) {
-		PAG incomingPAG = pag;
-		propagator.setPAG(incomingPAG);
-		node.initializePAG(incomingPAG);
+	private void createActivationNode(ActivationNode parent, NewActivationRecord record) {
+		List<Node> receivers = record.receivers().contents();
 		
-		Heap resultHeap = new Heap(incomingPAG);
+		if(receivers.size() == 1) {
+			AllocNode receiver = (AllocNode)receivers.get(0);
+			ScheduleNode newNode = schedule.addActivationNode(record.activation(), receiver, record.taskForReceiver(receiver), record.params());
+			schedule.addHappensBefore(parent, newNode);
+		} else {
+			List<ScheduleNode> options = new ArrayList<ScheduleNode>();
+			for(Node receiver : receivers) {
+				ScheduleNode option = schedule.addActivationNode(record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
+				options.add(option);
+			}
+			ScheduleNode newNode = schedule.addBranchNode(options);
+			schedule.addHappensBefore(parent, newNode);
+		}
+	}
+	
+	private void createHBRelationships(NewHBRelationshipRecord record) {
+		List<Node> lhsds = record.lhs().contents();
+		List<Node> rhsds = record.rhs().contents();
+		
+		for(Node lhs : lhsds) {
+			for(Node rhs : rhsds) {
+				ActivationNode lhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)lhs);
+				ActivationNode rhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)rhs);
+				schedule.addHappensBefore(lhsScheduleNode, rhsScheduleNode);
+			}
+		}
+	}
+	
+	private void analyzeScheduleNode(ActivationNode node) {
+		
+		node.initializePAG(pag);
+		
+		Heap resultHeap = new Heap(pag);
 		propagator.propagate();
 		
 		propagator.donePropagating();
@@ -89,6 +120,14 @@ public class XSchedAnalyzer {
 		node.setResultHeap(resultHeap);
 		
 		Pair<Collection<NewActivationRecord>, Collection<NewHBRelationshipRecord>> newDeclarations = resultHeap.findNewHBDeclarations();
+		
+		for(NewActivationRecord activationRecord : newDeclarations.getO1()) {
+			createActivationNode(node, activationRecord);
+		}
+		
+		for(NewHBRelationshipRecord hbRecord : newDeclarations.getO2()) {
+			createHBRelationships(hbRecord);
+		}
 		
 		System.out.println(newDeclarations.getO1());
 		System.out.println(newDeclarations.getO2());
@@ -102,7 +141,7 @@ public class XSchedAnalyzer {
         
         AllocNode enterActivation = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
         AllocNode enterInstance = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
-        ActivationNode enterNode = this.schedule.addActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<PointsToSetInternal>());
+        ActivationNode enterNode = this.schedule.addActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<Node>());
         
         this.schedule.addHappensBefore(enterNode, this.schedule.exitNode);
         

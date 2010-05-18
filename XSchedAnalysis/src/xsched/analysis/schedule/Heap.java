@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import soot.PointsToAnalysis;
+import soot.Scene;
+import soot.SootClass;
 import soot.SootMethod;
 import soot.Value;
 import soot.jimple.InvokeExpr;
@@ -44,19 +46,39 @@ public class Heap {
 		public String toString() {
 			return "happens-before declaration: " + lhs + " -> " + rhs;
 		}
+		public PointsToSetInternal lhs() {
+			return lhs;
+		}
+		
+		public PointsToSetInternal rhs() {
+			return rhs;
+		}
 	}
 
 	public static class NewActivationRecord {
 		public final InvokeExpr source;
 		private AllocNode activation;
-		private PointsToSetInternal receiver;
+		private PointsToSetInternal receivers;
 		private String task;
-		private ArrayList<PointsToSetInternal> params = new ArrayList<PointsToSetInternal>();
+		private ArrayList<Node> params = new ArrayList<Node>();
 		private NewActivationRecord(InvokeExpr source) {
 			this.source = source;
 		}
 		public String toString() {
-			return "schedule declaration: " + activation + " := " + receiver + "." + task + "(" + params + ")";
+			return "schedule declaration: " + activation + " := " + receivers + "." + task + "(" + params + ")";
+		}
+		public AllocNode activation() {
+			return activation;
+		}
+		public PointsToSetInternal receivers() {
+			return receivers;
+		}
+		public List<Node> params() {
+			return params;
+		}
+		public SootMethod taskForReceiver(Node receiver) {
+			SootClass receiverClass = Scene.v().getSootClass(receiver.getType().toString());
+			return receiverClass.getMethodByName(task);			
 		}
 	}
 
@@ -104,9 +126,9 @@ public class Heap {
 					act.activation = (AllocNode) allocs.get(0);
 
 				} else if (which.equals(0)) {
-					assert (act.receiver == null);
+					assert (act.receivers == null);
 					assert(src.getP2SetForReal() != null);
-					act.receiver = src.getP2Set();
+					act.receivers = src.getP2Set();
 				} else if (which.equals(1)) {
 					assert (act.task == null);
 					assert (src instanceof GlobalVarNode);
@@ -121,9 +143,8 @@ public class Heap {
 					assert (which instanceof Integer);
 					// we assume that the param edges were created in the
 					// correct order, so we don't check too much here
-					assert (((Integer) which).intValue() - 2 == act.params
-							.size());
-					act.params.add(src.getP2Set());
+					assert (((Integer) which).intValue() - 2 == act.params.size());
+					act.params.add(src);
 				}
 
 			} else if (ie.getMethod().equals(XSchedAnalyzer.HB_METHOD)) {

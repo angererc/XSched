@@ -7,20 +7,20 @@ import soot.PointsToAnalysis;
 import soot.Scene;
 import soot.SootMethod;
 import soot.jimple.spark.pag.AllocNode;
+import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.VarNode;
-import soot.jimple.spark.sets.PointsToSetInternal;
 import soot.toolkits.scalar.Pair;
 
 public class ActivationNode extends ScheduleNode {
 	public final AllocNode activation;
 	public final AllocNode receiver;
 	public final SootMethod task;
-	public final List<PointsToSetInternal> params;
+	public final List<Node> params;
 	
 	private Heap resultHeap;
 		
-	public ActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<PointsToSetInternal> params) {
+	ActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
 		this.activation = activation;
 		this.receiver = receiver;
 		this.task = task;
@@ -41,6 +41,7 @@ public class ActivationNode extends ScheduleNode {
 	}
 	
 	public void initializePAG(PAG pag) {
+		
 		//add an edge from the alloc node to the this node
 		VarNode thisNode = pag.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);
 		pag.addAllocEdge(receiver, thisNode);
@@ -48,7 +49,7 @@ public class ActivationNode extends ScheduleNode {
 		for(int i = 0; i < params.size(); i++) {
 			VarNode paramNode = pag.findContextVarNode(new Pair<SootMethod,Integer>(task,i), this);
 			assert (paramNode != null);
-			paramNode.setP2Set(params.get(i));
+			pag.addEdge(params.get(i), paramNode);			
 		}
 	}
 }
