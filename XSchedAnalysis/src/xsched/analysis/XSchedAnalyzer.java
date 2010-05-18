@@ -25,6 +25,7 @@ import xsched.analysis.schedule.Heap;
 import xsched.analysis.schedule.Schedule;
 import xsched.analysis.schedule.Heap.NewActivationRecord;
 import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
+import xsched.utils.PAG2DOT;
 
 /*
  * the XSchedAnalyzer is modelled after the SparkTransformer
@@ -68,7 +69,7 @@ public class XSchedAnalyzer {
 		createPAG();
 		ActivationNode enterNode = initSchedule(taskMethodSignature);
 		
-		new PAGDumper( pag, outputDir ).dump();
+		new PAG2DOT().dump(pag, outputDir + "/before.dot");
 		propagator = new PropIter(pag);
 		analyzeScheduleNode(enterNode);
 	}
@@ -79,10 +80,11 @@ public class XSchedAnalyzer {
 		node.initializePAG(incomingPAG);
 		
 		Heap resultHeap = new Heap(incomingPAG);
-		
 		propagator.propagate();
 		
 		propagator.donePropagating();
+		
+		new PAG2DOT().dump(pag, outputDir + "/after.dot");
 		
 		node.setResultHeap(resultHeap);
 		

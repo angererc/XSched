@@ -359,6 +359,11 @@ public class PAG implements PointsToAnalysis {
     { return lookup( alloc, key ); }
     public Node[] allocInvLookup( VarNode key ) 
     { return lookup( allocInv, key ); }
+    
+    public Map<Object, Object> storeEdges() { return store; }
+    public Map<Object, Object> allocEdges() { return alloc; }
+    public Map<Object, Object> loadEdges() { return load; }
+    public Map<Object, Object> simpleEdges() { return simple; }
     public Set<Object> simpleSources() { return simple.keySet(); }
     public Set<Object> allocSources() { return alloc.keySet(); }
     public Set<Object> storeSources() { return store.keySet(); }
