@@ -78,8 +78,8 @@ public class XSchedAnalyzer {
         AllocNode enterInstance = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
         ActivationNode enterNode = this.schedule.addActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<Node>());
         
-        this.schedule.addHappensBefore(enterNode, this.schedule.exitNode);
-        
+        enterNode.addHappensBefore(this.schedule.exitNode);
+                
         //update the call graph
         pag.getOnFlyCallGraph().build();
         return enterNode;

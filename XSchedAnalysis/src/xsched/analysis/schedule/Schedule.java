@@ -1,5 +1,6 @@
 package xsched.analysis.schedule;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -14,6 +15,9 @@ import xsched.analysis.XSchedAnalyzer;
 public class Schedule {
 
 	private HashMap<AllocNode, ActivationNode> nodesByAllocationNode = new HashMap<AllocNode, ActivationNode>();
+	
+	private HashMap<ScheduleNode,List<ScheduleNode>> outgoingEdges = new HashMap<ScheduleNode,List<ScheduleNode>>();
+	private HashMap<ScheduleNode,List<ScheduleNode>> incomingEdges = new HashMap<ScheduleNode,List<ScheduleNode>>();
 	
 	public final ScheduleNode exitNode;
 	
@@ -52,7 +56,29 @@ public class Schedule {
 		return nodesByAllocationNode.get(node);
 	}
 	
-	public void addHappensBefore(ScheduleNode earlier, ScheduleNode later) {
+	//called by nodes
+	
+	void addHappensBefore(ScheduleNode earlier, ScheduleNode later) {
+		List<ScheduleNode> outgoing = outgoingEdges.get(earlier);
+		if(outgoing == null) {
+			outgoing = new ArrayList<ScheduleNode>();
+			outgoingEdges.put(earlier, outgoing);
+		}
+		outgoing.add(later);
 		
+		List<ScheduleNode> incoming = incomingEdges.get(later);
+		if(incoming == null) {
+			incoming = new ArrayList<ScheduleNode>();
+			incomingEdges.put(earlier, incoming);
+		}
+		incoming.add(earlier);
+	}
+	
+	List<ScheduleNode> incomingEdges(ScheduleNode node) {
+		return incomingEdges.get(node);
+	}
+	
+	List<ScheduleNode> outgoingEdges(ScheduleNode node) {
+		return outgoingEdges.get(node);
 	}
 }
