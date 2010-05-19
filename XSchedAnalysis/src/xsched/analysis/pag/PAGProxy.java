@@ -32,10 +32,12 @@ import soot.jimple.spark.pag.SparkField;
 import soot.jimple.spark.pag.VarNode;
 import soot.jimple.spark.sets.P2SetFactory;
 import soot.jimple.spark.solver.OnFlyCallGraph;
+import soot.jimple.toolkits.pointer.util.NativeMethodDriver;
 import soot.options.SparkOptions;
 import soot.tagkit.Tag;
 import soot.toolkits.scalar.Pair;
 import soot.util.ArrayNumberer;
+import soot.util.HashMultiMap;
 import soot.util.queue.QueueReader;
 import xsched.analysis.XSchedAnalyzer;
 
@@ -48,6 +50,36 @@ public class PAGProxy extends PAG {
 	public PAGProxy(PAG parent) {
 		super(parent.opts());
 		this.parent = parent;
+	}
+
+	@Override
+	public HashMultiMap callAssigns() {
+		// TODO Auto-generated method stub
+		return super.callAssigns();
+	}
+
+	@Override
+	public Map<InvokeExpr, SootMethod> callToMethod() {
+		// TODO Auto-generated method stub
+		return super.callToMethod();
+	}
+
+	@Override
+	public SparkOptions opts() {
+		// TODO Auto-generated method stub
+		return super.opts();
+	}
+
+	@Override
+	public void setNativeMethodDriver(NativeMethodDriver driver) {
+		// TODO Auto-generated method stub
+		super.setNativeMethodDriver(driver);
+	}
+
+	@Override
+	public Map<InvokeExpr, Node> virtualCallsToReceivers() {
+		// TODO Auto-generated method stub
+		return super.virtualCallsToReceivers();
 	}
 
 	public Collection<NewHBRelationshipRecord> newHBRelationshipRecords() {

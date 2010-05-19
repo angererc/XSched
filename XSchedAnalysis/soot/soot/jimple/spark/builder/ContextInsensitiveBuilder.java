@@ -57,7 +57,7 @@ public class ContextInsensitiveBuilder {
     public PAG setup( SparkOptions opts ) {
         pag = new PAG( opts );
         if( opts.simulate_natives() ) {
-            pag.nativeMethodDriver = new NativeMethodDriver(new SparkNativeHelper(pag));
+            pag.setNativeMethodDriver(new NativeMethodDriver(new SparkNativeHelper(pag)));
         }
         if( opts.on_fly_cg() && !opts.vta() ) {
             ofcg = new OnFlyCallGraph( pag );

@@ -170,7 +170,7 @@ public class ContextSensitiveInfo {
             }
         }
         // now handle calls
-        HashMultiMap callAssigns = pag.callAssigns;
+        HashMultiMap callAssigns = pag.callAssigns();
         PrintWriter callSiteWriter = null;
         if (PRINT_CALL_SITE_INFO) {
             try {
@@ -184,14 +184,14 @@ public class ContextSensitiveInfo {
             InvokeExpr ie = (InvokeExpr) iter.next();
             Integer callSite = new Integer(callSiteNum++);
             callSiteToInvokedMethod.put(callSite, ie.getMethod());
-            SootMethod invokingMethod = pag.callToMethod.get(ie);
+            SootMethod invokingMethod = pag.callToMethod().get(ie);
             callSiteToInvokingMethod.put(callSite, invokingMethod);
             if (PRINT_CALL_SITE_INFO) {
                 callSiteWriter.println(callSite + " "
                         + callSiteToInvokingMethod.get(callSite) + " " + ie);
             }
-            if (pag.virtualCallsToReceivers.containsKey(ie)) {
-                LocalVarNode receiver = (LocalVarNode) pag.virtualCallsToReceivers
+            if (pag.virtualCallsToReceivers().containsKey(ie)) {
+                LocalVarNode receiver = (LocalVarNode) pag.virtualCallsToReceivers()
                         .get(ie);
                 assert receiver != null;
                 virtCallSiteToReceiver.put(callSite, receiver);

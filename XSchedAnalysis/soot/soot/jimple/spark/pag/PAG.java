@@ -452,7 +452,7 @@ public class PAG implements PointsToAnalysis {
 	return ret;
     }
 
-    ChunkedQueue newAllocNodes = new ChunkedQueue();
+    protected ChunkedQueue newAllocNodes = new ChunkedQueue();
     public QueueReader allocNodeListener() { return newAllocNodes.reader(); }
 
     /** Finds the GlobalVarNode for the variable value, or returns null. */
@@ -1045,15 +1045,30 @@ public class PAG implements PointsToAnalysis {
     private final ArrayList<VarNode> dereferences = new ArrayList<VarNode>();
     protected TypeManager typeManager;
     private final LargeNumberedMap localToNodeMap = new LargeNumberedMap( Scene.v().getLocalNumberer() );
-    public int maxFinishNumber = 0;
+    protected int maxFinishNumber = 0;
     private Map<Node, Tag> nodeToTag;
     private final GlobalNodeFactory nodeFactory = new GlobalNodeFactory(this);
     public GlobalNodeFactory nodeFactory() { return nodeFactory; }
-    public NativeMethodDriver nativeMethodDriver;
+    
+    public void setNativeMethodDriver(NativeMethodDriver driver) {
+    	this.nativeMethodDriver = driver;
+    }
+    protected NativeMethodDriver nativeMethodDriver;
 
-    public HashMultiMap /* InvokeExpr -> Set[Pair] */ callAssigns = new HashMultiMap();
-    public Map<InvokeExpr, SootMethod> callToMethod = new HashMap<InvokeExpr, SootMethod>(); 
-    public Map<InvokeExpr, Node> virtualCallsToReceivers = new HashMap<InvokeExpr, Node>();
+    public HashMultiMap callAssigns() {
+    	return this.callAssigns;
+    }
+    protected HashMultiMap /* InvokeExpr -> Set[Pair] */ callAssigns = new HashMultiMap();
+    
+    public Map<InvokeExpr, SootMethod> callToMethod() {
+    	return this.callToMethod;
+    }
+    protected Map<InvokeExpr, SootMethod> callToMethod = new HashMap<InvokeExpr, SootMethod>(); 
+    
+    public Map<InvokeExpr, Node> virtualCallsToReceivers() {
+    	return this.virtualCallsToReceivers;
+    }
+    protected Map<InvokeExpr, Node> virtualCallsToReceivers = new HashMap<InvokeExpr, Node>();
     
 }
 
