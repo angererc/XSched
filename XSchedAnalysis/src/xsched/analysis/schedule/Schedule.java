@@ -25,11 +25,13 @@ public class Schedule {
 		this.exitNode = new ExitNode(this);		
 	}
 	
-	public BranchNode addBranchNode(List<ScheduleNode> options) {
-		return new BranchNode(this, options);
+	BranchNode addBranchNode(ScheduleNode parent, List<ScheduleNode> options) {
+		BranchNode branch = new BranchNode(this, parent, options);
+		branch.addHappensBefore(branch.joinNode);
+		return branch;
 	}
-			
-	public ActivationNode addActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+				
+	public ActivationNode addActivationNode(ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
 		assert(activation.getType().equals(XSchedAnalyzer.ACTIVATION_TYPE)) : "alloc node is not an activation";
 		
 		if(nodesByAllocationNode.containsKey(activation)) {
@@ -41,7 +43,7 @@ public class Schedule {
 		}
 		
 		//new schedule node
-		ActivationNode node = new ActivationNode(this, activation, receiver, task, params);
+		ActivationNode node = new ActivationNode(this, parent, activation, receiver, task, params);
 		nodesByAllocationNode.put(activation, node);
 		
 		//make sure that the soot method is considered to be reachable

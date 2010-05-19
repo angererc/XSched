@@ -27,8 +27,8 @@ public class ActivationNode extends ScheduleNode {
 	
 	private Heap resultHeap;
 		
-	ActivationNode(Schedule schedule, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
-		super(schedule);
+	ActivationNode(Schedule schedule, ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+		super(schedule, parent);
 		this.activation = activation;
 		this.receiver = receiver;
 		this.task = task;
@@ -62,16 +62,16 @@ public class ActivationNode extends ScheduleNode {
 		
 		if(receivers.size() == 1) {
 			AllocNode receiver = (AllocNode)receivers.get(0);
-			ScheduleNode newNode = schedule.addActivationNode(record.activation(), receiver, record.taskForReceiver(receiver), record.params());
-			schedule.addHappensBefore(this, newNode);
+			ScheduleNode newNode = schedule.addActivationNode(this, record.activation(), receiver, record.taskForReceiver(receiver), record.params());
+			this.addHappensBefore(newNode);
 		} else {
 			List<ScheduleNode> options = new ArrayList<ScheduleNode>();
 			for(Node receiver : receivers) {
-				ScheduleNode option = schedule.addActivationNode(record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
+				ScheduleNode option = schedule.addActivationNode(this, record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
 				options.add(option);
 			}
-			ScheduleNode newNode = schedule.addBranchNode(options);
-			schedule.addHappensBefore(this, newNode);
+			ScheduleNode newNode = schedule.addBranchNode(this, options);
+			this.addHappensBefore(newNode);
 		}
 	}
 	
@@ -83,7 +83,7 @@ public class ActivationNode extends ScheduleNode {
 			for(Node rhs : rhsds) {
 				ActivationNode lhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)lhs);
 				ActivationNode rhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)rhs);
-				schedule.addHappensBefore(lhsScheduleNode, rhsScheduleNode);
+				lhsScheduleNode.addHappensBefore(rhsScheduleNode);
 			}
 		}
 	}

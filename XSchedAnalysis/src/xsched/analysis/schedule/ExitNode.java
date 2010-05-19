@@ -4,7 +4,7 @@ import soot.jimple.spark.solver.Propagator;
 
 public class ExitNode extends ScheduleNode {
 	ExitNode(Schedule schedule) {
-		super(schedule);
+		super(schedule, null);
 	}
 
 	@Override

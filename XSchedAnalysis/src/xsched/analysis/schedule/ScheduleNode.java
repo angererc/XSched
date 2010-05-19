@@ -6,9 +6,13 @@ import soot.Context;
 import soot.jimple.spark.solver.Propagator;
 
 public abstract class ScheduleNode implements Context {
+	
 	protected final Schedule schedule;
-	ScheduleNode(Schedule schedule) {
+	protected final ScheduleNode parent;
+	
+	ScheduleNode(Schedule schedule, ScheduleNode parent) {
 		this.schedule = schedule;
+		this.parent = parent;
 	}
 	
 	public abstract void analyze(Propagator propagator);

@@ -6,9 +6,12 @@ import soot.jimple.spark.solver.Propagator;
 
 public class BranchNode extends ScheduleNode {
 	private List<ScheduleNode> options;
-	BranchNode(Schedule schedule, List<ScheduleNode> options) {
-		super(schedule);
+	final JoinNode joinNode;
+	
+	BranchNode(Schedule schedule, ScheduleNode parent, List<ScheduleNode> options) {
+		super(schedule, parent);
 		this.options = options;
+		this.joinNode = new JoinNode(schedule, parent, this);
 	}
 	public List<ScheduleNode> options() {
 		return options;
