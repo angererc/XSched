@@ -32,6 +32,7 @@ import soot.PointsToSet;
 import soot.Scene;
 import soot.Type;
 import soot.util.queue.QueueReader;
+import xsched.analysis.ScheduleAwareContextManager;
 
 /** Models the call graph.
  * @author Ondrej Lhotak
@@ -49,7 +50,7 @@ public final class CallGraphBuilder
     public static ContextManager makeContextManager( CallGraph cg ) {
     	//note, that the contextinsensitive context manager doesn't work too well for the xschedule analysis
     	//because it strips the schedule node as the context from the source of a call
-        return new OneCFAContextManager( cg );
+        return new ScheduleAwareContextManager( cg );
     }
 
     /** This constructor builds a complete call graph using the given
