@@ -107,7 +107,6 @@ public class Scene  //extends AbstractHost
     private Hierarchy activeHierarchy;
     private FastHierarchy activeFastHierarchy;
     private CallGraph activeCallGraph;
-    private ReachableMethods reachableMethods;
     private PointsToAnalysis activePointsToAnalysis;
     private SideEffectAnalysis activeSideEffectAnalysis;
     private List<SootMethod> entryPoints;
@@ -715,7 +714,6 @@ public class Scene  //extends AbstractHost
     
     public void setCallGraph(CallGraph cg)
     {
-        reachableMethods = null;
         activeCallGraph = cg;
     }
 
@@ -727,26 +725,8 @@ public class Scene  //extends AbstractHost
     public void releaseCallGraph()
     {
         activeCallGraph = null;
-        reachableMethods = null;
     }
-    public ReachableMethods getReachableMethods() {
-        if( reachableMethods == null ) {
-            reachableMethods = new ReachableMethods(
-                    getCallGraph(), new ArrayList<MethodOrMethodContext>(getEntryPoints()) );
-        }
-        reachableMethods.update();
-        return reachableMethods;
-    }
-    public void setReachableMethods( ReachableMethods rm ) {
-        reachableMethods = rm;
-    }
-    public boolean hasReachableMethods() {
-        return reachableMethods != null;
-    }
-    public void releaseReachableMethods() {
-        reachableMethods = null;
-    }
-   
+    
     public boolean getPhantomRefs()
     {
         //if( !Options.v().allow_phantom_refs() ) return false;

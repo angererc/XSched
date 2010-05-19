@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import soot.FastHierarchy;
+import soot.MethodContext;
+import soot.MethodOrMethodContext;
 import soot.PointsToAnalysis;
 import soot.Scene;
 import soot.SootMethod;
@@ -45,6 +47,12 @@ public class ActivationNode extends ScheduleNode {
 	}
 	
 	private void initializePAG(PAG pag) {
+		
+		//make sure that the soot method is considered to be reachable
+		//this will have the effect that the OnFlyCallGraph creates new nodes in the pag through the MethodPAG
+		MethodOrMethodContext context = MethodContext.v(task, this);
+		pag.getOnFlyCallGraph().callGraph().reachableMethods().addCustomMethodOrMethodContext(context);
+		pag.getOnFlyCallGraph().build();
 		
 		//add an edge from the alloc node to the this node
 		VarNode thisNode = pag.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);

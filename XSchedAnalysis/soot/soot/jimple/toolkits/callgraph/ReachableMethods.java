@@ -42,6 +42,7 @@ public class ReachableMethods
     public ReachableMethods( CallGraph graph, Iterator<MethodOrMethodContext> entryPoints, Filter filter ) {
         this.filter = filter;
         this.cg = graph;
+        this.cg.setReachableMethods(this);
         addMethods( entryPoints );
         unprocessedMethods = reachables.reader();
         this.edgeSource = graph.listener();

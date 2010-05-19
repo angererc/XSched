@@ -42,7 +42,7 @@ public class UnreachableMethodsTagger extends SceneTransformer
             while (getMethodsIt.hasNext()) {
                 SootMethod method = (SootMethod)getMethodsIt.next();
                 //System.out.println("adding  method: "+method);
-                if (!Scene.v().getReachableMethods().contains(method)){
+                if (!Scene.v().getCallGraph().reachableMethods().contains(method)){
                     methodList.add(method);
                 }
             }

@@ -37,7 +37,7 @@ public class CallGraphTagger extends BodyTransformer {
         
         CallGraph cg = Scene.v().getCallGraph();
         if( methodToContexts == null ) {
-            methodToContexts = new MethodToContexts( Scene.v().getReachableMethods().listener() );
+            methodToContexts = new MethodToContexts( Scene.v().getCallGraph().reachableMethods().listener() );
         }
     
         Iterator stmtIt = b.getUnits().iterator();

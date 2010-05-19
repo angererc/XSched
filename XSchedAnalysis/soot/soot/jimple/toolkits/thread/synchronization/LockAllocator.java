@@ -801,7 +801,7 @@ public class LockAllocator extends SceneTransformer
 						}
 						printedHeading = true;
 					}
-					if(Scene.v().getReachableMethods().contains(tn.method))
+					if(Scene.v().getCallGraph().reachableMethods().contains(tn.method))
 						G.v().out.println("[transaction-graph] " + tn.name + " [name=\"" + tn.method.toString() + "\" style=\"setlinewidth(3)\"];");
 					else
 						G.v().out.println("[transaction-graph] " + tn.name + " [name=\"" + tn.method.toString() + "\" color=cadetblue1 style=\"setlinewidth(1)\"];");
@@ -870,7 +870,7 @@ public class LockAllocator extends SceneTransformer
 						G.v().out.println("[transaction-graph] subgraph lone {\n[transaction-graph] rank=source;");
 						printedHeading = true;
 					}
-					if(Scene.v().getReachableMethods().contains(tn.method))
+					if(Scene.v().getCallGraph().reachableMethods().contains(tn.method))
 						G.v().out.println("[transaction-graph] " + tn.name + " [name=\"" + tn.method.toString() + "\" style=\"setlinewidth(3)\"];");
 					else
 						G.v().out.println("[transaction-graph] " + tn.name + " [name=\"" + tn.method.toString() + "\" color=cadetblue1 style=\"setlinewidth(1)\"];");
@@ -904,7 +904,7 @@ public class LockAllocator extends SceneTransformer
 			boolean reachable = false;
 			boolean mhpself = false;
 			{
-	    		ReachableMethods rm = Scene.v().getReachableMethods();
+	    		ReachableMethods rm = Scene.v().getCallGraph().reachableMethods();
 	    		reachable = rm.contains(tn.method);
 		    	if(mhp != null)
 		    		mhpself = mhp.mayHappenInParallel(tn.method, tn.method);

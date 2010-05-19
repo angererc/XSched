@@ -151,7 +151,7 @@ public class ClassLocalObjectsAnalysis
 	// Returns a list of reachable methods in class sc and its superclasses
 	public static List<SootMethod> getAllReachableMethods(SootClass sc)
 	{
-		ReachableMethods rm = Scene.v().getReachableMethods();
+		ReachableMethods rm = Scene.v().getCallGraph().reachableMethods();
 		
 		// Get list of reachable methods declared in this class
 		List<SootMethod> allMethods = new ArrayList<SootMethod>();

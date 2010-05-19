@@ -56,7 +56,7 @@ public class UnreachableFieldsTagger extends SceneTransformer
                 SootMethod sm = (SootMethod)mIt.next();
                 //System.out.println("checking method: "+sm.getName());
                 if (!sm.hasActiveBody()) continue;
-                if (!Scene.v().getReachableMethods().contains(sm)) continue;
+                if (!Scene.v().getCallGraph().reachableMethods().contains(sm)) continue;
                 Body b = sm.getActiveBody();
 
                 Iterator usesIt = b.getUseBoxes().iterator();

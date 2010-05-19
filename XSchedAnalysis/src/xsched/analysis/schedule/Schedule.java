@@ -4,9 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import soot.MethodContext;
-import soot.MethodOrMethodContext;
-import soot.Scene;
 import soot.SootMethod;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
@@ -49,11 +46,6 @@ public class Schedule {
 		//new schedule node
 		ActivationNode node = new ActivationNode(this, parent, activation, receiver, task, params);
 		nodesByAllocationNode.put(activation, node);
-		
-		//make sure that the soot method is considered to be reachable
-		//this will have the effect that the OnFlyCallGraph creates new nodes in the pag through the MethodPAG
-		MethodOrMethodContext context = MethodContext.v(task, node);
-		Scene.v().getReachableMethods().addCustomMethodOrMethodContext(context);
 		
 		return node;
 	}

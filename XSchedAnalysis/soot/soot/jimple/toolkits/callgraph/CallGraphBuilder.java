@@ -59,9 +59,9 @@ public final class CallGraphBuilder
         this.pa = pa;
         cg = new CallGraph();
         Scene.v().setCallGraph( cg );
-        reachables = Scene.v().getReachableMethods();
+        reachables = cg.reachableMethods();
         ContextManager cm = makeContextManager(cg);
-        ofcgb = new OnFlyCallGraphBuilder( cm, reachables );
+        ofcgb = new OnFlyCallGraphBuilder( cm );
    }
     /** This constructor builds the incomplete hack call graph for the
      * Dava ThrowFinder.
@@ -79,7 +79,7 @@ public final class CallGraphBuilder
         entryPoints.addAll( EntryPoints.v().implicit() );
         reachables = new ReachableMethods( cg, entryPoints );
         ContextManager cm = new ContextInsensitiveContextManager( cg );
-        ofcgb = new OnFlyCallGraphBuilder( cm, reachables, true );
+        ofcgb = new OnFlyCallGraphBuilder( cm, true );
     }
     public void build() {
         QueueReader worklist = reachables.listener();

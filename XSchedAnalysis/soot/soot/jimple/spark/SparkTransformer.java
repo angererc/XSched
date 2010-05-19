@@ -162,7 +162,7 @@ public class SparkTransformer extends SceneTransformer
 
         if( opts.verbose() ) {
             G.v().out.println( "[Spark] Number of reachable methods: "
-                    +Scene.v().getReachableMethods().size() );
+                    +Scene.v().getCallGraph().reachableMethods().size() );
         }
 
         if( opts.set_mass() ) findSetMass( pag );
@@ -253,7 +253,7 @@ public class SparkTransformer extends SceneTransformer
         int adfs = 0;
         int scalars = 0;
         if( false ) {
-            for( Iterator it = Scene.v().getReachableMethods().listener(); it.hasNext(); ) {
+            for( Iterator it = Scene.v().getCallGraph().reachableMethods().listener(); it.hasNext(); ) {
                 SootMethod m = (SootMethod) it.next();
                 G.v().out.println( m.getBytecodeSignature() );
             }

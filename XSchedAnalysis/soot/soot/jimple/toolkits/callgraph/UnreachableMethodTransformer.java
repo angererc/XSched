@@ -27,7 +27,7 @@ public class UnreachableMethodTransformer extends BodyTransformer
 {
     protected void internalTransform(Body b, String phaseName, Map options) {
         //System.out.println( "Performing UnreachableMethodTransformer" );
-        ReachableMethods reachableMethods = Scene.v().getReachableMethods();
+        ReachableMethods reachableMethods = Scene.v().getCallGraph().reachableMethods();
         SootMethod method = b.getMethod();
         //System.out.println( "Method: " + method.getName() );
         if( reachableMethods.contains( method ) ) return;

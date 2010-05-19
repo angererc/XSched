@@ -43,7 +43,7 @@ public class CHATransformer extends SceneTransformer
         cg.build();
         if( options.verbose() ) {
             G.v().out.println( "Number of reachable methods: "
-                    +Scene.v().getReachableMethods().size() );
+                    +Scene.v().getCallGraph().reachableMethods().size() );
         }
     }
 }

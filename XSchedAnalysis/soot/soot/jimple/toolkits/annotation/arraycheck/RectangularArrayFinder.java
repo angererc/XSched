@@ -76,7 +76,7 @@ public class RectangularArrayFinder extends SceneTransformer
 		if (!method.isConcrete())
 		    continue;
 		
-		if (!sc.getReachableMethods().contains(method))
+		if (!sc.getCallGraph().reachableMethods().contains(method))
 		    continue;
 
 		recoverRectArray(method);

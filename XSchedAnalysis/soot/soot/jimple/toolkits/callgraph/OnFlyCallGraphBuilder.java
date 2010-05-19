@@ -18,17 +18,11 @@
  */
 
 package soot.jimple.toolkits.callgraph;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -55,7 +49,6 @@ import soot.SootMethod;
 import soot.SootMethodRef;
 import soot.Transform;
 import soot.Type;
-import soot.Unit;
 import soot.Value;
 import soot.javaToJimple.LocalGenerator;
 import soot.jimple.AssignStmt;
@@ -76,8 +69,6 @@ import soot.jimple.VirtualInvokeExpr;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.toolkits.reflection.ReflectionTraceInfo;
 import soot.options.CGOptions;
-import soot.tagkit.Host;
-import soot.tagkit.SourceLnPosTag;
 import soot.util.LargeNumberedMap;
 import soot.util.NumberedString;
 import soot.util.SmallNumberedMap;
@@ -395,9 +386,9 @@ public final class OnFlyCallGraphBuilder
     private final QueueReader targets = targetsQueue.reader();
 
 
-    public OnFlyCallGraphBuilder( ContextManager cm, ReachableMethods rm ) {
+    public OnFlyCallGraphBuilder( ContextManager cm ) {
         this.cm = cm;
-        this.rm = rm;
+        this.rm = cm.callGraph().reachableMethods();
         worklist = rm.listener();
         options = new CGOptions( PhaseOptions.v().getPhaseOptions("cg") );
         if( !options.verbose() ) {
@@ -410,10 +401,15 @@ public final class OnFlyCallGraphBuilder
         	reflectionModel = new TraceBasedReflectionModel();
         }
     }
-    public OnFlyCallGraphBuilder( ContextManager cm, ReachableMethods rm, boolean appOnly ) {
-        this( cm, rm );
+    public OnFlyCallGraphBuilder( ContextManager cm, boolean appOnly ) {
+        this( cm );
         this.appOnly = appOnly;
     }
+    
+    public ContextManager contextManager() {
+    	return this.cm;
+    }
+    
     public void processReachables() {
         while(true) {
             if( !worklist.hasNext() ) {
@@ -427,7 +423,7 @@ public final class OnFlyCallGraphBuilder
             processNewMethodContext( momc );
         }
     }
-    public boolean wantTypes( Local receiver ) {
+    public boolean isReceiverNode( Local receiver ) {
         return receiverToSites.get(receiver) != null;
     }
     public void addType( Local receiver, Context srcContext, Type type, Context typeContext ) {

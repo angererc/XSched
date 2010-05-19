@@ -33,22 +33,19 @@ import soot.util.queue.*;
 
 public class OnFlyCallGraph {
     private final OnFlyCallGraphBuilder ofcgb;
-    private final ReachableMethods reachableMethods;
     private final QueueReader reachablesReader;
     private final QueueReader callEdges;
-    private final CallGraph callGraph;
-
-    public ReachableMethods reachableMethods() { return reachableMethods; }
-    public CallGraph callGraph() { return callGraph; }
+        
+    public CallGraph callGraph() { return ofcgb.contextManager().callGraph(); }
 
     public OnFlyCallGraph( PAG pag ) {
         this.pag = pag;
-        callGraph = new CallGraph();
-        Scene.v().setCallGraph( callGraph );
-        ContextManager cm = CallGraphBuilder.makeContextManager(callGraph);
-        reachableMethods = Scene.v().getReachableMethods();
-        ofcgb = new OnFlyCallGraphBuilder( cm, reachableMethods );
-        reachablesReader = reachableMethods.listener();
+        
+        ContextManager cm = CallGraphBuilder.makeContextManager(new CallGraph());
+        
+        ofcgb = new OnFlyCallGraphBuilder( cm );
+        
+        reachablesReader = cm.callGraph().reachableMethods().listener();
         callEdges = cm.callGraph().listener();
     }
     public void build() {
@@ -57,7 +54,7 @@ public class OnFlyCallGraph {
         processCallEdges();
     }
     private void processReachables() {
-        reachableMethods.update();
+    	ofcgb.contextManager().callGraph().reachableMethods().update();
         while(reachablesReader.hasNext()) {
             MethodOrMethodContext m = (MethodOrMethodContext) reachablesReader.next();
             MethodPAG mpag = MethodPAG.v( pag, m.method() );
@@ -66,7 +63,6 @@ public class OnFlyCallGraph {
         }
     }
     private void processCallEdges() {
-    	//Christoph: callEdges should contain my context-sensitive call targets!
         while(callEdges.hasNext()) {
             Edge e = (Edge) callEdges.next();
             MethodPAG amp = MethodPAG.v( pag, e.tgt() );
@@ -85,7 +81,7 @@ public class OnFlyCallGraph {
         final Context context = vn.context();
 
         PointsToSetInternal p2set = vn.getP2Set().getNewSet();
-        if( ofcgb.wantTypes( receiver ) ) {
+        if( ofcgb.isReceiverNode( receiver ) ) {
             p2set.forall( new P2SetVisitor() {
             public final void visit( Node n ) { 
                 ofcgb.addType( receiver, context, n.getType(), (AllocNode) n );

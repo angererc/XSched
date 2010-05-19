@@ -57,7 +57,7 @@ public class TightestQualifiersTagger extends SceneTransformer {
             while (methsIt.hasNext()){
                 SootMethod sm = (SootMethod)methsIt.next();
                 // for now if its unreachable do nothing
-                if (!Scene.v().getReachableMethods().contains(sm)) continue;
+                if (!Scene.v().getCallGraph().reachableMethods().contains(sm)) continue;
                 analyzeMethod(sm);
             }
         }
@@ -119,7 +119,7 @@ public class TightestQualifiersTagger extends SceneTransformer {
         //}
         
         if( methodToContexts == null ) {
-            methodToContexts = new MethodToContexts( Scene.v().getReachableMethods().listener() );
+            methodToContexts = new MethodToContexts( Scene.v().getCallGraph().reachableMethods().listener() );
         }
         
         for( Iterator momcIt = methodToContexts.get(sm).iterator(); momcIt.hasNext(); ) {
@@ -329,7 +329,7 @@ public class TightestQualifiersTagger extends SceneTransformer {
             while (mIt.hasNext()) {
                 SootMethod sm = (SootMethod)mIt.next();
                 if (!sm.hasActiveBody()) continue;
-                if (!Scene.v().getReachableMethods().contains(sm)) continue;
+                if (!Scene.v().getCallGraph().reachableMethods().contains(sm)) continue;
                 Body b = sm.getActiveBody();
 
                 Iterator usesIt = b.getUseBoxes().iterator();

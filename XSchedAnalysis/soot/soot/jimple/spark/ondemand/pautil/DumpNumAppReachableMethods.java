@@ -32,7 +32,7 @@ public class DumpNumAppReachableMethods extends SceneTransformer {
 
     protected void internalTransform(String phaseName, Map options) {
         int numAppMethods = 0;
-        for (Iterator mIt = Scene.v().getReachableMethods().listener(); mIt
+        for (Iterator mIt = Scene.v().getCallGraph().reachableMethods().listener(); mIt
                 .hasNext();) {
             final SootMethod m = (SootMethod) mIt.next();
 

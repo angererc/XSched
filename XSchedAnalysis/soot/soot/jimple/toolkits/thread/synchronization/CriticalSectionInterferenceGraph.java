@@ -244,7 +244,7 @@ public class CriticalSectionInterferenceGraph {
     	{
     		if(optionLeaveOriginalLocks)
     			return true;
-    		ReachableMethods rm = Scene.v().getReachableMethods();
+    		ReachableMethods rm = Scene.v().getCallGraph().reachableMethods();
     		if(!rm.contains(tn1.method) || !rm.contains(tn2.method))
     			return false;
     		return true;

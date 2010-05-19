@@ -134,7 +134,7 @@ public class CallGraphGrapher extends SceneTransformer
 
     public void reset() {
         if (methodToContexts == null){
-            methodToContexts = new MethodToContexts(Scene.v().getReachableMethods().listener());
+            methodToContexts = new MethodToContexts(Scene.v().getCallGraph().reachableMethods().listener());
         }
         
         SootClass sc = Scene.v().getMainClass();

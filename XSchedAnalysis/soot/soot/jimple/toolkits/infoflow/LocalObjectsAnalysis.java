@@ -539,7 +539,7 @@ public class LocalObjectsAnalysis
 	public List<SootMethod> getAllMethodsForClass(SootClass sootClass)
 	{
 		// Determine which methods are reachable in this program
-		ReachableMethods rm = Scene.v().getReachableMethods();
+		ReachableMethods rm = Scene.v().getCallGraph().reachableMethods();
 
 		// Get list of reachable methods declared in this class
 		// Also get list of fields declared in this class

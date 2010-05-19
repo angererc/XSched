@@ -31,7 +31,7 @@ public class UseFinder
 		classToExtCalls = new HashMap<SootClass, List>();
 		classToIntCalls = new HashMap<SootClass, ArrayList>();
 		
-		rm = Scene.v().getReachableMethods();
+		rm = Scene.v().getCallGraph().reachableMethods();
 		
 		doAnalysis();
 	}

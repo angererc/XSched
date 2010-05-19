@@ -73,7 +73,7 @@ public class ContextInsensitiveBuilder {
         if( ofcg != null ) {
             callEdges = ofcg.callGraph().listener();
             ofcg.build();
-            reachables = ofcg.reachableMethods();
+            reachables = ofcg.callGraph().reachableMethods();
             reachables.update();
         } else {
             callEdges = cgb.getCallGraph().listener();

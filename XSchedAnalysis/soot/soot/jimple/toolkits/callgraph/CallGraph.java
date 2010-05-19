@@ -185,6 +185,25 @@ public class CallGraph
             throw new UnsupportedOperationException();
         }
     }
+    
+    private ReachableMethods reachableMethods;
+    public ReachableMethods reachableMethods() {
+    	if(reachableMethods == null)
+    		//creating the ReachableMethods will result in a call to setReachableMethods
+    		new ReachableMethods(this, new ArrayList<MethodOrMethodContext>(Scene.v().getEntryPoints()));
+    
+    	reachableMethods.update();
+    	return reachableMethods;
+    }
+    //called by ReachableMethods when you create a ReachableMethods manually
+    void setReachableMethods(ReachableMethods rm) {
+    	assert(reachableMethods == null);
+    	this.reachableMethods = rm;
+    }
+    
+    public void releaseReachableMethods() {
+    	this.reachableMethods = null;
+    }
     /** Returns a QueueReader object containing all edges added so far, and
      * which will be informed of any new edges that are later added to
      * the graph. */

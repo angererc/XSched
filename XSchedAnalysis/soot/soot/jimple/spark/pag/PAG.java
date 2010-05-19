@@ -227,7 +227,7 @@ public class PAG implements PointsToAnalysis {
         if( n1.equals( n2 ) ) throw new RuntimeException( "oops" );
 
         somethingMerged = true;
-        if( ofcg() != null ) ofcg().mergedWith( n1, n2 );
+        if( this.getOnFlyCallGraph() != null ) this.getOnFlyCallGraph().mergedWith( n1, n2 );
 
         Map[] maps = { simple, alloc, store, load,
             simpleInv, allocInv, storeInv, loadInv };
@@ -686,7 +686,6 @@ public class PAG implements PointsToAnalysis {
 
     public void setOnFlyCallGraph( OnFlyCallGraph ofcg ) { this.ofcg = ofcg; }
     public OnFlyCallGraph getOnFlyCallGraph() { return ofcg; }
-    public OnFlyCallGraph ofcg() { return ofcg; }
     /** Adds the base of a dereference to the list of dereferenced 
      * variables. */
     public void addDereference( VarNode base ) {
@@ -1052,6 +1051,9 @@ public class PAG implements PointsToAnalysis {
     
     public void setNativeMethodDriver(NativeMethodDriver driver) {
     	this.nativeMethodDriver = driver;
+    }
+    public NativeMethodDriver nativeMethodDriver() {
+    	return this.nativeMethodDriver;
     }
     protected NativeMethodDriver nativeMethodDriver;
 
