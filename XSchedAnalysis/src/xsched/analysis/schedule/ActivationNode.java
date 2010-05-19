@@ -1,16 +1,23 @@
 package xsched.analysis.schedule;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import soot.FastHierarchy;
 import soot.PointsToAnalysis;
 import soot.Scene;
 import soot.SootMethod;
+import soot.SourceLocator;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.VarNode;
+import soot.jimple.spark.solver.Propagator;
 import soot.toolkits.scalar.Pair;
+import xsched.analysis.schedule.Heap.NewActivationRecord;
+import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
+import xsched.utils.PAG2DOT;
 
 public class ActivationNode extends ScheduleNode {
 	public final AllocNode activation;
@@ -20,7 +27,8 @@ public class ActivationNode extends ScheduleNode {
 	
 	private Heap resultHeap;
 		
-	ActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+	ActivationNode(Schedule schedule, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+		super(schedule);
 		this.activation = activation;
 		this.receiver = receiver;
 		this.task = task;
@@ -36,11 +44,7 @@ public class ActivationNode extends ScheduleNode {
 		return resultHeap;
 	}
 	
-	public void setResultHeap(Heap resultHeap) {
-		this.resultHeap = resultHeap;
-	}
-	
-	public void initializePAG(PAG pag) {
+	private void initializePAG(PAG pag) {
 		
 		//add an edge from the alloc node to the this node
 		VarNode thisNode = pag.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);
@@ -51,5 +55,63 @@ public class ActivationNode extends ScheduleNode {
 			assert (paramNode != null);
 			pag.addEdge(params.get(i), paramNode);			
 		}
+	}
+	
+	private void createActivationNodes(NewActivationRecord record) {
+		List<Node> receivers = record.receivers().contents();
+		
+		if(receivers.size() == 1) {
+			AllocNode receiver = (AllocNode)receivers.get(0);
+			ScheduleNode newNode = schedule.addActivationNode(record.activation(), receiver, record.taskForReceiver(receiver), record.params());
+			schedule.addHappensBefore(this, newNode);
+		} else {
+			List<ScheduleNode> options = new ArrayList<ScheduleNode>();
+			for(Node receiver : receivers) {
+				ScheduleNode option = schedule.addActivationNode(record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
+				options.add(option);
+			}
+			ScheduleNode newNode = schedule.addBranchNode(options);
+			schedule.addHappensBefore(this, newNode);
+		}
+	}
+	
+	private void createHBRelationships(NewHBRelationshipRecord record) {
+		List<Node> lhsds = record.lhs().contents();
+		List<Node> rhsds = record.rhs().contents();
+		
+		for(Node lhs : lhsds) {
+			for(Node rhs : rhsds) {
+				ActivationNode lhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)lhs);
+				ActivationNode rhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)rhs);
+				schedule.addHappensBefore(lhsScheduleNode, rhsScheduleNode);
+			}
+		}
+	}
+	
+	@Override
+	public void analyze(Propagator propagator) {
+		
+		PAG pag = propagator.pag();
+		initializePAG(pag);
+		
+		resultHeap = new Heap(pag);
+		
+		propagator.propagate();		
+		propagator.donePropagating();
+		
+		new PAG2DOT().dump(pag, SourceLocator.v().getOutputDir() + "/after.dot");
+				
+		Pair<Collection<NewActivationRecord>, Collection<NewHBRelationshipRecord>> newDeclarations = resultHeap.findNewHBDeclarations();
+		
+		for(NewActivationRecord activationRecord : newDeclarations.getO1()) {
+			createActivationNodes(activationRecord);
+		}
+		
+		for(NewHBRelationshipRecord hbRecord : newDeclarations.getO2()) {
+			createHBRelationships(hbRecord);
+		}
+		
+		System.out.println(newDeclarations.getO1());
+		System.out.println(newDeclarations.getO2());
 	}
 }

@@ -2,8 +2,9 @@ package xsched.analysis.schedule;
 
 import soot.jimple.spark.solver.Propagator;
 
-public class ExitNode extends ScheduleNode {
-	ExitNode(Schedule schedule) {
+public class JoinNode extends ScheduleNode {
+
+	JoinNode(Schedule schedule) {
 		super(schedule);
 	}
 
@@ -11,4 +12,5 @@ public class ExitNode extends ScheduleNode {
 	public void analyze(Propagator propagator) {
 		
 	}
+
 }

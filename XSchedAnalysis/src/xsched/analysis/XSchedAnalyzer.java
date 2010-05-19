@@ -1,9 +1,7 @@
 package xsched.analysis;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 
 import soot.Scene;
 import soot.SootClass;
@@ -21,11 +19,7 @@ import soot.toolkits.scalar.Pair;
 
 import xsched.Activation;
 import xsched.analysis.schedule.ActivationNode;
-import xsched.analysis.schedule.Heap;
 import xsched.analysis.schedule.Schedule;
-import xsched.analysis.schedule.ScheduleNode;
-import xsched.analysis.schedule.Heap.NewActivationRecord;
-import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
 import xsched.utils.PAG2DOT;
 
 /*
@@ -39,11 +33,10 @@ public class XSchedAnalyzer {
 	public static final SootMethod ACTIVATION_CONSTRUCTOR1;
 	public static final SootMethod ACTIVATION_CONSTRUCTOR2;
 	public static final SootMethod ACTIVATION_CONSTRUCTOR3;
-	
+		
 	private SparkOptions sparkOptions;
 	private PAG pag;
 	private Schedule schedule;
-	protected String outputDir;
 	private Propagator propagator;
 	
 	static {
@@ -63,74 +56,16 @@ public class XSchedAnalyzer {
 	}
 	
 	public void analyzeMainActivation(String taskMethodSignature) {
-		outputDir = SourceLocator.v().getOutputDir();
 		sparkOptions = createDefaultSparkOptions();
 		
 		loadInitialSootClasses(taskMethodSignature);
 		createPAG();
 		ActivationNode enterNode = initSchedule(taskMethodSignature);
 		
-		new PAG2DOT().dump(pag, outputDir + "/before.dot");
+		new PAG2DOT().dump(pag, SourceLocator.v().getOutputDir() + "/before.dot");
 		propagator = new PropIter(pag);
-		analyzeScheduleNode(enterNode);
-	}
-	
-	private void createActivationNode(ActivationNode parent, NewActivationRecord record) {
-		List<Node> receivers = record.receivers().contents();
 		
-		if(receivers.size() == 1) {
-			AllocNode receiver = (AllocNode)receivers.get(0);
-			ScheduleNode newNode = schedule.addActivationNode(record.activation(), receiver, record.taskForReceiver(receiver), record.params());
-			schedule.addHappensBefore(parent, newNode);
-		} else {
-			List<ScheduleNode> options = new ArrayList<ScheduleNode>();
-			for(Node receiver : receivers) {
-				ScheduleNode option = schedule.addActivationNode(record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
-				options.add(option);
-			}
-			ScheduleNode newNode = schedule.addBranchNode(options);
-			schedule.addHappensBefore(parent, newNode);
-		}
-	}
-	
-	private void createHBRelationships(NewHBRelationshipRecord record) {
-		List<Node> lhsds = record.lhs().contents();
-		List<Node> rhsds = record.rhs().contents();
-		
-		for(Node lhs : lhsds) {
-			for(Node rhs : rhsds) {
-				ActivationNode lhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)lhs);
-				ActivationNode rhsScheduleNode = schedule.activationNodeForAllocNode((AllocNode)rhs);
-				schedule.addHappensBefore(lhsScheduleNode, rhsScheduleNode);
-			}
-		}
-	}
-	
-	private void analyzeScheduleNode(ActivationNode node) {
-		
-		node.initializePAG(pag);
-		
-		Heap resultHeap = new Heap(pag);
-		propagator.propagate();
-		
-		propagator.donePropagating();
-		
-		new PAG2DOT().dump(pag, outputDir + "/after.dot");
-		
-		node.setResultHeap(resultHeap);
-		
-		Pair<Collection<NewActivationRecord>, Collection<NewHBRelationshipRecord>> newDeclarations = resultHeap.findNewHBDeclarations();
-		
-		for(NewActivationRecord activationRecord : newDeclarations.getO1()) {
-			createActivationNode(node, activationRecord);
-		}
-		
-		for(NewHBRelationshipRecord hbRecord : newDeclarations.getO2()) {
-			createHBRelationships(hbRecord);
-		}
-		
-		System.out.println(newDeclarations.getO1());
-		System.out.println(newDeclarations.getO2());
+		enterNode.analyze(propagator);		
 	}
 	
 	private ActivationNode initSchedule(String taskMethodSignature)

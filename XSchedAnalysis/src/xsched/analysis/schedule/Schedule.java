@@ -18,11 +18,11 @@ public class Schedule {
 	public final ScheduleNode exitNode;
 	
 	public Schedule() {		        
-		this.exitNode = new ExitNode();		
+		this.exitNode = new ExitNode(this);		
 	}
 	
 	public BranchNode addBranchNode(List<ScheduleNode> options) {
-		return new BranchNode(options);
+		return new BranchNode(this, options);
 	}
 			
 	public ActivationNode addActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
@@ -37,7 +37,7 @@ public class Schedule {
 		}
 		
 		//new schedule node
-		ActivationNode node = new ActivationNode(activation, receiver, task, params);
+		ActivationNode node = new ActivationNode(this, activation, receiver, task, params);
 		nodesByAllocationNode.put(activation, node);
 		
 		//make sure that the soot method is considered to be reachable
