@@ -50,7 +50,7 @@ public class PAGProxy extends PAG {
 	public PAGProxy(PAG parent) {
 		super(parent.opts());
 		this.parent = parent;
-		this.setOnFlyCallGraph(new OnFlyCallGraph(this));
+		this.useOnFlyCallGraph();		
 		this.setNativeMethodDriver(parent.nativeMethodDriver());
 	}
 
@@ -564,12 +564,6 @@ public class PAGProxy extends PAG {
 	public PointsToSet reachingObjectsOfArrayElement(PointsToSet s) {
 		// TODO Auto-generated method stub
 		return super.reachingObjectsOfArrayElement(s);
-	}
-
-	@Override
-	public void setOnFlyCallGraph(OnFlyCallGraph ofcg) {
-		// TODO Auto-generated method stub
-		super.setOnFlyCallGraph(ofcg);
 	}
 
 	@Override

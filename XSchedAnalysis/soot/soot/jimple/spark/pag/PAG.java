@@ -684,7 +684,9 @@ public class PAG implements PointsToAnalysis {
         return typeManager;
     }
 
-    public void setOnFlyCallGraph( OnFlyCallGraph ofcg ) { this.ofcg = ofcg; }
+    public void useOnFlyCallGraph() { 
+    	this.ofcg = new OnFlyCallGraph(this);        
+    }
     public OnFlyCallGraph getOnFlyCallGraph() { return ofcg; }
     /** Adds the base of a dereference to the list of dereferenced 
      * variables. */
