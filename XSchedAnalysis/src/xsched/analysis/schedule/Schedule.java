@@ -25,13 +25,17 @@ public class Schedule {
 		this.exitNode = new ExitNode(this);		
 	}
 	
-	BranchNode addBranchNode(ScheduleNode parent, List<ScheduleNode> options) {
+	BranchNode createBranchNode(ScheduleNode parent, List<ScheduleNode> options) {
 		BranchNode branch = new BranchNode(this, parent, options);
 		branch.addHappensBefore(branch.joinNode);
 		return branch;
 	}
 				
-	public ActivationNode addActivationNode(ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+	public ActivationNode createInitialActivationNode(AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+		return this.createActivationNode(null, activation, receiver, task, params);
+	}
+	
+	ActivationNode createActivationNode(ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
 		assert(activation.getType().equals(XSchedAnalyzer.ACTIVATION_TYPE)) : "alloc node is not an activation";
 		
 		if(nodesByAllocationNode.containsKey(activation)) {

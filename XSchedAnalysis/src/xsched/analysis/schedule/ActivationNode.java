@@ -62,15 +62,15 @@ public class ActivationNode extends ScheduleNode {
 		
 		if(receivers.size() == 1) {
 			AllocNode receiver = (AllocNode)receivers.get(0);
-			ScheduleNode newNode = schedule.addActivationNode(this, record.activation(), receiver, record.taskForReceiver(receiver), record.params());
+			ScheduleNode newNode = schedule.createActivationNode(this, record.activation(), receiver, record.taskForReceiver(receiver), record.params());
 			this.addHappensBefore(newNode);
 		} else {
 			List<ScheduleNode> options = new ArrayList<ScheduleNode>();
 			for(Node receiver : receivers) {
-				ScheduleNode option = schedule.addActivationNode(this, record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
+				ScheduleNode option = schedule.createActivationNode(this, record.activation(), (AllocNode)receiver, record.taskForReceiver(receiver), record.params());
 				options.add(option);
 			}
-			ScheduleNode newNode = schedule.addBranchNode(this, options);
+			ScheduleNode newNode = schedule.createBranchNode(this, options);
 			this.addHappensBefore(newNode);
 		}
 	}

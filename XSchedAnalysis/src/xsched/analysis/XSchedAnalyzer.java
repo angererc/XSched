@@ -76,7 +76,7 @@ public class XSchedAnalyzer {
         
         AllocNode enterActivation = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
         AllocNode enterInstance = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
-        ActivationNode enterNode = this.schedule.addActivationNode(null, enterActivation, enterInstance, initialTask, new ArrayList<Node>());
+        ActivationNode enterNode = this.schedule.createInitialActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<Node>());
         
         enterNode.addHappensBefore(this.schedule.exitNode);
                 
