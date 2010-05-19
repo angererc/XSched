@@ -1,7 +1,6 @@
 package xsched.analysis.schedule;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import soot.FastHierarchy;
@@ -15,8 +14,9 @@ import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.VarNode;
 import soot.jimple.spark.solver.Propagator;
 import soot.toolkits.scalar.Pair;
-import xsched.analysis.schedule.Heap.NewActivationRecord;
-import xsched.analysis.schedule.Heap.NewHBRelationshipRecord;
+import xsched.analysis.pag.NewActivationRecord;
+import xsched.analysis.pag.NewHBRelationshipRecord;
+import xsched.analysis.pag.PAGProxy;
 import xsched.utils.PAG2DOT;
 
 public class ActivationNode extends ScheduleNode {
@@ -25,7 +25,7 @@ public class ActivationNode extends ScheduleNode {
 	public final SootMethod task;
 	public final List<Node> params;
 	
-	private Heap resultHeap;
+	private PAGProxy resultPAG;
 		
 	ActivationNode(Schedule schedule, ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
 		super(schedule, parent);
@@ -40,8 +40,8 @@ public class ActivationNode extends ScheduleNode {
 		}
 	}
 	
-	public Heap resultHeap() {
-		return resultHeap;
+	public PAGProxy resultPAG() {
+		return resultPAG;
 	}
 	
 	private void initializePAG(PAG pag) {
@@ -94,24 +94,20 @@ public class ActivationNode extends ScheduleNode {
 		PAG pag = propagator.pag();
 		initializePAG(pag);
 		
-		resultHeap = new Heap(pag);
+		resultPAG = new PAGProxy(pag);
 		
 		propagator.propagate();		
 		propagator.donePropagating();
 		
 		new PAG2DOT().dump(pag, SourceLocator.v().getOutputDir() + "/after.dot");
-				
-		Pair<Collection<NewActivationRecord>, Collection<NewHBRelationshipRecord>> newDeclarations = resultHeap.findNewHBDeclarations();
-		
-		for(NewActivationRecord activationRecord : newDeclarations.getO1()) {
+						
+		for(NewActivationRecord activationRecord : resultPAG.newActivationRecords()) {
 			createActivationNodes(activationRecord);
 		}
 		
-		for(NewHBRelationshipRecord hbRecord : newDeclarations.getO2()) {
+		for(NewHBRelationshipRecord hbRecord : resultPAG.newHBRelationshipRecords()) {
 			createHBRelationships(hbRecord);
 		}
-		
-		System.out.println(newDeclarations.getO1());
-		System.out.println(newDeclarations.getO2());
+				
 	}
 }

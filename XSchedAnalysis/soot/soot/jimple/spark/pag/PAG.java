@@ -33,7 +33,6 @@ import soot.util.queue.*;
 import soot.options.SparkOptions;
 import soot.tagkit.*;
 import soot.toolkits.scalar.Pair;
-import xsched.analysis.XSchedAnalyzer;
 
 /** Pointer assignment graph.
  * @author Ondrej Lhotak
@@ -674,13 +673,8 @@ public class PAG implements PointsToAnalysis {
     protected ChunkedQueue edgeQueue = new ChunkedQueue();
     public QueueReader edgeReader() { return edgeQueue.reader(); }
     
-    protected ChunkedQueue<Pair<InvokeExpr,Pair<Node,Node>>> callAssignsQueue = new ChunkedQueue<Pair<InvokeExpr,Pair<Node,Node>>>();
-    public QueueReader<Pair<InvokeExpr,Pair<Node,Node>>> callAssignsReader() { return callAssignsQueue.reader(); }
-    protected Pair<?,?> addToCallAssigns(InvokeExpr expr, Pair<?,?> pair) {
-    	callAssigns.put(expr, pair);
-    	Pair<Node,Node> assignment = (Pair<Node,Node>)pair;
-    	callAssignsQueue.add(new Pair<InvokeExpr, Pair<Node,Node>>(expr, assignment));
-    	return assignment;
+    protected void recordCallAssign(InvokeExpr expr, Pair<?,?> pair) {
+    	callAssigns.put(expr, pair);    	    	
     }
     
     public int getNumAllocNodes() {
@@ -745,7 +739,7 @@ public class PAG implements PointsToAnalysis {
                 thiz = thiz.getReplacement();
 
                 addEdge( parm, thiz );
-                addToCallAssigns(ie, new Pair(parm, thiz));
+                recordCallAssign(ie, new Pair(parm, thiz));
                 callToMethod.put(ie, srcmpag.getMethod());
 
                 if( e.srcUnit() instanceof AssignStmt ) {
@@ -760,7 +754,7 @@ public class PAG implements PointsToAnalysis {
                     lhs = lhs.getReplacement();
 
                     addEdge( ret, lhs );
-                    addToCallAssigns(ie, new Pair(ret, lhs));
+                    recordCallAssign(ie, new Pair(ret, lhs));
                     callToMethod.put(ie, srcmpag.getMethod());
                 }
             } else if( e.kind() == Kind.FINALIZE ) {
@@ -794,7 +788,7 @@ public class PAG implements PointsToAnalysis {
                     asLHS = asLHS.getReplacement();
                     addEdge( newObject, asLHS);
                 }
-                addToCallAssigns(s.getInvokeExpr(), new Pair(newObject, initThis));
+                recordCallAssign(s.getInvokeExpr(), new Pair(newObject, initThis));
                 callToMethod.put(s.getInvokeExpr(), srcmpag.getMethod());
             } else if( e.kind() == Kind.REFL_INVOKE ) {
             	// Flow (1) from first parameter of invoke(..) invocation
@@ -817,7 +811,7 @@ public class PAG implements PointsToAnalysis {
 	                thiz = thiz.getReplacement();
 	
 	                addEdge( parm0, thiz );
-	                addToCallAssigns(ie, new Pair(parm0, thiz));
+	                recordCallAssign(ie, new Pair(parm0, thiz));
 	                callToMethod.put(ie, srcmpag.getMethod());
                 }
 
@@ -840,7 +834,7 @@ public class PAG implements PointsToAnalysis {
 	                    tgtParmI = tgtParmI.getReplacement();
 	
 	                    addEdge( parm1contents, tgtParmI );
-	                    addToCallAssigns(ie, new Pair(parm1contents, tgtParmI));
+	                    recordCallAssign(ie, new Pair(parm1contents, tgtParmI));
 	                }
                 }
 
@@ -859,7 +853,7 @@ public class PAG implements PointsToAnalysis {
                     lhs = lhs.getReplacement();
 
                     addEdge( ret, lhs );
-                    addToCallAssigns(ie, new Pair(ret, lhs));
+                    recordCallAssign(ie, new Pair(ret, lhs));
                 }
             } else if( e.kind() == Kind.REFL_CLASS_NEWINSTANCE || e.kind() == Kind.REFL_CONSTR_NEWINSTANCE) {
             	// (1) create a fresh node for the new object
@@ -911,7 +905,7 @@ public class PAG implements PointsToAnalysis {
 		                    tgtParmI = tgtParmI.getReplacement();
 		
 		                    addEdge( parm1contents, tgtParmI );
-		                    addToCallAssigns(iie, new Pair(parm1contents, tgtParmI));
+		                    recordCallAssign(iie, new Pair(parm1contents, tgtParmI));
 		                }
 	                }
                 }
@@ -924,7 +918,7 @@ public class PAG implements PointsToAnalysis {
                     asLHS = asLHS.getReplacement();
                     addEdge( newObject, asLHS);
                 }
-                addToCallAssigns(s.getInvokeExpr(), new Pair(newObject, initThis));
+                recordCallAssign(s.getInvokeExpr(), new Pair(newObject, initThis));
                 callToMethod.put(s.getInvokeExpr(), srcmpag.getMethod());
             } else {
                 throw new RuntimeException( "Unhandled edge "+e );
@@ -961,7 +955,7 @@ public class PAG implements PointsToAnalysis {
             parm = parm.getReplacement();
 
             addEdge( argNode, parm );
-            addToCallAssigns(ie, new Pair(argNode, parm));
+            recordCallAssign(ie, new Pair(argNode, parm));
             callToMethod.put(ie, srcmpag.getMethod());
             
         }
@@ -976,7 +970,7 @@ public class PAG implements PointsToAnalysis {
             thisRef = tgtmpag.parameterize( thisRef, tgtContext );
             thisRef = thisRef.getReplacement();
             addEdge( baseNode, thisRef );
-            addToCallAssigns(ie, new Pair(baseNode, thisRef));
+            recordCallAssign(ie, new Pair(baseNode, thisRef));
             callToMethod.put(ie, srcmpag.getMethod());
             if (virtualCall && !virtualCallsToReceivers.containsKey(ie)) {
                 virtualCallsToReceivers.put(ie, baseNode);
@@ -995,13 +989,16 @@ public class PAG implements PointsToAnalysis {
                 retNode = retNode.getReplacement();
 
                 addEdge( retNode, destNode );
-                addToCallAssigns(ie, new Pair(retNode, destNode));
+                recordCallAssign(ie, new Pair(retNode, destNode));
                 callToMethod.put(ie, srcmpag.getMethod());
             }
         }
     }
     /* End of package methods. */
 
+    public SparkOptions opts() {
+    	return opts;
+    }
     protected SparkOptions opts;
 
     protected Map<Object, Object> simple = new HashMap<Object, Object>();
