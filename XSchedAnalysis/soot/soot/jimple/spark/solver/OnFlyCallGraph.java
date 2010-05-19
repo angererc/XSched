@@ -32,6 +32,7 @@ import soot.util.queue.*;
  */
 
 public class OnFlyCallGraph {
+	private PAG pag;
     private final OnFlyCallGraphBuilder ofcgb;
     private final QueueReader reachablesReader;
     private final QueueReader callEdges;
@@ -104,10 +105,6 @@ public class OnFlyCallGraph {
     public void mergedWith( Node n1, Node n2 ) {
     }
 
-    /* End of public methods. */
-    /* End of package methods. */
-
-    private PAG pag;
 }
 
 

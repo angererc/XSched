@@ -9,6 +9,7 @@ import java.util.Set;
 
 import soot.Context;
 import soot.Local;
+import soot.MethodOrMethodContext;
 import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.SootField;
@@ -41,19 +42,24 @@ import soot.util.HashMultiMap;
 import soot.util.queue.QueueReader;
 import xsched.analysis.XSchedAnalyzer;
 
-public class PAGProxy extends PAG {
+public class Heap extends PAG {
 
 	private final PAG parent;
 	private HashMap<InvokeExpr, NewHBRelationshipRecord> newHBRelationshipRecords = new HashMap<InvokeExpr, NewHBRelationshipRecord>();
 	private HashMap<InvokeExpr, NewActivationRecord> newActivationRecords = new HashMap<InvokeExpr, NewActivationRecord>();
 	
-	public PAGProxy(PAG parent) {
+	public Heap(PAG parent) {
 		super(parent.opts());
 		this.parent = parent;
 		this.useOnFlyCallGraph();		
 		this.setNativeMethodDriver(parent.nativeMethodDriver());
 	}
 
+	public void addCustomMethodOrMethodContext(MethodOrMethodContext momc) {
+		this.ofcg.callGraph().reachableMethods().addCustomMethodOrMethodContext(momc);
+		this.ofcg.build();
+		
+	}
 	@Override
 	public HashMultiMap callAssigns() {
 		// TODO Auto-generated method stub

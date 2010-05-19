@@ -1042,7 +1042,12 @@ public class PAG implements PointsToAnalysis {
     private final Map<Object, LocalVarNode> valToLocalVarNode = new HashMap<Object, LocalVarNode>(1000);
     private final Map<Object, GlobalVarNode> valToGlobalVarNode = new HashMap<Object, GlobalVarNode>(1000);
     private final Map<Object, AllocNode> valToAllocNode = new HashMap<Object, AllocNode>(1000);
-    private OnFlyCallGraph ofcg;
+    
+    //ofcg is only here to pass around the ofcg with the pag.
+    //the pag does not use the ofcg; so the ofcg is the "active" component
+    //a propagator tells the ofcg when a node was updated and the ofcg will then add nodes to the pag
+    //therefore: the ofcg can contain fewer methods than the pag, but never more
+    protected OnFlyCallGraph ofcg;
     private final ArrayList<VarNode> dereferences = new ArrayList<VarNode>();
     protected TypeManager typeManager;
     private final LargeNumberedMap localToNodeMap = new LargeNumberedMap( Scene.v().getLocalNumberer() );

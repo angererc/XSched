@@ -18,7 +18,7 @@ import soot.jimple.spark.solver.Propagator;
 import soot.toolkits.scalar.Pair;
 import xsched.analysis.pag.NewActivationRecord;
 import xsched.analysis.pag.NewHBRelationshipRecord;
-import xsched.analysis.pag.PAGProxy;
+import xsched.analysis.pag.Heap;
 import xsched.utils.PAG2DOT;
 
 public class ActivationNode extends ScheduleNode {
@@ -27,7 +27,7 @@ public class ActivationNode extends ScheduleNode {
 	public final SootMethod task;
 	public final List<Node> params;
 	
-	private PAGProxy resultPAG;
+	private Heap resultPAG;
 		
 	ActivationNode(Schedule schedule, ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
 		super(schedule, parent);
@@ -42,26 +42,25 @@ public class ActivationNode extends ScheduleNode {
 		}
 	}
 	
-	public PAGProxy resultPAG() {
+	public Heap resultPAG() {
 		return resultPAG;
 	}
 	
-	private void initializePAG(PAG pag) {
+	private void initializePAG(Heap heap) {
 		
 		//make sure that the soot method is considered to be reachable
 		//this will have the effect that the OnFlyCallGraph creates new nodes in the pag through the MethodPAG
 		MethodOrMethodContext context = MethodContext.v(task, this);
-		pag.getOnFlyCallGraph().callGraph().reachableMethods().addCustomMethodOrMethodContext(context);
-		pag.getOnFlyCallGraph().build();
+		heap.addCustomMethodOrMethodContext(context);
 		
 		//add an edge from the alloc node to the this node
-		VarNode thisNode = pag.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);
-		pag.addAllocEdge(receiver, thisNode);
+		VarNode thisNode = heap.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);
+		heap.addAllocEdge(receiver, thisNode);
 		
 		for(int i = 0; i < params.size(); i++) {
-			VarNode paramNode = pag.findContextVarNode(new Pair<SootMethod,Integer>(task,i), this);
+			VarNode paramNode = heap.findContextVarNode(new Pair<SootMethod,Integer>(task,i), this);
 			assert (paramNode != null);
-			pag.addEdge(params.get(i), paramNode);			
+			heap.addEdge(params.get(i), paramNode);			
 		}
 	}
 	
@@ -100,9 +99,10 @@ public class ActivationNode extends ScheduleNode {
 	public void analyze(Propagator propagator) {
 		
 		PAG pag = propagator.pag();
-		initializePAG(pag);
+		Heap heap = new Heap(pag);
+		initializePAG(heap);
 		
-		resultPAG = new PAGProxy(pag);
+		resultPAG = new Heap(pag);
 		
 		propagator.propagate();		
 		propagator.donePropagating();
