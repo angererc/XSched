@@ -35,9 +35,9 @@ public class PAG2HTML {
         this.output_dir = output_dir;
     }
     public void dump() {
-        for( Iterator vIt = pag.getVarNodeNumberer().iterator(); vIt.hasNext(); ) {
+        for( Iterator vIt = VarNode.varNodeNumberer().iterator(); vIt.hasNext(); ) {
             final VarNode v = (VarNode) vIt.next();
-            mergedNodes.put( v.getReplacement(), v );
+            mergedNodes.put( v.getReplacement(pag), v );
             if( v instanceof LocalVarNode ) {
                 SootMethod m = ((LocalVarNode)v).getMethod();
                 if( m != null ) {
@@ -56,7 +56,7 @@ public class PAG2HTML {
                 final SootMethod m = (SootMethod) mIt.next();
                 dumpMethod( m, jarOut );
             }
-            addSymLinks( pag.getVarNodeNumberer().iterator(), jarOut );
+            addSymLinks( VarNode.varNodeNumberer().iterator(), jarOut );
             jarOut.close();
         } catch( IOException e ) {
             throw new RuntimeException( "Couldn't dump html"+e );
@@ -84,7 +84,7 @@ public class PAG2HTML {
         
         out.println( "<hr>Reaching blue nodes:" );
         out.println( "<ul>" );
-        v.getP2Set().forall( new P2SetVisitor() {
+        v.getP2Set(pag).forall( new P2SetVisitor() {
         public final void visit( Node n ) {
                 out.println( "<li>"+htmlify(n.toString()) );
             }
@@ -169,7 +169,7 @@ public class PAG2HTML {
         out.println( "#!/bin/sh" );
         while( nodes.hasNext() ) {
             VarNode v = (VarNode) nodes.next();
-            VarNode rep = (VarNode) v.getReplacement();
+            VarNode rep = (VarNode) v.getReplacement(pag);
             if( v != rep ) {
                 out.println( "ln -s n"+rep.getNumber()+".html n"+v.getNumber()+".html" );
             }

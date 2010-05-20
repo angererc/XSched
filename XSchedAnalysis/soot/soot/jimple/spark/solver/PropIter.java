@@ -18,6 +18,7 @@
  */
 
 package soot.jimple.spark.solver;
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.*;
 import soot.jimple.spark.sets.*;
 import soot.*;
@@ -50,7 +51,7 @@ public final class PropIter extends Propagator {
             }
             if( ofcg != null ) {
                 QueueReader addedEdges = pag.edgeReader();
-                for( Iterator srcIt = pag.getVarNodeNumberer().iterator(); srcIt.hasNext(); ) {
+                for( Iterator srcIt = VarNode.varNodeNumberer().iterator(); srcIt.hasNext(); ) {
                     final VarNode src = (VarNode) srcIt.next();
                     ofcg.updatedNode( src );
                 }
@@ -61,10 +62,10 @@ public final class PropIter extends Propagator {
                     Node addedTgt = (Node) addedEdges.next();
                     change = true;
                     if( addedSrc instanceof VarNode ) {
-                        PointsToSetInternal p2set = ((VarNode)addedSrc).getP2Set();
+                        PointsToSetInternal p2set = ((VarNode)addedSrc).getP2Set(pag);
                         if( p2set != null ) p2set.unFlushNew();
                     } else if( addedSrc instanceof AllocNode ) {
-                        ((VarNode) addedTgt).makeP2Set().add( addedSrc );
+                        ((VarNode) addedTgt).makeP2Set(pag).add( addedSrc );
                     }
                 }
                 if( change ) {
@@ -89,35 +90,35 @@ public final class PropIter extends Propagator {
 	boolean ret = false;
 	Node[] targets = pag.allocLookup( src );
 	for (Node element : targets) {
-	    ret = element.makeP2Set().add( src ) | ret;
+	    ret = element.makeP2Set(pag).add( src ) | ret;
 	}
 	return ret;
     }
 
     protected final boolean handleSimples( VarNode src ) {
 	boolean ret = false;
-	PointsToSetInternal srcSet = src.getP2Set();
+	PointsToSetInternal srcSet = src.getP2Set(pag);
 	if( srcSet.isEmpty() ) return false;
 	Node[] simpleTargets = pag.simpleLookup( src );
 	for (Node element : simpleTargets) {
-	    ret = element.makeP2Set().addAll( srcSet, null ) | ret;
+	    ret = element.makeP2Set(pag).addAll( srcSet, null ) | ret;
 	}
         return ret;
     }
 
     protected final boolean handleStores( VarNode src ) {
 	boolean ret = false;
-	final PointsToSetInternal srcSet = src.getP2Set();
+	final PointsToSetInternal srcSet = src.getP2Set(pag);
 	if( srcSet.isEmpty() ) return false;
 	Node[] storeTargets = pag.storeLookup( src );
 	for (Node element : storeTargets) {
             final FieldRefNode fr = (FieldRefNode) element;
             final SparkField f = fr.getField();
-            ret = fr.getBase().getP2Set().forall( new P2SetVisitor() {
+            ret = fr.getBase().getP2Set(pag).forall( new P2SetVisitor() {
             public final void visit( Node n ) {
-                    AllocDotField nDotF = pag.makeAllocDotField( 
+                    AllocDotField nDotF = PAGNodeFactory.v().makeAllocDotField( 
                         (AllocNode) n, f );
-                    if( nDotF.makeP2Set().addAll( srcSet, null ) ) {
+                    if( nDotF.makeP2Set(pag).addAll( srcSet, null ) ) {
                         returnValue = true;
                     }
                 }
@@ -130,15 +131,15 @@ public final class PropIter extends Propagator {
 	boolean ret = false;
 	final Node[] loadTargets = pag.loadLookup( src );
         final SparkField f = src.getField();
-        ret = src.getBase().getP2Set().forall( new P2SetVisitor() {
+        ret = src.getBase().getP2Set(pag).forall( new P2SetVisitor() {
         public final void visit( Node n ) {
                 AllocDotField nDotF = ((AllocNode)n).dot( f );
                 if( nDotF == null ) return;
-                PointsToSetInternal set = nDotF.getP2Set();
+                PointsToSetInternal set = nDotF.getP2Set(pag);
                 if( set.isEmpty() ) return;
                 for (Node element : loadTargets) {
                     VarNode target = (VarNode) element;
-                    if( target.makeP2Set().addAll( set, null ) ) {
+                    if( target.makeP2Set(pag).addAll( set, null ) ) {
                         returnValue = true;
                     }
                 }

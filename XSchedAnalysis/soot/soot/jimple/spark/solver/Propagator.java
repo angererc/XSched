@@ -40,12 +40,7 @@ public abstract class Propagator {
 	public void setPAG(PAG pag) {
 		this.pag = pag;
 	}
-	
-	//called  by XSchedAnalyzer to make sure that everything is sane...
-	public void donePropagating() {
-		this.pag = null;
-	}
-	
+		
     /** Actually does the propagation. */
     public abstract void propagate();
 }

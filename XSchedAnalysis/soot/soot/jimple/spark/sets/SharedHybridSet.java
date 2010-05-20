@@ -3,6 +3,7 @@ package soot.jimple.spark.sets;
 import soot.Type;
 import soot.util.BitSetIterator;
 import soot.util.BitVector;
+import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 
@@ -194,7 +195,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 			// Put everything in the bitvector
 			PointsToBitVector newBitVector;
 			if (bitVector == null)
-				newBitVector = new PointsToBitVector(pag.getAllocNodeNumberer()
+				newBitVector = new PointsToBitVector(AllocNode.allocNodeNumberer()
 						.size());
 			else
 				newBitVector = new PointsToBitVector(bitVector);
@@ -231,7 +232,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 				// Make exclude only a bitvector, for simplicity
 				PointsToBitVector newBitVector;
 				if (exclude.bitVector == null) {
-					newBitVector = new PointsToBitVector(pag.getAllocNodeNumberer()
+					newBitVector = new PointsToBitVector(AllocNode.allocNodeNumberer()
 							.size());
 				} else {
 					newBitVector = new PointsToBitVector(exclude.bitVector);
@@ -437,7 +438,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 		// SharedHybridSet, but I don't know how at the moment.
 		if (bitVector != null) {
 			for (BitSetIterator it = bitVector.iterator(); it.hasNext();) {
-				v.visit((Node) pag.getAllocNodeNumberer().get(it.next()));
+				v.visit((Node) AllocNode.allocNodeNumberer().get(it.next()));
 			}
 		}
 		// Iterate through the overflow list
@@ -490,7 +491,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 				// Get the next node in the bitset by looking it up in the
 				// pointer assignment graph.
 				// Ripped from BitPointsToSet.
-				Node n = (Node) (pag.getAllocNodeNumberer().get(it.next()));
+				Node n = (Node) (AllocNode.allocNodeNumberer().get(it.next()));
 				add(n);
 			}
 

@@ -18,6 +18,7 @@
  */
 
 package soot.jimple.spark.pag;
+
 import java.util.*;
 
 import soot.*;
@@ -26,240 +27,408 @@ import soot.jimple.spark.builder.*;
 import soot.util.*;
 import soot.util.queue.*;
 
-
-/** Part of a pointer assignment graph for a single method.
+/**
+ * Part of a pointer assignment graph for a single method.
+ * 
  * @author Ondrej Lhotak
  */
 public final class MethodPAG {
-    private PAG pag;
-    public PAG pag() { return pag; }
 
-    protected MethodPAG( PAG pag, SootMethod m ) {
-        this.pag = pag;
-        this.method = m;
-        this.nodeFactory = new MethodNodeFactory( pag, this );
-    }
+	private final PAG pag;
+	private Set<Context> addedContexts;
+	private final SootMethod method;
+	private final PAGNodeFactory nodeFactory;
 
-    private Set<Context> addedContexts;
-
-    /** Adds this method to the main PAG, with all VarNodes parameterized by
-     * varNodeParameter. */
-    public void addToPAG( Context varNodeParameter ) {
-        if( !hasBeenBuilt ) throw new RuntimeException();
-        if( varNodeParameter == null ) {
-            if( hasBeenAdded ) return;
-            hasBeenAdded = true;
-        } else {
-            if( addedContexts == null ) addedContexts = new HashSet<Context>();
-            if( !addedContexts.add( varNodeParameter ) ) return;
-        }
-        QueueReader reader = (QueueReader) internalReader.clone();
-        while(reader.hasNext()) {
-            Node src = (Node) reader.next();
-            src = parameterize( src, varNodeParameter );
-            Node dst = (Node) reader.next();
-            dst = parameterize( dst, varNodeParameter );
-            pag.addEdge( src, dst );
-        }
-        reader = (QueueReader) inReader.clone();
-        while(reader.hasNext()) {
-            Node src = (Node) reader.next();
-            Node dst = (Node) reader.next();
-            dst = parameterize( dst, varNodeParameter );
-            pag.addEdge( src, dst );
-        }
-        reader = (QueueReader) outReader.clone();
-        while(reader.hasNext()) {
-            Node src = (Node) reader.next();
-            src = parameterize( src, varNodeParameter );
-            Node dst = (Node) reader.next();
-            pag.addEdge( src, dst );
-        }
-    }
-    public void addInternalEdge( Node src, Node dst ) {
-        if( src == null ) return;
-        internalEdges.add( src );
-        internalEdges.add( dst );
-        if (hasBeenAdded) {
-            pag.addEdge(src, dst);
-        }        
-    }
-    public void addInEdge( Node src, Node dst ) {
-        if( src == null ) return;
-        inEdges.add( src );
-        inEdges.add( dst );
-        if (hasBeenAdded) {
-            pag.addEdge(src, dst);
-        }        
-    }
-    public void addOutEdge( Node src, Node dst ) {
-        if( src == null ) return;
-        outEdges.add( src );
-        outEdges.add( dst );
-        if (hasBeenAdded) {
-            pag.addEdge(src, dst);
-        }        
-    }
-    private final ChunkedQueue internalEdges = new ChunkedQueue();
-    private final ChunkedQueue inEdges = new ChunkedQueue();
-    private final ChunkedQueue outEdges = new ChunkedQueue();
-    private final QueueReader internalReader = internalEdges.reader();
-    private final QueueReader inReader = inEdges.reader();
-    private final QueueReader outReader = outEdges.reader();
-
-    SootMethod method;
-    public SootMethod getMethod() { return method; }
-    protected MethodNodeFactory nodeFactory;
-    public MethodNodeFactory nodeFactory() { return nodeFactory; }
-
-    public void build() {
-        if( hasBeenBuilt ) return;
-        hasBeenBuilt = true;
-        if( method.isNative() ) {
-            if( pag().getOpts().simulate_natives() ) {
-                buildNative();
-            }
-        } else {
-            if( method.isConcrete() && !method.isPhantom() ) {
-                buildNormal();
-            }
-        }
-        addMiscEdges();
-    }
-
-    protected VarNode parameterize( LocalVarNode vn, Context varNodeParameter ) {
-        SootMethod m = vn.getMethod();
-        if( m != method && m != null ) throw new RuntimeException( "VarNode "+vn+" with method "+m+" parameterized in method "+method );
-        //System.out.println( "parameterizing "+vn+" with "+varNodeParameter );
-        return pag().makeContextVarNode( vn, varNodeParameter );
-    }
-    protected FieldRefNode parameterize( FieldRefNode frn, Context varNodeParameter ) {
-        return pag().makeFieldRefNode(
-                (VarNode) parameterize( frn.getBase(), varNodeParameter ),
-                frn.getField() );
-    }
-    public Node parameterize( Node n, Context varNodeParameter ) {
-        if( varNodeParameter == null ) return n;
-        if( n instanceof LocalVarNode ) 
-            return parameterize( (LocalVarNode) n, varNodeParameter);
-        if( n instanceof FieldRefNode )
-            return parameterize( (FieldRefNode) n, varNodeParameter);
-        return n;
-    }
-    protected boolean hasBeenAdded = false;
-    protected boolean hasBeenBuilt = false;
-
-    protected void buildNormal() {
-        Body b = method.retrieveActiveBody();
-        Iterator unitsIt = b.getUnits().iterator();
-        while( unitsIt.hasNext() )
-        {
-            Stmt s = (Stmt) unitsIt.next();
-            nodeFactory.handleStmt( s );
-        }
-    }
-    protected void buildNative() {
-        ValNode thisNode = null;
-        ValNode retNode = null; 
-        if( !method.isStatic() ) { 
-	    thisNode = (ValNode) nodeFactory.caseThis();
-        }
-        if( method.getReturnType() instanceof RefLikeType ) {
-	    retNode = (ValNode) nodeFactory.caseRet();
+	protected MethodPAG(PAG pag, SootMethod m) {
+		this.pag = pag;
+		this.method = m;
+		this.nodeFactory = PAGNodeFactory.v();
 	}
-        ValNode[] args = new ValNode[ method.getParameterCount() ];
-        for( int i = 0; i < method.getParameterCount(); i++ ) {
-            if( !( method.getParameterType(i) instanceof RefLikeType ) ) continue;
-	    args[i] = (ValNode) nodeFactory.caseParm(i);
-        }
-        pag.nativeMethodDriver.process( method, thisNode, retNode, args );
-    }
 
-    protected void addMiscEdges() {
-        // Add node for parameter (String[]) in main method
-        if( method.getSubSignature().equals( SootMethod.getSubSignature( "main", new SingletonList( ArrayType.v(RefType.v("java.lang.String"), 1) ), VoidType.v() ) ) ) {
-            addInEdge( pag().nodeFactory().caseArgv(), nodeFactory.caseParm(0) );
-        } else
+	public SootMethod getMethod() {
+		return method;
+	}
 
-        if( method.getSignature().equals(
-                    "<java.lang.Thread: void <init>(java.lang.ThreadGroup,java.lang.String)>" ) ) {
-            addInEdge( pag().nodeFactory().caseMainThread(), nodeFactory.caseThis() );
-            addInEdge( pag().nodeFactory().caseMainThreadGroup(), nodeFactory.caseParm( 0 ) );
-        } else
+	public PAG pag() {
+		return pag;
+	}
 
-        if (method.getSignature().equals(
-                "<java.lang.ref.Finalizer: void <init>(java.lang.Object)>")) {
-            addInEdge( nodeFactory.caseThis(), pag().nodeFactory().caseFinalizeQueue());
-        } else
-        	
-        if (method.getSignature().equals(
-                "<java.lang.ref.Finalizer: void runFinalizer()>")) {
-            addInEdge(pag.nodeFactory().caseFinalizeQueue(), nodeFactory.caseThis());
-        } else
+	public boolean hasBeenBuilt() {
+		return this.hasBeenBuilt;
+	}
 
-        if (method.getSignature().equals(
-                "<java.lang.ref.Finalizer: void access$100(java.lang.Object)>")) {
-            addInEdge(pag.nodeFactory().caseFinalizeQueue(), nodeFactory.caseParm(0));
-        } else
+	public boolean hasBeenAdded() {
+		return this.hasBeenAdded;
+	}
 
-        if (method.getSignature().equals(
-                "<java.lang.ClassLoader: void <init>()>")) {
-            addInEdge(pag.nodeFactory().caseDefaultClassLoader(), nodeFactory.caseThis());
-        } else
+	/**
+	 * Adds this method to the main PAG, with all VarNodes parameterized by
+	 * varNodeParameter.
+	 */
+	public void addToPAG(Context varNodeParameter) {
+		if (!hasBeenBuilt)
+			throw new RuntimeException();
+		if (varNodeParameter == null) {
+			if (hasBeenAdded)
+				return;
+			hasBeenAdded = true;
+		} else {
+			if (addedContexts == null)
+				addedContexts = new HashSet<Context>();
+			if (!addedContexts.add(varNodeParameter))
+				return;
+		}
+		QueueReader<?> reader = (QueueReader<?>) internalReader.clone();
+		while (reader.hasNext()) {
+			Node src = (Node) reader.next();
+			src = parameterize(src, varNodeParameter);
+			Node dst = (Node) reader.next();
+			dst = parameterize(dst, varNodeParameter);
+			pag.addEdge(src, dst);
+		}
+		reader = (QueueReader<?>) constantReader.clone();
+		while (reader.hasNext()) {
+			Node src = (Node) reader.next();
+			Node dst = (Node) reader.next();
+			pag.addEdge(src, dst);
+		}
+		reader = (QueueReader<?>) dereferencesReader.clone();
+		while (reader.hasNext()) {
+			VarNode node = (VarNode) reader.next();
+			pag.addDereference(node);
+		}
+		reader = (QueueReader<?>) inReader.clone();
+		while (reader.hasNext()) {
+			Node src = (Node) reader.next();
+			Node dst = (Node) reader.next();
+			dst = parameterize(dst, varNodeParameter);
+			pag.addEdge(src, dst);
+		}
+		reader = (QueueReader<?>) outReader.clone();
+		while (reader.hasNext()) {
+			Node src = (Node) reader.next();
+			src = parameterize(src, varNodeParameter);
+			Node dst = (Node) reader.next();
+			pag.addEdge(src, dst);
+		}
+	}
 
-        if (method.getSignature().equals("<java.lang.Thread: void exit()>")) {
-            addInEdge(pag.nodeFactory().caseMainThread(), nodeFactory.caseThis());
-        } else
+	public void addConstantEdge(AllocNode src, Node dst) {
+		constantEdges.add(src);
+		constantEdges.add(dst);
+		if (hasBeenAdded) {
+			pag.addEdge(src, dst);
+		}
+	}
 
-        if (method
-                .getSignature()
-                .equals(
-                        "<java.security.PrivilegedActionException: void <init>(java.lang.Exception)>")) {
-            addInEdge(pag.nodeFactory().caseThrow(), nodeFactory.caseParm(0));
-            addInEdge(pag.nodeFactory().casePrivilegedActionException(), nodeFactory.caseThis());
-        }
+	public void addInternalEdge(Node src, Node dst) {
+		if (src == null)
+			return;
+		internalEdges.add(src);
+		internalEdges.add(dst);
+		if (hasBeenAdded) {
+			pag.addEdge(src, dst);
+		}
+	}
 
-        if (method.getNumberedSubSignature().equals(sigCanonicalize)) {
-            SootClass cl = method.getDeclaringClass();
-            while (true) {
-                if (cl.equals(Scene.v().getSootClass("java.io.FileSystem"))) {
-                    addInEdge(pag.nodeFactory().caseCanonicalPath(), nodeFactory.caseRet());
-                }
-                if (!cl.hasSuperclass())
-                    break;
-                cl = cl.getSuperclass();
-            }
-        }
+	public void addInEdge(Node src, Node dst) {
+		if (src == null)
+			return;
+		inEdges.add(src);
+		inEdges.add(dst);
+		if (hasBeenAdded) {
+			pag.addEdge(src, dst);
+		}
+	}
 
-        boolean isImplicit = false;
-        for (SootMethod implicitMethod : EntryPoints.v().implicit()) {
-         if (implicitMethod.getNumberedSubSignature().equals(
-		    method.getNumberedSubSignature())) {
-        	 isImplicit = true;
-        	 break;
-         }
-      }
-        if (isImplicit) {
-            SootClass c = method.getDeclaringClass();
-            outer: do {
-                while (!c.getName().equals("java.lang.ClassLoader")) {
-                    if (!c.hasSuperclass()) {
-                        break outer;
-                    }
-                    c = c.getSuperclass();
-                }
-                if (method.getName().equals("<init>"))
-                    continue;
-                addInEdge(pag().nodeFactory().caseDefaultClassLoader(),
-                        nodeFactory.caseThis());
-                addInEdge(pag().nodeFactory().caseMainClassNameString(),
-                        nodeFactory.caseParm(0));
-            } while (false);
-        }
-    }
+	public void addOutEdge(Node src, Node dst) {
+		if (src == null)
+			return;
+		outEdges.add(src);
+		outEdges.add(dst);
+		if (hasBeenAdded) {
+			pag.addEdge(src, dst);
+		}
+	}
 
+	public void addDereference(VarNode base) {
+		dereferences.add(base);
+	}
 
-    protected final NumberedString sigCanonicalize = Scene.v().getSubSigNumberer().
-    findOrAdd("java.lang.String canonicalize(java.lang.String)");
+	private final ChunkedQueue<VarNode> dereferences = new ChunkedQueue<VarNode>();
+	private final ChunkedQueue<Node> internalEdges = new ChunkedQueue<Node>();
+	private final ChunkedQueue<Node> constantEdges = new ChunkedQueue<Node>();
+	private final ChunkedQueue<Node> inEdges = new ChunkedQueue<Node>();
+	private final ChunkedQueue<Node> outEdges = new ChunkedQueue<Node>();
+	private final QueueReader<VarNode> dereferencesReader = dereferences
+			.reader();
+	private final QueueReader<Node> internalReader = internalEdges.reader();
+	private final QueueReader<Node> constantReader = constantEdges.reader();
+	private final QueueReader<Node> inReader = inEdges.reader();
+	private final QueueReader<Node> outReader = outEdges.reader();
+
+	public void build() {
+		if (hasBeenBuilt)
+			return;
+		hasBeenBuilt = true;
+		if (method.isNative()) {
+			if (pag().getOpts().simulate_natives()) {
+				buildNative();
+			}
+		} else {
+			if (method.isConcrete() && !method.isPhantom()) {
+				buildNormal();
+			}
+		}
+		addMiscEdges();
+	}
+
+	protected VarNode parameterize(LocalVarNode vn, Context varNodeParameter) {
+		SootMethod m = vn.getMethod();
+		if (m != method && m != null)
+			throw new RuntimeException("VarNode " + vn + " with method " + m
+					+ " parameterized in method " + method);
+		// System.out.println( "parameterizing "+vn+" with "+varNodeParameter );
+		return nodeFactory.makeContextVarNode(vn, varNodeParameter);
+	}
+
+	protected FieldRefNode parameterize(FieldRefNode frn,
+			Context varNodeParameter) {
+		return nodeFactory.makeFieldRefNode((VarNode) parameterize(frn
+				.getBase(), varNodeParameter), frn.getField());
+	}
+
+	public Node parameterize(Node n, Context varNodeParameter) {
+		if (varNodeParameter == null)
+			return n;
+		if (n instanceof LocalVarNode)
+			return parameterize((LocalVarNode) n, varNodeParameter);
+		if (n instanceof FieldRefNode)
+			return parameterize((FieldRefNode) n, varNodeParameter);
+		return n;
+	}
+
+	protected boolean hasBeenAdded = false;
+	protected boolean hasBeenBuilt = false;
+
+	public Node buildNodeForValue(Value value) {
+		ShimpleValueBuilder valueBuilder = new ShimpleValueBuilder(this);
+		value.apply(valueBuilder);
+		return valueBuilder.getNode();
+	}
+
+	protected void buildNormal() {
+		ShimpleValueBuilder valueBuilder = new ShimpleValueBuilder(this);
+		ShimpleStatementBuilder statementBuilder = new ShimpleStatementBuilder(
+				valueBuilder);
+
+		Body b = method.retrieveActiveBody();
+		Iterator<?> unitsIt = b.getUnits().iterator();
+		while (unitsIt.hasNext()) {
+			Stmt s = (Stmt) unitsIt.next();
+
+			if (!s.containsInvokeExpr()) {
+				s.apply(statementBuilder);
+			}
+		}
+	}
+
+	protected void buildNative() {
+		ValNode thisNode = null;
+		ValNode retNode = null;
+		if (!method.isStatic()) {
+			thisNode = (ValNode) nodeFactory.makeThis(method);
+		}
+		if (method.getReturnType() instanceof RefLikeType) {
+			retNode = (ValNode) nodeFactory.makeRet(method);
+		}
+		ValNode[] args = new ValNode[method.getParameterCount()];
+		for (int i = 0; i < method.getParameterCount(); i++) {
+			if (!(method.getParameterType(i) instanceof RefLikeType))
+				continue;
+			args[i] = (ValNode) nodeFactory.makeParm(method, i);
+		}
+		pag.nativeMethodDriver.process(method, thisNode, retNode, args);
+	}
+
+	protected void addMiscEdges() {
+		// Add node for parameter (String[]) in main method
+		if (method.getSubSignature().equals(
+				SootMethod.getSubSignature("main", new SingletonList(ArrayType
+						.v(RefType.v("java.lang.String"), 1)), VoidType.v()))) {
+			addInEdge(addArgv(), nodeFactory.makeParm(method, 0));
+		} else
+
+		if (method
+				.getSignature()
+				.equals(
+						"<java.lang.Thread: void <init>(java.lang.ThreadGroup,java.lang.String)>")) {
+			addInEdge(addMainThread(), nodeFactory.makeThis(method));
+			addInEdge(addMainThreadGroup(), nodeFactory.makeParm(method, 0));
+		} else
+
+		if (method.getSignature().equals(
+				"<java.lang.ref.Finalizer: void <init>(java.lang.Object)>")) {
+			addInEdge(nodeFactory.makeThis(method), nodeFactory
+					.makeFinalizeQueue());
+		} else
+
+		if (method.getSignature().equals(
+				"<java.lang.ref.Finalizer: void runFinalizer()>")) {
+			addInEdge(nodeFactory.makeFinalizeQueue(), nodeFactory
+					.makeThis(method));
+		} else
+
+		if (method.getSignature().equals(
+				"<java.lang.ref.Finalizer: void access$100(java.lang.Object)>")) {
+			addInEdge(nodeFactory.makeFinalizeQueue(), nodeFactory.makeParm(
+					method, 0));
+		} else
+
+		if (method.getSignature().equals(
+				"<java.lang.ClassLoader: void <init>()>")) {
+			addInEdge(addDefaultClassLoader(), nodeFactory.makeThis(method));
+		} else
+
+		if (method.getSignature().equals("<java.lang.Thread: void exit()>")) {
+			addInEdge(addMainThread(), nodeFactory.makeThis(method));
+		} else
+
+		if (method
+				.getSignature()
+				.equals(
+						"<java.security.PrivilegedActionException: void <init>(java.lang.Exception)>")) {
+			addInEdge(nodeFactory.makeThrow(), nodeFactory.makeParm(method, 0));
+			addInEdge(addPrivilegedActionException(), nodeFactory
+					.makeThis(method));
+		}
+
+		if (method.getNumberedSubSignature().equals(sigCanonicalize)) {
+			SootClass cl = method.getDeclaringClass();
+			while (true) {
+				if (cl.equals(Scene.v().getSootClass("java.io.FileSystem"))) {
+					addInEdge(addCanonicalPath(), nodeFactory.makeRet(method));
+				}
+				if (!cl.hasSuperclass())
+					break;
+				cl = cl.getSuperclass();
+			}
+		}
+
+		boolean isImplicit = false;
+		for (SootMethod implicitMethod : EntryPoints.v().implicit()) {
+			if (implicitMethod.getNumberedSubSignature().equals(
+					method.getNumberedSubSignature())) {
+				isImplicit = true;
+				break;
+			}
+		}
+		if (isImplicit) {
+			SootClass c = method.getDeclaringClass();
+			outer: do {
+				while (!c.getName().equals("java.lang.ClassLoader")) {
+					if (!c.hasSuperclass()) {
+						break outer;
+					}
+					c = c.getSuperclass();
+				}
+				if (method.getName().equals("<init>"))
+					continue;
+				addInEdge(addDefaultClassLoader(), nodeFactory.makeThis(method));
+				addInEdge(addMainClassNameString(), nodeFactory.makeParm(
+						method, 0));
+			} while (false);
+		}
+	}
+
+	protected final NumberedString sigCanonicalize = Scene.v()
+			.getSubSigNumberer().findOrAdd(
+					"java.lang.String canonicalize(java.lang.String)");
+
+	private Node addDefaultClassLoader() {
+		AllocNode a = nodeFactory.makeAllocNode(
+				PointsToAnalysis.DEFAULT_CLASS_LOADER, AnySubType.v(RefType
+						.v("java.lang.ClassLoader")), null);
+		VarNode v = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.DEFAULT_CLASS_LOADER_LOCAL, RefType
+						.v("java.lang.ClassLoader"));
+		pag.addEdge(a, v);
+		return v;
+	}
+
+	private Node addMainClassNameString() {
+		AllocNode a = nodeFactory.makeAllocNode(
+				PointsToAnalysis.MAIN_CLASS_NAME_STRING, RefType
+						.v("java.lang.String"), null);
+		VarNode v = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.MAIN_CLASS_NAME_STRING_LOCAL, RefType
+						.v("java.lang.String"));
+		pag.addEdge(a, v);
+		return v;
+	}
+
+	private Node addMainThreadGroup() {
+		AllocNode threadGroupNode = nodeFactory.makeAllocNode(
+				PointsToAnalysis.MAIN_THREAD_GROUP_NODE, RefType
+						.v("java.lang.ThreadGroup"), null);
+		VarNode threadGroupNodeLocal = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.MAIN_THREAD_GROUP_NODE_LOCAL, RefType
+						.v("java.lang.ThreadGroup"));
+		pag.addEdge(threadGroupNode, threadGroupNodeLocal);
+		return threadGroupNodeLocal;
+	}
+
+	private Node addPrivilegedActionException() {
+		AllocNode a = nodeFactory.makeAllocNode(
+				PointsToAnalysis.PRIVILEGED_ACTION_EXCEPTION,
+				AnySubType.v(RefType
+						.v("java.security.PrivilegedActionException")), null);
+		VarNode v = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.PRIVILEGED_ACTION_EXCEPTION_LOCAL, RefType
+						.v("java.security.PrivilegedActionException"));
+		pag.addEdge(a, v);
+		return v;
+	}
+
+	private Node addCanonicalPath() {
+		AllocNode a = nodeFactory.makeAllocNode(
+				PointsToAnalysis.CANONICAL_PATH, RefType.v("java.lang.String"),
+				null);
+		VarNode v = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.CANONICAL_PATH_LOCAL, RefType
+						.v("java.lang.String"));
+		pag.addEdge(a, v);
+		return v;
+	}
+
+	private Node addMainThread() {
+		AllocNode threadNode = nodeFactory.makeAllocNode(
+				PointsToAnalysis.MAIN_THREAD_NODE, RefType
+						.v("java.lang.Thread"), null);
+		VarNode threadNodeLocal = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.MAIN_THREAD_NODE_LOCAL, RefType
+						.v("java.lang.Thread"));
+		pag.addEdge(threadNode, threadNodeLocal);
+		return threadNodeLocal;
+	}
+
+	private Node addArgv() {
+		AllocNode argv = nodeFactory.makeAllocNode(
+				PointsToAnalysis.STRING_ARRAY_NODE, ArrayType.v(RefType
+						.v("java.lang.String"), 1), null);
+		VarNode sanl = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.STRING_ARRAY_NODE_LOCAL, ArrayType.v(RefType
+						.v("java.lang.String"), 1));
+		AllocNode stringNode = nodeFactory.makeAllocNode(
+				PointsToAnalysis.STRING_NODE, RefType.v("java.lang.String"),
+				null);
+		VarNode stringNodeLocal = nodeFactory.makeGlobalVarNode(
+				PointsToAnalysis.STRING_NODE_LOCAL, RefType
+						.v("java.lang.String"));
+		pag.addEdge(argv, sanl);
+		pag.addEdge(stringNode, stringNodeLocal);
+		pag.addEdge(stringNodeLocal, nodeFactory.makeFieldRefNode(sanl,
+				ArrayElement.v()));
+		return sanl;
+	}
 }
-

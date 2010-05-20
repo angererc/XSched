@@ -9,6 +9,7 @@ import soot.SootMethod;
 import soot.SourceLocator;
 import soot.Type;
 import soot.jimple.spark.builder.ContextInsensitiveBuilder;
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
@@ -74,8 +75,8 @@ public class XSchedAnalyzer {
 		
         this.schedule = new Schedule();
         
-        AllocNode enterActivation = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
-        AllocNode enterInstance = pag.makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
+        AllocNode enterActivation = PAGNodeFactory.v().makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
+        AllocNode enterInstance = PAGNodeFactory.v().makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
         ActivationNode enterNode = this.schedule.createInitialActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<Node>());
         
         enterNode.addHappensBefore(this.schedule.exitNode);

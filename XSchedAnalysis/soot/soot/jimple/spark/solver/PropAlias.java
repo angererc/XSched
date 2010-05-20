@@ -38,7 +38,7 @@ public final class PropAlias extends Propagator {
 
     public PropAlias( PAG pag ) {
     	super(pag);        
-        loadSets = new LargeNumberedMap( pag.getFieldRefNodeNumberer() );
+        loadSets = new LargeNumberedMap( FieldRefNode.fieldRefNodeNumberer() );
     }
 
     /** Actually does the propagation. */
@@ -81,19 +81,19 @@ public final class PropAlias extends Propagator {
                     SparkField field = srcFr.getField();
                     for( Iterator dstIt = fieldToBase.get( field ).iterator(); dstIt.hasNext(); ) {
                         final VarNode dst = (VarNode) dstIt.next();
-                        if( src.getP2Set().hasNonEmptyIntersection(
-                                    dst.getP2Set() ) ) {
+                        if( src.getP2Set(pag).hasNonEmptyIntersection(
+                                    dst.getP2Set(pag) ) ) {
                             FieldRefNode dstFr = dst.dot( field );
                             aliasEdges.put( srcFr, dstFr );
                             aliasEdges.put( dstFr, srcFr );
                             fieldRefWorkList.add( srcFr );
                             fieldRefWorkList.add( dstFr );
                             if( makeP2Set( dstFr ).addAll( 
-                                    srcFr.getP2Set().getOldSet(), null ) ) {
+                                    srcFr.getP2Set(pag).getOldSet(), null ) ) {
                                 outFieldRefWorkList.add( dstFr );
                             }
                             if( makeP2Set( srcFr ).addAll( 
-                                    dstFr.getP2Set().getOldSet(), null ) ) {
+                                    dstFr.getP2Set(pag).getOldSet(), null ) ) {
                                 outFieldRefWorkList.add( srcFr );
                             }
                         }
@@ -103,11 +103,11 @@ public final class PropAlias extends Propagator {
             for (FieldRefNode src : fieldRefWorkList) {
                 for( Iterator dstIt = aliasEdges.get( src ).iterator(); dstIt.hasNext(); ) {
                     final FieldRefNode dst = (FieldRefNode) dstIt.next();
-                    if( makeP2Set( dst ).addAll( src.getP2Set().getNewSet(), null ) ) {
+                    if( makeP2Set( dst ).addAll( src.getP2Set(pag).getNewSet(), null ) ) {
                         outFieldRefWorkList.add( dst );
                     }
                 }
-                src.getP2Set().flushNew();
+                src.getP2Set(pag).flushNew();
             }
             fieldRefWorkList = new HashSet<FieldRefNode>();
             for (FieldRefNode src : outFieldRefWorkList) {
@@ -116,7 +116,7 @@ public final class PropAlias extends Propagator {
                 Node[] targets = pag.loadLookup( src );
                 for (Node element0 : targets) {
                     VarNode target = (VarNode) element0;
-                    if( target.makeP2Set().addAll( set, null ) ) {
+                    if( target.makeP2Set(pag).addAll( set, null ) ) {
                         addToWorklist( target );
                     }
                 }
@@ -135,7 +135,7 @@ public final class PropAlias extends Propagator {
 	boolean ret = false;
 	Node[] targets = pag.allocLookup( src );
 	for (Node element : targets) {
-	    if( element.makeP2Set().add( src ) ) {
+	    if( element.makeP2Set(pag).add( src ) ) {
                 addToWorklist( (VarNode) element );
                 ret = true;
             }
@@ -147,10 +147,10 @@ public final class PropAlias extends Propagator {
     protected final boolean handleVarNode( final VarNode src ) {
 	boolean ret = false;
 
-        if( src.getReplacement() != src ) throw new RuntimeException(
-                "Got bad node "+src+" with rep "+src.getReplacement() );
+        if( src.getReplacement(pag) != src ) throw new RuntimeException(
+                "Got bad node "+src+" with rep "+src.getReplacement(pag) );
 
-	final PointsToSetInternal newP2Set = src.getP2Set().getNewSet();
+	final PointsToSetInternal newP2Set = src.getP2Set(pag).getNewSet();
 	if( newP2Set.isEmpty() ) return false;
 
         if( ofcg != null ) {
@@ -166,13 +166,13 @@ public final class PropAlias extends Propagator {
                     if( addedTgt instanceof VarNode ) {
                         VarNode edgeSrc = (VarNode) addedSrc;
                         VarNode edgeTgt = (VarNode) addedTgt;
-                        if( edgeTgt.makeP2Set().addAll( edgeSrc.getP2Set(), null ) )
+                        if( edgeTgt.makeP2Set(pag).addAll( edgeSrc.getP2Set(pag), null ) )
                             addToWorklist( edgeTgt );
                     }
                 } else if( addedSrc instanceof AllocNode ) {
                     AllocNode edgeSrc = (AllocNode) addedSrc;
                     VarNode edgeTgt = (VarNode) addedTgt;
-                    if( edgeTgt.makeP2Set().add( edgeSrc ) )
+                    if( edgeTgt.makeP2Set(pag).add( edgeSrc ) )
                         addToWorklist( edgeTgt );
                 }
                 FieldRefNode frn = null;
@@ -191,7 +191,7 @@ public final class PropAlias extends Propagator {
 
 	Node[] simpleTargets = pag.simpleLookup( src );
 	for (Node element : simpleTargets) {
-	    if( element.makeP2Set().addAll( newP2Set, null ) ) {
+	    if( element.makeP2Set(pag).addAll( newP2Set, null ) ) {
                 addToWorklist( (VarNode) element );
                 ret = true;
             }
@@ -200,13 +200,13 @@ public final class PropAlias extends Propagator {
         Node[] storeTargets = pag.storeLookup( src );
         for (Node element : storeTargets) {
             final FieldRefNode fr = (FieldRefNode) element;
-            if( fr.makeP2Set().addAll( newP2Set, null ) ) {
+            if( fr.makeP2Set(pag).addAll( newP2Set, null ) ) {
                 fieldRefWorkList.add( fr );
                 ret = true;
             }
         }
 
-	src.getP2Set().flushNew();
+	src.getP2Set(pag).flushNew();
 	return ret;
     }
 
@@ -228,8 +228,8 @@ public final class PropAlias extends Propagator {
     }
 
     private boolean addToWorklist( VarNode n ) {
-        if( n.getReplacement() != n ) throw new RuntimeException(
-                "Adding bad node "+n+" with rep "+n.getReplacement() );
+        if( n.getReplacement(pag) != n ) throw new RuntimeException(
+                "Adding bad node "+n+" with rep "+n.getReplacement(pag) );
         return varNodeWorkList.add( n );
     }
 

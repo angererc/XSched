@@ -18,9 +18,8 @@
  */
 
 package soot.jimple.spark.sets;
-import java.util.ArrayList;
-import java.util.List;
 
+import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.internal.*;
@@ -34,7 +33,7 @@ public final class BitPointsToSet extends PointsToSetInternal {
     public BitPointsToSet( Type type, PAG pag ) {
         super( type );
         this.pag = pag;
-        bits = new BitVector( pag.getAllocNodeNumberer().size() );
+        bits = new BitVector( AllocNode.allocNodeNumberer().size() );
     }
     /** Returns true if this set contains no run-time objects. */
     public final boolean isEmpty() {
@@ -74,7 +73,7 @@ public final class BitPointsToSet extends PointsToSetInternal {
     /** Calls v's visit method on all nodes in this set. */
     public final boolean forall( P2SetVisitor v ) {
         for( BitSetIterator it = bits.iterator(); it.hasNext(); ) {
-            v.visit( (Node) pag.getAllocNodeNumberer().get( it.next() ) );
+            v.visit( (Node) AllocNode.allocNodeNumberer().get( it.next() ) );
         }
         return v.getReturnValue();
     }

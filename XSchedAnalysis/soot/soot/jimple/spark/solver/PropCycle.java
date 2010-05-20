@@ -19,6 +19,7 @@
 
 package soot.jimple.spark.solver;
 
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.*;
 import soot.jimple.spark.sets.*;
 import soot.*;
@@ -35,7 +36,7 @@ import soot.util.*;
 public final class PropCycle extends Propagator {
 	public PropCycle(PAG pag) {
 		super(pag);
-		varNodeToIteration = new LargeNumberedMap(pag.getVarNodeNumberer());
+		varNodeToIteration = new LargeNumberedMap(VarNode.varNodeNumberer());
 	}
 
 	/** Actually does the propagation. */
@@ -43,7 +44,7 @@ public final class PropCycle extends Propagator {
 		ofcg = pag.getOnFlyCallGraph();
 		boolean verbose = pag.getOpts().verbose();
 		Collection<VarNode> bases = new HashSet<VarNode>();
-		for (Iterator frnIt = pag.getFieldRefNodeNumberer().iterator(); frnIt
+		for (Iterator frnIt = FieldRefNode.fieldRefNodeNumberer().iterator(); frnIt
 				.hasNext();) {
 			final FieldRefNode frn = (FieldRefNode) frnIt.next();
 			bases.add(frn.getBase());
@@ -59,7 +60,7 @@ public final class PropCycle extends Propagator {
 			if (verbose)
 				G.v().out.println("Iteration: " + iteration);
 			for (VarNode v : bases) {
-				changed = computeP2Set((VarNode) v.getReplacement(),
+				changed = computeP2Set((VarNode) v.getReplacement(pag),
 						new ArrayList<VarNode>())
 						| changed;
 			}
@@ -72,13 +73,13 @@ public final class PropCycle extends Propagator {
 				Node[] targets = pag.storeLookup(src);
 				for (Node element0 : targets) {
 					final FieldRefNode target = (FieldRefNode) element0;
-					changed = target.getBase().makeP2Set().forall(
+					changed = target.getBase().makeP2Set(pag).forall(
 							new P2SetVisitor() {
 								public final void visit(Node n) {
-									AllocDotField nDotF = pag
+									AllocDotField nDotF = PAGNodeFactory.v()
 											.makeAllocDotField((AllocNode) n,
 													target.getField());
-									nDotF.makeP2Set().addAll(src.getP2Set(),
+									nDotF.makeP2Set(pag).addAll(src.getP2Set(pag),
 											null);
 								}
 							})
@@ -89,8 +90,8 @@ public final class PropCycle extends Propagator {
 				finalIter = true;
 				if (verbose)
 					G.v().out.println("Doing full graph");
-				bases = new ArrayList<VarNode>(pag.getVarNodeNumberer().size());
-				for (Iterator vIt = pag.getVarNodeNumberer().iterator(); vIt
+				bases = new ArrayList<VarNode>(VarNode.varNodeNumberer().size());
+				for (Iterator vIt = VarNode.varNodeNumberer().iterator(); vIt
 						.hasNext();) {
 					final VarNode v = (VarNode) vIt.next();
 					bases.add(v);
@@ -119,10 +120,10 @@ public final class PropCycle extends Propagator {
 		varNodeToIteration.put(v, currentIteration);
 
 		path.add(v);
-		if (v.getP2Set().isEmpty()) {
+		if (v.getP2Set(pag).isEmpty()) {
 			Node[] srcs = pag.allocInvLookup(v);
 			for (Node element : srcs) {
-				ret = v.makeP2Set().add(element) | ret;
+				ret = v.makeP2Set(pag).add(element) | ret;
 			}
 		}
 		{
@@ -130,20 +131,20 @@ public final class PropCycle extends Propagator {
 			for (Node element : srcs) {
 				VarNode src = (VarNode) element;
 				ret = computeP2Set(src, path) | ret;
-				ret = v.makeP2Set().addAll(src.getP2Set(), null) | ret;
+				ret = v.makeP2Set(pag).addAll(src.getP2Set(pag), null) | ret;
 			}
 		}
 		{
 			Node[] srcs = pag.loadInvLookup(v);
 			for (Node element : srcs) {
 				final FieldRefNode src = (FieldRefNode) element;
-				ret = src.getBase().getP2Set().forall(new P2SetVisitor() {
+				ret = src.getBase().getP2Set(pag).forall(new P2SetVisitor() {
 					public final void visit(Node n) {
 						AllocNode an = (AllocNode) n;
-						AllocDotField adf = pag.makeAllocDotField(an, src
+						AllocDotField adf = PAGNodeFactory.v().makeAllocDotField(an, src
 								.getField());
-						returnValue = v.makeP2Set()
-								.addAll(adf.getP2Set(), null)
+						returnValue = v.makeP2Set(pag)
+								.addAll(adf.getP2Set(pag), null)
 								| returnValue;
 					}
 				})

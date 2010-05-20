@@ -104,6 +104,8 @@ public interface AllocationSiteHandler {
 
     private boolean castFailed = false;
 
+    private PAG pag;
+    
     /*
      * (non-Javadoc)
      * 
@@ -122,6 +124,10 @@ public interface AllocationSiteHandler {
     public void setType(Type type) {
       this.type = type;
     }
+    
+    public void setPAG(PAG pag) {
+    	this.pag = pag;
+    }
 
     public void resetState() {
       throw new RuntimeException();
@@ -139,7 +145,7 @@ public interface AllocationSiteHandler {
         }
 
       };
-      dst.getP2Set().forall(v);
+      dst.getP2Set(pag).forall(v);
       return v.getReturnValue();
     }
   }

@@ -46,16 +46,17 @@ public class ActivationNode extends ScheduleNode {
 		return resultPAG;
 	}
 	
-	private void initializePAG(Heap heap) {
+	private void initializeHeap(Heap heap) {
 		
 		//make sure that the soot method is considered to be reachable
 		//this will have the effect that the OnFlyCallGraph creates new nodes in the pag through the MethodPAG
 		MethodOrMethodContext context = MethodContext.v(task, this);
-		heap.addCustomMethodOrMethodContext(context);
+		heap.makeSureActivationMethodIsKnownInPAG(context);
 		
 		//add an edge from the alloc node to the this node
 		VarNode thisNode = heap.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);
-		heap.addAllocEdge(receiver, thisNode);
+		//should eventually call addAllocEdge in PAG!
+		heap.addEdge(receiver, thisNode); 
 		
 		for(int i = 0; i < params.size(); i++) {
 			VarNode paramNode = heap.findContextVarNode(new Pair<SootMethod,Integer>(task,i), this);
@@ -98,14 +99,17 @@ public class ActivationNode extends ScheduleNode {
 	@Override
 	public void analyze(Propagator propagator) {
 		
+		//fake merging here
 		PAG pag = propagator.pag();
-		Heap heap = new Heap(pag);
-		initializePAG(heap);
 		
-		resultPAG = new Heap(pag);
+		//wrap the merged pag
+		Heap heap = new Heap(pag);
+		propagator.setPAG(heap);
+		initializeHeap(heap);
 		
 		propagator.propagate();		
-		propagator.donePropagating();
+		
+		heap.freeze();
 		
 		new PAG2DOT().dump(pag, SourceLocator.v().getOutputDir() + "/after.dot");
 						

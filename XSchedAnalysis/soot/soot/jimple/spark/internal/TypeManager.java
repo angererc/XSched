@@ -52,7 +52,7 @@ public final class TypeManager {
                     BitVector mask = (BitVector) typeMask.get( t );
                     if( mask == null ) {
                         typeMask.put( t, mask = new BitVector() );
-                        for( Iterator anIt = pag.getAllocNodeNumberer().iterator(); anIt.hasNext(); ) {
+                        for( Iterator anIt = AllocNode.allocNodeNumberer().iterator(); anIt.hasNext(); ) {
                             final AllocNode an = (AllocNode) anIt.next();
                             if( castNeverFails( an.getType(), t ) ) {
                                 mask.set( an.getNumber() );
@@ -80,7 +80,7 @@ public final class TypeManager {
         if( pag.getOpts().verbose() )
             G.v().out.println( "Total types: "+numTypes );
 
-        ArrayNumberer allocNodes = pag.getAllocNodeNumberer();
+        ArrayNumberer allocNodes = AllocNode.allocNodeNumberer();
         for( Iterator tIt = Scene.v().getTypeNumberer().iterator(); tIt.hasNext(); ) {
             final Type t = (Type) tIt.next();
             if( !(t instanceof RefLikeType) ) continue;
@@ -96,7 +96,7 @@ public final class TypeManager {
             typeMask.put( t, mask );
         }
 
-        allocNodeListener = pag.allocNodeListener();
+        allocNodeListener = AllocNode.newAllocNodesListener();
     }
 
     private LargeNumberedMap typeMask = null;

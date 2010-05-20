@@ -34,7 +34,7 @@ public class EBBCollapser {
     public void collapse() {
         boolean verbose = pag.getOpts().verbose();
         if( verbose ) {
-            G.v().out.println( "Total VarNodes: "+pag.getVarNodeNumberer().size()+". Collapsing EBBs..." );
+            G.v().out.println( "Total VarNodes: "+VarNode.varNodeNumberer().size()+". Collapsing EBBs..." );
         }
         collapseAlloc();
         collapseLoad();
@@ -68,7 +68,7 @@ public class EBBCollapser {
                     firstSucc = succ;
                 } else {
                     if( firstSucc.getType().equals( succ.getType() ) ) {
-                        firstSucc.mergeWith( succ );
+                        firstSucc.mergeWith( pag, succ );
                         numCollapsed++;
                     }
                 }
@@ -94,7 +94,7 @@ public class EBBCollapser {
                     if( pag.simpleInvLookup( succ ).length > 1 ) continue;
                     if( ofcg 
                     && ( succ.isInterProcTarget() || n.isInterProcSource() ) ) continue;
-                    n.mergeWith( succ );
+                    n.mergeWith( pag, succ );
                     change = true;
                     numCollapsed++;
                 }
@@ -121,7 +121,7 @@ public class EBBCollapser {
                     if( firstSucc == null ) {
                         firstSucc = succ;
                     } else {
-                        firstSucc.mergeWith( succ );
+                        firstSucc.mergeWith( pag, succ );
                         numCollapsed++;
                     }
                 } else {
@@ -129,7 +129,7 @@ public class EBBCollapser {
                     if( rep == null ) {
                         typeToSucc.put( succ.getType(), succ );
                     } else {
-                        rep.mergeWith( succ );
+                        rep.mergeWith( pag, succ );
                         numCollapsed++;
                     }
                 }

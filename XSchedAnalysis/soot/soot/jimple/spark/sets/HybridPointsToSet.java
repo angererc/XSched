@@ -23,6 +23,7 @@ import java.util.List;
 import soot.Scene;
 import soot.Type;
 import soot.jimple.spark.internal.TypeManager;
+import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.util.BitSetIterator;
@@ -166,7 +167,7 @@ public final class HybridPointsToSet extends PointsToSetInternal {
             if( n16 == null ) return v.getReturnValue(); v.visit( n16 );
         } else {
             for( BitSetIterator it = bits.iterator(); it.hasNext(); ) {
-                v.visit( (Node) pag.getAllocNodeNumberer().get( it.next() ) );
+                v.visit( (Node) AllocNode.allocNodeNumberer().get( it.next() ) );
             }
         }
         return v.getReturnValue();
@@ -241,7 +242,7 @@ public final class HybridPointsToSet extends PointsToSetInternal {
     protected final void convertToBits() {
         if( bits != null ) return;
 //		++numBitVectors;
-        bits = new BitVector( pag.getAllocNodeNumberer().size() );
+        bits = new BitVector( AllocNode.allocNodeNumberer().size() );
         if( n1 != null ) fastAdd( n1 );
         if( n2 != null ) fastAdd( n2 );
         if( n3 != null ) fastAdd( n3 );

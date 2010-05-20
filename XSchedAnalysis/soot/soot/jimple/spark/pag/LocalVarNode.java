@@ -20,6 +20,8 @@
 package soot.jimple.spark.pag;
 
 import soot.*;
+import soot.util.LargeNumberedMap;
+
 import java.util.*;
 
 /**
@@ -29,6 +31,45 @@ import java.util.*;
  * @author Ondrej Lhotak
  */
 public class LocalVarNode extends VarNode {
+	
+	private static final LargeNumberedMap internalizedLocals = new LargeNumberedMap( Scene.v().getLocalNumberer() );
+	private static final HashMap<Object,LocalVarNode> internalizedVals = new HashMap<Object,LocalVarNode>();
+	public static LocalVarNode localVarNode(Object value) {
+		if(value instanceof Local)
+			return (LocalVarNode) internalizedLocals.get((Local)value);
+		else
+			return internalizedVals.get(value);
+	}
+	public LocalVarNode internalized() {
+		
+		if(this.variable instanceof Local) {
+			Local val = (Local)this.variable;
+			if(val.getNumber() == 0) Scene.v().getLocalNumberer().add(val);
+			LocalVarNode ret = (LocalVarNode)internalizedLocals.get(val);
+			if(ret == null) {
+				ret = this;
+				this.fetchNumber();
+				internalizedLocals.put(val, this);
+				this.addNodeTag(this.getMethod());
+			} else if( !( ret.getType().equals( type ) ) ) {
+                throw new RuntimeException( "Value "+val+" of type "+type+
+                        " previously had type "+ret.getType() );
+            }
+			return ret;
+		} else {
+			LocalVarNode ret = internalizedVals.get(this.variable);
+			if(ret == null) {
+				ret = this;
+				this.fetchNumber();
+				internalizedVals.put(this.variable, this);
+			} else if( !( ret.getType().equals( type ) ) ) {
+	            throw new RuntimeException( "Value "+this.variable+" of type "+type+
+	                    " previously had type "+ret.getType() );
+	        }
+			return ret;
+		}
+	}
+	
 	public ContextVarNode context(Object context) {
 		return cvns == null ? null : cvns.get(context);
 	}
@@ -43,8 +84,8 @@ public class LocalVarNode extends VarNode {
 
 	/* End of public methods. */
 
-	LocalVarNode(PAG pag, Object variable, Type t, SootMethod m) {
-		super(pag, variable, t);
+	public LocalVarNode(Object variable, Type t, SootMethod m) {
+		super(variable, t);
 		this.method = m;
 		// if( m == null ) throw new RuntimeException(
 		// "method shouldn't be null" );
@@ -61,4 +102,6 @@ public class LocalVarNode extends VarNode {
 
 	protected Map<Object, ContextVarNode> cvns;
 	protected SootMethod method;
+	
+	
 }

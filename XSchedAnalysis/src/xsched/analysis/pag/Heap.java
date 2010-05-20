@@ -14,12 +14,9 @@ import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.SootField;
 import soot.SootMethod;
-import soot.Type;
 import soot.Value;
-import soot.jimple.ClassConstant;
 import soot.jimple.InvokeExpr;
 import soot.jimple.StringConstant;
-import soot.jimple.spark.builder.GlobalNodeFactory;
 import soot.jimple.spark.internal.TypeManager;
 import soot.jimple.spark.pag.AllocDotField;
 import soot.jimple.spark.pag.AllocNode;
@@ -27,6 +24,7 @@ import soot.jimple.spark.pag.ContextVarNode;
 import soot.jimple.spark.pag.FieldRefNode;
 import soot.jimple.spark.pag.GlobalVarNode;
 import soot.jimple.spark.pag.LocalVarNode;
+import soot.jimple.spark.pag.MethodPAG;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.SparkField;
@@ -35,9 +33,7 @@ import soot.jimple.spark.sets.P2SetFactory;
 import soot.jimple.spark.solver.OnFlyCallGraph;
 import soot.jimple.toolkits.pointer.util.NativeMethodDriver;
 import soot.options.SparkOptions;
-import soot.tagkit.Tag;
 import soot.toolkits.scalar.Pair;
-import soot.util.ArrayNumberer;
 import soot.util.HashMultiMap;
 import soot.util.queue.QueueReader;
 import xsched.analysis.XSchedAnalyzer;
@@ -45,17 +41,40 @@ import xsched.analysis.XSchedAnalyzer;
 public class Heap extends PAG {
 
 	private final PAG parent;
+	private boolean frozen = false;
 	private HashMap<InvokeExpr, NewHBRelationshipRecord> newHBRelationshipRecords = new HashMap<InvokeExpr, NewHBRelationshipRecord>();
 	private HashMap<InvokeExpr, NewActivationRecord> newActivationRecords = new HashMap<InvokeExpr, NewActivationRecord>();
 	
 	public Heap(PAG parent) {
-		super(parent.opts());
+		super();
 		this.parent = parent;
-		this.useOnFlyCallGraph();		
-		this.setNativeMethodDriver(parent.nativeMethodDriver());
+		super.useOnFlyCallGraph();		
+		super.setNativeMethodDriver(parent.nativeMethodDriver());
+	}
+	
+	public void freeze() {
+		this.frozen = true;
+	}
+	
+	@Override
+	public MethodPAG methodPAGForMethod(SootMethod m) {
+		// the Heap has its own methodPAGs, so this method is OK
+		return super.methodPAGForMethod(m);
 	}
 
-	public void addCustomMethodOrMethodContext(MethodOrMethodContext momc) {
+	@Override
+	public NativeMethodDriver nativeMethodDriver() {
+		//we did set the nativeMethodDriver to our parent's, so this is OK, too
+		return super.nativeMethodDriver();
+	}
+
+	@Override
+	public void useOnFlyCallGraph() {
+		//we call super.useOnFlyCallGraph() in the constructor, so there's no need to call this
+		throw new RuntimeException("Don't use this method in the heap!");
+	}
+
+	public void makeSureActivationMethodIsKnownInPAG(MethodOrMethodContext momc) {
 		this.ofcg.callGraph().reachableMethods().addCustomMethodOrMethodContext(momc);
 		this.ofcg.build();
 		
@@ -67,11 +86,6 @@ public class Heap extends PAG {
 
 	@Override
 	public Map<InvokeExpr, SootMethod> callToMethod() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public SparkOptions opts() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
@@ -93,28 +107,9 @@ public class Heap extends PAG {
 		return newActivationRecords.values();
 	}
 	
-	@Override
-	public boolean addAllocEdge(AllocNode from, VarNode to) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
 
 	@Override
 	public void addDereference(VarNode base) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public boolean addLoadEdge(FieldRefNode from, VarNode to) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public boolean addSimpleEdge(VarNode from, VarNode to) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public boolean addStoreEdge(VarNode from, FieldRefNode to) {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
@@ -134,15 +129,14 @@ public class Heap extends PAG {
 				.getVariable()).getO2();
 		if (which.equals(PointsToAnalysis.THIS_NODE)) {
 			assert (act.activation == null);
-			assert (src.getP2Set() != null);
-			List<Node> allocs = src.getP2Set().contents();
+			assert (src.getP2Set(this) != null);
+			List<Node> allocs = src.getP2Set(this).contents();
 			assert (allocs.size() == 1);
 			act.activation = (AllocNode) allocs.get(0);
 
 		} else if (which.equals(0)) {
 			assert (act.receivers == null);
-			assert(src.getP2SetForReal() != null);
-			act.receivers = src.getP2Set();
+			act.receivers = src.getP2Set(this);
 		} else if (which.equals(1)) {
 			assert (act.task == null);
 			assert (src instanceof GlobalVarNode);
@@ -177,12 +171,12 @@ public class Heap extends PAG {
 				.getVariable()).getO2();
 		if (which.equals(PointsToAnalysis.THIS_NODE)) {
 			assert (rel.lhs == null);
-			rel.lhs = src.getP2Set();
+			rel.lhs = src.getP2Set(this);
 		} else {
 			assert (which instanceof Integer);
 			assert (which.equals(0));
 			assert (rel.rhs == null);
-			rel.rhs = src.getP2Set();
+			rel.rhs = src.getP2Set(this);
 		}
 	}
 	
@@ -234,11 +228,6 @@ public class Heap extends PAG {
 	}
 
 	@Override
-	public QueueReader allocNodeListener() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
 	public Set<Object> allocSources() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
@@ -274,7 +263,7 @@ public class Heap extends PAG {
 	}
 
 	@Override
-	public QueueReader edgeReader() {
+	public QueueReader<?> edgeReader() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
@@ -310,32 +299,7 @@ public class Heap extends PAG {
 	}
 
 	@Override
-	public ArrayNumberer getAllocDotFieldNodeNumberer() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public ArrayNumberer getAllocNodeNumberer() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
 	public List<VarNode> getDereferences() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public ArrayNumberer getFieldRefNodeNumberer() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public Map<Node, Tag> getNodeTags() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public int getNumAllocNodes() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
@@ -356,11 +320,6 @@ public class Heap extends PAG {
 
 	@Override
 	public TypeManager getTypeManager() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public ArrayNumberer getVarNodeNumberer() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
@@ -401,70 +360,6 @@ public class Heap extends PAG {
 
 	@Override
 	protected Node[] lookup(Map<Object, Object> m, Object key) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public AllocDotField makeAllocDotField(AllocNode an, SparkField field) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public AllocNode makeAllocNode(Object newExpr, Type type, SootMethod m) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public AllocNode makeClassConstantNode(ClassConstant cc) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public ContextVarNode makeContextVarNode(LocalVarNode base, Context context) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public ContextVarNode makeContextVarNode(Object baseValue, Type baseType,
-			Context context, SootMethod method) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public FieldRefNode makeFieldRefNode(VarNode base, SparkField field) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public FieldRefNode makeGlobalFieldRefNode(Object baseValue, Type baseType,
-			SparkField field) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public GlobalVarNode makeGlobalVarNode(Object value, Type type) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public FieldRefNode makeLocalFieldRefNode(Object baseValue, Type baseType,
-			SparkField field, SootMethod method) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public LocalVarNode makeLocalVarNode(Object value, Type type,
-			SootMethod method) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public AllocNode makeStringConstantNode(String s) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public GlobalNodeFactory nodeFactory() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 

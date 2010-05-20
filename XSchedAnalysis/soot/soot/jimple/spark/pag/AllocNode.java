@@ -31,61 +31,94 @@ import soot.RefType;
 import soot.SootMethod;
 import soot.Type;
 import soot.options.CGOptions;
+import soot.util.ArrayNumberer;
+import soot.util.queue.ChunkedQueue;
+import soot.util.queue.QueueReader;
 
 /** Represents an allocation site node (Blue) in the pointer assignment graph.
  * @author Ondrej Lhotak
  */
 public class AllocNode extends Node implements Context {
-    /** Returns the new expression of this allocation site. */
-    public Object getNewExpr() { return newExpr; }
-    /** Returns all field ref nodes having this node as their base. */
-    public Collection getAllFieldRefs() { 
-        if( fields == null ) return Collections.EMPTY_LIST;
-        return fields.values();
-    }
-    /** Returns the field ref node having this node as its base,
-     * and field as its field; null if nonexistent. */
-    public AllocDotField dot( SparkField field ) 
-    { return fields == null ? null : (AllocDotField) fields.get( field ); }
-    public String toString() {
-	return "AllocNode "+getNumber()+" "+newExpr+" in method "+method;
-    }
+	
+	private static final ArrayNumberer nodeNumberer = new ArrayNumberer();
+	private static final HashMap<Object,AllocNode> internalized = new HashMap<Object,AllocNode>();
+	private static ChunkedQueue<Node> newAllocNodes = new ChunkedQueue<Node>();
+	
+	public static QueueReader<Node> newAllocNodesListener() { return newAllocNodes.reader(); }
+	 
+	public static ArrayNumberer allocNodeNumberer() {
+		return nodeNumberer;
+	}
+	
+	@Override
+	public void fetchNumber() {
+		nodeNumberer.add(this);
+	}
+	
+	@Override
+	public AllocNode internalized() {
+		AllocNode ret = internalized.get(newExpr);
+		if(ret == null) {
+			ret = this;
+			this.fetchNumber();
+			internalized.put(newExpr, this);
+			newAllocNodes.add(this);
+		} else if( !( ret.getType().equals( type ) ) ) {
+			    throw new RuntimeException( "NewExpr "+newExpr+" of type "+type+
+				    " previously had type "+ret.getType() );
+		}
+		return ret;
+	}
+	
+	/** Returns the new expression of this allocation site. */
+	public Object getNewExpr() { return newExpr; }
+	/** Returns all field ref nodes having this node as their base. */
+	public Collection<?> getAllFieldRefs() { 
+		if( fields == null ) return Collections.EMPTY_LIST;
+		return fields.values();
+	}
+	/** Returns the field ref node having this node as its base,
+	 * and field as its field; null if nonexistent. */
+	public AllocDotField dot( SparkField field ) 
+	{ return fields == null ? null : (AllocDotField) fields.get( field ); }
+	public String toString() {
+		return "AllocNode "+getNumber()+" "+newExpr+" in method "+method;
+	}
 
-    /* End of public methods. */
+	/* End of public methods. */
 
-    AllocNode( PAG pag, Object newExpr, Type t, SootMethod m ) {
-	super( pag, t );
-        this.method = m;
-        if( t instanceof RefType ) {
-            RefType rt = (RefType) t;
-            if( rt.getSootClass().isAbstract()) {
+	public AllocNode( Object newExpr, Type t, SootMethod m ) {
+		super( t );
+		this.method = m;
+		if( t instanceof RefType ) {
+			RefType rt = (RefType) t;
+			if( rt.getSootClass().isAbstract()) {
 				boolean usesReflectionLog = new CGOptions(PhaseOptions.v().getPhaseOptions("cg")).reflection_log()!=null;
 				if (!usesReflectionLog) {
-				    throw new RuntimeException( "Attempt to create allocnode with abstract type "+t );
+					throw new RuntimeException( "Attempt to create allocnode with abstract type "+t );
 				}
 			}
-        }
-	this.newExpr = newExpr;
-        if( newExpr instanceof ContextVarNode ) throw new RuntimeException();
-        pag.getAllocNodeNumberer().add( this );
-    }
-    /** Registers a AllocDotField as having this node as its base. */
-    void addField( AllocDotField adf, SparkField field ) {
-	if( fields == null ) fields = new HashMap();
-        fields.put( field, adf );
-    }
+		}
+		this.newExpr = newExpr;
+		if( newExpr instanceof ContextVarNode ) throw new RuntimeException();		
+	}
+	/** Registers a AllocDotField as having this node as its base. */
+	void addField( AllocDotField adf, SparkField field ) {
+		if( fields == null ) fields = new HashMap<SparkField,AllocDotField>();
+		fields.put( field, adf );
+	}
 
-    public Set getFields() {
-        if( fields == null ) return Collections.EMPTY_SET;
-        return new HashSet( fields.values() );
-    }
+	public Set<?> getFields() {
+		if( fields == null ) return Collections.EMPTY_SET;
+		return new HashSet<AllocDotField>( fields.values() );
+	}
 
-    /* End of package methods. */
+	/* End of package methods. */
 
-    protected Object newExpr;
-    protected Map fields;
+	protected Object newExpr;
+	protected Map<SparkField,AllocDotField> fields;
 
-    private SootMethod method;
-    public SootMethod getMethod() { return method; }
+	private SootMethod method;
+	public SootMethod getMethod() { return method; }
 }
 

@@ -73,8 +73,8 @@ public class PagToDotDumper {
 				// if they store & load the same field
 				if (frn1.getField().equals(frn2.getField())) {
 
-					if (base1.getP2Set().hasNonEmptyIntersection(
-							base2.getP2Set())) {
+					if (base1.getP2Set(pag).hasNonEmptyIntersection(
+							base2.getP2Set(pag))) {
 
 						//						System.err.println("srcs:");
 						Node[] src = pag.loadLookup(frn1);
@@ -129,12 +129,12 @@ public class PagToDotDumper {
 				
 				if (frn1.getField().equals(frn2.getField())) {
 					System.err.println("field match");
-					if (base1.getP2Set().hasNonEmptyIntersection(
-							base2.getP2Set())) {
+					if (base1.getP2Set(pag).hasNonEmptyIntersection(
+							base2.getP2Set(pag))) {
 						System.err.println("non empty");
 					} else {
-						System.err.println("b1: " + base1.getP2Set());
-						System.err.println("b2: " + base2.getP2Set());
+						System.err.println("b1: " + base1.getP2Set(pag));
+						System.err.println("b2: " + base2.getP2Set(pag));
 					}
 				}
 			}
@@ -151,12 +151,7 @@ public class PagToDotDumper {
 		return makeNodeName(src) + " -> " + makeNodeName(dest) + " [label=\""
 				+ label + "\"];";
 	}
-
-	private final static Predicate<Node> emptyP2SetPred = new Predicate<Node>() {
-        public boolean test(Node n) {
-            return !(n instanceof AllocNode) && n.getP2Set().isEmpty();
-        }
-    };
+ 
     
 	/**
      * Generate a node declaration for a dot file.
@@ -184,8 +179,12 @@ public class PagToDotDumper {
 
 	}
 
-	private static String translateLabel(Node n) { 
-	    return makeDotNodeLabel(n, emptyP2SetPred);
+	private static String translateLabel(final PAG pag, Node n) { 
+	    return makeDotNodeLabel(n, new Predicate<Node>() {
+	        public boolean test(Node n) {
+	            return !(n instanceof AllocNode) && n.getP2Set(pag).isEmpty();
+	        }
+	    });
 	}
 	/**
 	 * @param lvNode
@@ -261,7 +260,7 @@ public class PagToDotDumper {
 
 	private void dumpLocalP2Set(String mName, final PrintStream ps) {
 
-		for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter
+		for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
 				.hasNext();) {
 			VarNode vNode = (VarNode) iter.next();
 
@@ -272,7 +271,7 @@ public class PagToDotDumper {
 
 					ps.println("\t" + makeNodeName(lvNode) + " [label=\""
 							+ makeLabel(lvNode) + "\"];");
-					lvNode.getP2Set().forall(new P2SetToDotPrinter(lvNode, ps));
+					lvNode.getP2Set(pag).forall(new P2SetToDotPrinter(lvNode, ps));
 
 				}
 			}
@@ -303,7 +302,7 @@ public class PagToDotDumper {
 	private void dumpLocalPAG(String cName, String mName, final PrintStream ps) {
 //		this.queryMethod = mName;
 		// iterate over all variable nodes
-		for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter
+		for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
 				.hasNext();) {
 			final Node node = (Node) iter.next();
 
@@ -320,7 +319,7 @@ public class PagToDotDumper {
 			}
 		}
 
-		//		for (Iterator iter = pag.getFieldRefNodeNumberer().iterator(); iter
+		//		for (Iterator iter = FieldRefNode.fieldRefNodeNumberer().iterator(); iter
 		//				.hasNext();) {
 		//			final FieldRefNode frNode = (FieldRefNode) iter.next();
 		//			
@@ -341,18 +340,18 @@ public class PagToDotDumper {
 	 */
 	private void dumpForwardReachableNodesFrom(final LocalVarNode lvNode,
 			final PrintStream ps) {
-		ps.println("\t" + translateLabel(lvNode));
+		ps.println("\t" + translateLabel(pag, lvNode));
 
 		Node[] succs = pag.simpleInvLookup(lvNode);
 		for (int i = 0; i < succs.length; i++) {
-			ps.println("\t" + translateLabel(succs[i]));
+			ps.println("\t" + translateLabel(pag, succs[i]));
 			// print edge
 			ps.println("\t" + translateEdge(lvNode, succs[i], "assign"));
 		}
 
 		succs = pag.allocInvLookup(lvNode);
 		for (int i = 0; i < succs.length; i++) {
-			ps.println("\t" + translateLabel(succs[i]));
+			ps.println("\t" + translateLabel(pag, succs[i]));
 			// print edge
 			ps.println("\t" + translateEdge(lvNode, succs[i], "new"));
 		}
@@ -360,8 +359,8 @@ public class PagToDotDumper {
 		succs = pag.loadInvLookup(lvNode);
 		for (int i = 0; i < succs.length; i++) {
 			final FieldRefNode frNode = (FieldRefNode) succs[i];
-			ps.println("\t" + translateLabel(frNode));
-			ps.println("\t" + translateLabel(frNode.getBase()));
+			ps.println("\t" + translateLabel(pag, frNode));
+			ps.println("\t" + translateLabel(pag, frNode.getBase()));
 
 			// print edge
 			ps.println("\t" + translateEdge(lvNode, frNode, "load"));
@@ -374,8 +373,8 @@ public class PagToDotDumper {
 
 		for (int i = 0; i < succs.length; i++) {
 			final FieldRefNode frNode = (FieldRefNode) succs[i];
-			ps.println("\t" + translateLabel(frNode));
-			ps.println("\t" + translateLabel(frNode.getBase()));
+			ps.println("\t" + translateLabel(pag, frNode));
+			ps.println("\t" + translateLabel(pag, frNode.getBase()));
 			// print edge
 			ps.println("\t" + translateEdge(frNode, lvNode, "store"));
 			ps.println("\t"
@@ -392,7 +391,7 @@ public class PagToDotDumper {
 			ps.println("digraph G {");
 
 			// iterate over all variable nodes
-			for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter
+			for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
 					.hasNext();) {
 				final VarNode n = (VarNode) iter.next();
 
@@ -433,7 +432,7 @@ public class PagToDotDumper {
 			ps.println("digraph G {");
 
 			// iterate over all variable nodes
-			for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter
+			for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
 					.hasNext();) {
 				final VarNode n = (VarNode) iter.next();
 
@@ -472,7 +471,7 @@ public class PagToDotDumper {
 	private void trace(VarNode node, PrintStream ps, HashSet<Node> visitedNodes, int level) {
 		if (level < 1)
 			return;
-		ps.println("\t" + translateLabel(node));
+		ps.println("\t" + translateLabel(pag, node));
 
 //		// assign value to others
 //		Node[] preds = pag.storeLookup(node);
@@ -491,7 +490,7 @@ public class PagToDotDumper {
 		for (int i = 0; i < succs.length; i++) {
 			if (visitedNodes.contains(succs[i]))
 				continue;
-			ps.println("\t" + translateLabel(succs[i]));
+			ps.println("\t" + translateLabel(pag, succs[i]));
 			// print edge
 			ps.println("\t" + translateEdge(node, succs[i], "assign"));
 			visitedNodes.add(succs[i]);
@@ -502,7 +501,7 @@ public class PagToDotDumper {
 		for (int i = 0; i < succs.length; i++) {
 			if (visitedNodes.contains(succs[i]))
 				continue;
-			ps.println("\t" + translateLabel(succs[i]));
+			ps.println("\t" + translateLabel(pag, succs[i]));
 			// print edge
 			ps.println("\t" + translateEdge(node, succs[i], "new"));
 		}
@@ -514,7 +513,7 @@ public class PagToDotDumper {
 				//				System.err.println(succs[i]);
 				if (visitedNodes.contains(succs[i]))
 					continue;
-				ps.println("\t" + translateLabel(succs[i]));
+				ps.println("\t" + translateLabel(pag, succs[i]));
 				// print edge
 				ps.println("\t" + translateEdge(node, succs[i], "vmatch"));
 				trace((VarNode) succs[i], ps, visitedNodes, level-1);

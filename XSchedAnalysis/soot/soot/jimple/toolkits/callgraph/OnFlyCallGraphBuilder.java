@@ -411,7 +411,7 @@ public final class OnFlyCallGraphBuilder
     }
     
     public void processReachables() {
-        while(true) {
+        while(true) { //handle all new reachable methods (worklist observes reachableMethods)
             if( !worklist.hasNext() ) {
                 rm.update();
                 if( !worklist.hasNext() ) break;
@@ -419,8 +419,8 @@ public final class OnFlyCallGraphBuilder
             MethodOrMethodContext momc = (MethodOrMethodContext) worklist.next();
             SootMethod m = momc.method();
             if( appOnly && !m.getDeclaringClass().isApplicationClass() ) continue;
-            if( analyzedMethods.add( m ) ) processNewMethod( m );
-            processNewMethodContext( momc );
+            if( analyzedMethods.add( m ) ) processNewMethod( m ); //put static calls into cicg and put receiver units into receiversToSites
+            processNewMethodContext( momc ); //copy new static edges from cicg into the call graph and add the method context
         }
     }
     public boolean isReceiverNode( Local receiver ) {

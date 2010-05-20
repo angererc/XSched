@@ -47,7 +47,7 @@ public class ValidMatches {
 			ArraySet<Pair<VarNode, VarNode>> storesOnField = fieldToStores.get(field);
 			for (Pair<VarNode, VarNode> store : storesOnField) {
 				VarNode storeBase = store.getO2();				
-				if (loadBase.getP2Set().hasNonEmptyIntersection(storeBase.getP2Set())) {
+				if (loadBase.getP2Set(pag).hasNonEmptyIntersection(storeBase.getP2Set(pag))) {
 					VarNode matchSrc = store.getO1();
 					Node[] loadTargets = pag.loadLookup(loadSource);
 					for (int i = 0; i < loadTargets.length; i++) {

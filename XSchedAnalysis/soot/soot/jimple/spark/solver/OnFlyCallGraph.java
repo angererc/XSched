@@ -50,9 +50,9 @@ public class OnFlyCallGraph {
         callEdges = cm.callGraph().listener();
     }
     public void build() {
-        ofcgb.processReachables();
-        processReachables();
-        processCallEdges();
+        ofcgb.processReachables(); //add new edges to the callgraph (reachable methods updates itself)
+        processReachables(); //for all new reachable methods add nodes to the PAG
+        processCallEdges(); //for all new call edges, add the target with the given target context to the PAG
     }
     private void processReachables() {
     	ofcgb.contextManager().callGraph().reachableMethods().update();
@@ -66,9 +66,16 @@ public class OnFlyCallGraph {
     private void processCallEdges() {
         while(callEdges.hasNext()) {
             Edge e = (Edge) callEdges.next();
+            
+            //replaced the original code with this
+            //in processReachables all methods in the call graph should have been added to the PAG already;
+            //so no reason to do this again
+            //but i want to assert this...
             MethodPAG amp = pag.methodPAGForMethod(e.tgt());
-            amp.build();
-            amp.addToPAG( e.tgtCtxt() );
+            assert(amp.hasBeenBuilt());
+            assert(amp.hasBeenAdded());
+            
+            //add edge to PAG
             pag.addCallTarget( e );
         }
     }
@@ -81,7 +88,7 @@ public class OnFlyCallGraph {
         final Local receiver = (Local) r;
         final Context context = vn.context();
 
-        PointsToSetInternal p2set = vn.getP2Set().getNewSet();
+        PointsToSetInternal p2set = vn.getP2Set(pag).getNewSet();
         if( ofcgb.isReceiverNode( receiver ) ) {
             p2set.forall( new P2SetVisitor() {
             public final void visit( Node n ) { 

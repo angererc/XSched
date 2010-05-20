@@ -18,17 +18,90 @@
  */
 
 package soot.jimple.spark.pag;
+import java.util.HashMap;
+import java.util.Map;
+
+import soot.tagkit.LinkTag;
+import soot.tagkit.StringTag;
+import soot.tagkit.Tag;
 import soot.util.*;
+import soot.SootMethod;
 import soot.Type;
-import soot.jimple.spark.sets.PointsToSetInternal;
-import soot.jimple.spark.sets.EmptyPointsToSet;
 import soot.jimple.toolkits.pointer.representations.ReferenceVariable;
 import soot.jimple.spark.internal.TypeManager;
+import soot.jimple.spark.sets.PointsToSetInternal;
 
 /** Represents every node in the pointer assignment graph.
  * @author Ondrej Lhotak
  */
-public class Node implements ReferenceVariable, Numberable {
+public abstract class Node implements ReferenceVariable, Numberable {
+	
+	//internalize the node into the node's pag. called when the node is added to the pag (e.g., through the addEdge method).
+	//the methodpag creates fresh nodes (since it doesn't alter the pag in any way) but we want to make sure that equivalent nodes
+	//are only added once. therefore, the pag will call internalized() which gives the node a chance to return
+	//an internalized version that can be compared with ==
+	public abstract Node internalized();
+	//when a node is internalized, it should fetch its number from somewhere (some node numberer).
+	//I keep this to be somwhat backwards compatible...
+	//numbers of nodes are global, so they don't depend on the PAG
+	protected abstract void fetchNumber(); 
+	
+	//we use a static hash map so that the instances don't need a tag field
+	//because creating tags can be turned on and off and because the nodes now don't know the PAG any more
+	//we use a nodeToTag == nil as a hint that we don't collect tags
+	//this is a legacy of the original Spark impl but I keep it
+	private static Map<Node, Tag> nodeToTag;
+	static void collectNodeTags() {
+		nodeToTag = new HashMap<Node, Tag>();
+	}
+	protected void addNodeTag( SootMethod m ) {
+        if( nodeToTag != null ) {
+            Tag tag;
+            if( m == null ) {
+                tag = new StringTag( this.toString() );
+            } else {
+                tag = new LinkTag( this.toString(), m, m.getDeclaringClass().getName() );
+            }
+            nodeToTag.put( this, tag );
+        }
+    }
+	
+	//convenience method, because so much code did call node.getP2Set(pag) it was easier to change it like this
+	public PointsToSetInternal getP2Set(PAG pag) {
+		return pag.getP2SetForNode(this);
+	}
+	
+	public PointsToSetInternal makeP2Set(PAG pag) {
+		return pag.makeP2SetForNode(this);
+	}
+	//convenience
+	public Node getReplacement(PAG pag) {
+		return pag.getReplacementForNode(this);
+	}
+	
+	public void mergeWith(PAG pag, Node other) {
+		pag.mergeNodes(this, other);
+	}
+	
+	//the PAG forwards the getReplacementForNode methods to the node because FieldRefNode needs to overwrite this behavior 
+	Node getReplacement(PAG pag, HashMap<Node,Node> replacements) {
+		Node current = this;
+		Node replacement = replacements.get(current);
+			
+		while(replacement != null) {			
+			current = replacement;
+			replacement = replacements.get(replacement);						
+		}
+		return current;
+	}
+	
+	public Tag getNodeTag() {
+		if(nodeToTag == null)
+			return null;
+		else
+			return nodeToTag.get(this);
+	 }
+	
     public final int hashCode() { return number; }
     public final boolean equals( Object other ) { 
         return this == other;
@@ -40,90 +113,13 @@ public class Node implements ReferenceVariable, Numberable {
         if( TypeManager.isUnresolved(type) ) throw new RuntimeException("Unresolved type "+type );
         this.type = type; 
     }
-    /** If this node has been merged with another, returns the new node to be
-     * used as the representative of this node; returns this if the node has
-     * not been merged. */
-    public Node getReplacement() { 
-        if( replacement != replacement.replacement ) {
-            replacement = replacement.getReplacement();
-        }
-        return replacement;
-    }
-    /** Merge with the node other. */
-    public void mergeWith( Node other ) {
-        if( other.replacement != other ) {
-            throw new RuntimeException( "Shouldn't happen" );
-        }
-        Node myRep = getReplacement();
-        if( other == myRep ) return;
-        other.replacement = myRep;
-        if( other.p2set != p2set 
-                && other.p2set != null 
-                && !other.p2set.isEmpty() ) {
-            if( myRep.p2set == null || myRep.p2set.isEmpty() ) {
-                myRep.p2set = other.p2set;
-            } else {
-                myRep.p2set.mergeWith( other.p2set );
-            }
-        }
-        other.p2set = null;
-        pag.mergedWith( myRep, other );
-        if( (other instanceof VarNode)
-                && (myRep instanceof VarNode )
-                && ((VarNode) other).isInterProcTarget() )
-            ((VarNode) myRep).setInterProcTarget();
-    }
-    /** Returns the points-to set for this node. */
-    public PointsToSetInternal getP2Set() {
-        if( p2set != null ) {
-            if( replacement != this ) throw new RuntimeException(
-                    "Node "+this+" has replacement "+replacement+" but has p2set" );
-            return p2set;
-        }
-        Node rep = getReplacement();
-        if( rep == this ) {
-            return EmptyPointsToSet.v();
-        }
-        return rep.getP2Set();
-    }
-    
-    public PointsToSetInternal getP2SetForReal() {
-    	return p2set;
-    }
-    
-    public void setP2Set(PointsToSetInternal p2set) {
-    	assert(this.p2set== null);
-    	if(replacement == this) {
-    		this.p2set = p2set;
-    	} else {
-    		replacement.setP2Set(p2set);
-    	}    	
-    }
-    
-    /** Returns the points-to set for this node, makes it if necessary. */
-    public PointsToSetInternal makeP2Set() {
-        if( p2set != null ) {
-            if( replacement != this ) throw new RuntimeException(
-                    "Node "+this+" has replacement "+replacement+" but has p2set" );
-            return p2set;
-        }
-        Node rep = getReplacement();
-        if( rep == this ) {
-            p2set = pag.getSetFactory().newSet( type, pag );
-        }
-        return rep.makeP2Set();
-    }
-    /** Returns the pointer assignment graph that this node is a part of. */
-    public PAG getPag() { return pag; }
-
+            
     /* End of public methods. */
 
     /** Creates a new node of pointer assignment graph pag, with type type. */
-    Node( PAG pag, Type type ) {
+    Node( Type type ) {
         if( TypeManager.isUnresolved(type) ) throw new RuntimeException("Unresolved type "+type );
-        this.type = type;
-        this.pag = pag;
-        replacement = this;
+        this.type = type;  
     }
 
     /* End of package methods. */
@@ -134,7 +130,4 @@ public class Node implements ReferenceVariable, Numberable {
     private int number = 0;
 
     protected Type type;
-    protected Node replacement;
-    protected PAG pag;
-    protected PointsToSetInternal p2set;
 }

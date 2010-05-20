@@ -19,33 +19,55 @@
 
 package soot.jimple.spark.pag;
 
+import soot.util.ArrayNumberer;
+
 /** Represents an alloc-site-dot-field node (Yellow) in the pointer
  * assignment graph.
  * @author Ondrej Lhotak
  */
 public class AllocDotField extends Node {
-    /** Returns the base AllocNode. */
-    public AllocNode getBase() { return base; }
-    /** Returns the field of this node. */
-    public SparkField getField() { return field; }
-    public String toString() {
-	return "AllocDotField "+getNumber()+" "+base+"."+field;
-    }
+	
+	private static final ArrayNumberer nodeNumberer = new ArrayNumberer();
+	public static ArrayNumberer allocDotFieldNodeNumberer() {
+		return nodeNumberer;
+	}
+	@Override
+	public AllocDotField internalized() {
+		if(this.getNumber() > 0)
+			return this;
+		
+		//alloc dot fields are unique on their own; but we need a number
+		this.fetchNumber();		
+		return this;		
+	}
+	
+	@Override
+	protected void fetchNumber() {
+		nodeNumberer.add(this);
+	}
+	
+	/** Returns the base AllocNode. */
+	public AllocNode getBase() { return base; }
+	/** Returns the field of this node. */
+	public SparkField getField() { return field; }
+	public String toString() {
+		return "AllocDotField "+getNumber()+" "+base+"."+field;
+	}
 
-    /* End of public methods. */
+	/* End of public methods. */
 
-    AllocDotField( PAG pag, AllocNode base, SparkField field ) {
-	super( pag, null );
-	if( field == null ) throw new RuntimeException( "null field" );
-	this.base = base;
-	this.field = field;
-	base.addField( this, field );
-        pag.getAllocDotFieldNodeNumberer().add( this );
-    }
+	public AllocDotField( AllocNode base, SparkField field ) {
+		super( null );
+		if( field == null ) throw new RuntimeException( "null field" );
+		this.base = base;
+		this.field = field;
+		base.addField( this, field );		
+	}
 
-    /* End of package methods. */
+	/* End of package methods. */
 
-    protected AllocNode base;
-    protected SparkField field;
+	protected AllocNode base;
+	protected SparkField field;
+	
 }
 

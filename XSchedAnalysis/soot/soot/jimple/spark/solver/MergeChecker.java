@@ -53,16 +53,16 @@ public class MergeChecker {
             final FieldRefNode fr = (FieldRefNode) object;
             fieldToBase.put( fr.getField(), fr.getBase() );
         }
-        for( Iterator srcIt = pag.getVarNodeNumberer().iterator(); srcIt.hasNext(); ) {
+        for( Iterator srcIt = VarNode.varNodeNumberer().iterator(); srcIt.hasNext(); ) {
             final VarNode src = (VarNode) srcIt.next();
             for( Iterator frIt = src.getAllFieldRefs().iterator(); frIt.hasNext(); ) {
                 final FieldRefNode fr = (FieldRefNode) frIt.next();
                 for( Iterator dstIt = fieldToBase.get( fr.getField() ).iterator(); dstIt.hasNext(); ) {
                     final VarNode dst = (VarNode) dstIt.next();
-                    if( !src.getP2Set().hasNonEmptyIntersection(
-                                dst.getP2Set() ) ) continue;
+                    if( !src.getP2Set(pag).hasNonEmptyIntersection(
+                                dst.getP2Set(pag) ) ) continue;
                     FieldRefNode fr2 = dst.dot( fr.getField() );
-                    if( fr2.getReplacement() != fr.getReplacement() ) {
+                    if( fr2.getReplacement(pag) != fr.getReplacement(pag) ) {
                         G.v().out.println( "Check failure: "
                                 +fr+" should be merged with "+fr2 );
                     }
@@ -84,11 +84,11 @@ public class MergeChecker {
         } );
     }
     protected void checkNode( Node container, Node n, Node upstream ) {
-        if( container.getReplacement() != container )
+        if( container.getReplacement(pag) != container )
             throw new RuntimeException( "container "+container+" is illegal" );
-        if( upstream.getReplacement() != upstream )
+        if( upstream.getReplacement(pag) != upstream )
             throw new RuntimeException( "upstream "+upstream+" is illegal" );
-        PointsToSetInternal p2set = container.getP2Set();
+        PointsToSetInternal p2set = container.getP2Set(pag);
         FastHierarchy fh = pag.getTypeManager().getFastHierarchy();
         if( !p2set.contains( n ) 
                 && ( fh == null || container.getType() == null ||
@@ -105,7 +105,7 @@ public class MergeChecker {
     }
 
     protected void handleSimples( VarNode src ) {
-	PointsToSetInternal srcSet = src.getP2Set();
+	PointsToSetInternal srcSet = src.getP2Set(pag);
 	if( srcSet.isEmpty() ) return;
 	final Node[] simpleTargets = pag.simpleLookup( src );
 	for (Node element : simpleTargets) {
@@ -114,7 +114,7 @@ public class MergeChecker {
     }
 
     protected void handleStores( final VarNode src ) {
-	final PointsToSetInternal srcSet = src.getP2Set();
+	final PointsToSetInternal srcSet = src.getP2Set(pag);
 	if( srcSet.isEmpty() ) return;
 	Node[] storeTargets = pag.storeLookup( src );
 	for (Node element : storeTargets) {
@@ -125,7 +125,7 @@ public class MergeChecker {
 
     protected void handleLoads( final FieldRefNode src ) {
 	final Node[] loadTargets = pag.loadLookup( src );
-        PointsToSetInternal set = src.getP2Set();
+        PointsToSetInternal set = src.getP2Set(pag);
         if( set.isEmpty() ) return;
         for (Node element : loadTargets) {
             VarNode target = (VarNode) element;

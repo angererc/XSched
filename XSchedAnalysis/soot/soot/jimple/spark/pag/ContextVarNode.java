@@ -32,8 +32,8 @@ public class ContextVarNode extends LocalVarNode {
 
     /* End of public methods. */
 
-    ContextVarNode( PAG pag, LocalVarNode base, Context context ) {
-	super( pag, base.getVariable(), base.getType(), base.getMethod() );
+    public ContextVarNode( LocalVarNode base, Context context ) {
+	super( base.getVariable(), base.getType(), base.getMethod() );
         this.context = context;
         base.addContext( this, context );
     }

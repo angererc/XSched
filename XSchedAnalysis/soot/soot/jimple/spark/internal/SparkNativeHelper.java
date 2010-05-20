@@ -18,6 +18,7 @@
  */
 
 package soot.jimple.spark.internal;
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.*;
 import soot.jimple.toolkits.pointer.representations.*;
 import soot.jimple.toolkits.pointer.util.*;
@@ -34,13 +35,13 @@ public class SparkNativeHelper extends NativeHelper {
         pag.addEdge( (Node) rhs, (Node) lhs );
     }
     protected void assignObjectToImpl(ReferenceVariable lhs, AbstractObject obj) {
-	AllocNode objNode = pag.makeAllocNode( 
+	AllocNode objNode = PAGNodeFactory.v().makeAllocNode( 
 		new Pair( "AbstractObject", obj.getType() ),
 		 obj.getType(), null );
 
         VarNode var;
         if( lhs instanceof FieldRefNode ) {
-	    var = pag.makeGlobalVarNode( objNode, objNode.getType() );
+	    var = PAGNodeFactory.v().makeGlobalVarNode( objNode, objNode.getType() );
             pag.addEdge( (Node) lhs, var );
         } else {
             var = (VarNode) lhs;
@@ -48,10 +49,10 @@ public class SparkNativeHelper extends NativeHelper {
         pag.addEdge( objNode, var );
     }
     protected void throwExceptionImpl(AbstractObject obj) {
-	AllocNode objNode = pag.makeAllocNode( 
+	AllocNode objNode = PAGNodeFactory.v().makeAllocNode( 
 		new Pair( "AbstractObject", obj.getType() ),
 		 obj.getType(), null );
-        pag.addEdge( objNode, pag.nodeFactory().caseThrow() );
+        pag.addEdge( objNode, PAGNodeFactory.v().makeThrow() );
     }
     protected ReferenceVariable arrayElementOfImpl(ReferenceVariable base) {
         VarNode l;
@@ -59,32 +60,33 @@ public class SparkNativeHelper extends NativeHelper {
 	    l = (VarNode) base;
 	} else {
 	    FieldRefNode b = (FieldRefNode) base;
-	    l = pag.makeGlobalVarNode( b, b.getType() );
+	    l = PAGNodeFactory.v().makeGlobalVarNode( b, b.getType() );
 	    pag.addEdge( b, l );
 	}
-        return pag.makeFieldRefNode( l, ArrayElement.v() );
+        return PAGNodeFactory.v().makeFieldRefNode( l, ArrayElement.v() );
     }
     protected ReferenceVariable cloneObjectImpl(ReferenceVariable source) {
 	return source;
     }
+    
     protected ReferenceVariable newInstanceOfImpl(ReferenceVariable cls) {
-        return pag.nodeFactory().caseNewInstance( (VarNode) cls );
+        return PAGNodeFactory.v().makeNewInstance(pag, (VarNode) cls );
     }
     protected ReferenceVariable staticFieldImpl(String className, String fieldName ) {
 	SootClass c = RefType.v( className ).getSootClass();
 	SootField f = c.getFieldByName( fieldName );
-	return pag.makeGlobalVarNode( f, f.getType() );
+	return PAGNodeFactory.v().makeGlobalVarNode( f, f.getType() );
     }
     protected ReferenceVariable tempFieldImpl(String fieldsig) {
-	return pag.makeGlobalVarNode( new Pair( "tempField", fieldsig ),
+	return PAGNodeFactory.v().makeGlobalVarNode( new Pair( "tempField", fieldsig ),
             RefType.v( "java.lang.Object" ) );
     }
     protected ReferenceVariable tempVariableImpl() {
-	return pag.makeGlobalVarNode( new Pair( "TempVar", new Integer( ++G.v().SparkNativeHelper_tempVar ) ),
+	return PAGNodeFactory.v().makeGlobalVarNode( new Pair( "TempVar", new Integer( ++G.v().SparkNativeHelper_tempVar ) ),
 		RefType.v( "java.lang.Object" ) );
     }
     protected ReferenceVariable tempLocalVariableImpl(SootMethod method) {
-        return pag.makeLocalVarNode( new Pair( "TempVar", new Integer( ++G.v().SparkNativeHelper_tempVar ) ),
+        return PAGNodeFactory.v().makeLocalVarNode( new Pair( "TempVar", new Integer( ++G.v().SparkNativeHelper_tempVar ) ),
                                      RefType.v( "java.lang.Object" ) , method);
     }
     

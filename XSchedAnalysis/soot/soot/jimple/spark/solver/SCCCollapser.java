@@ -34,12 +34,12 @@ public class SCCCollapser {
     public void collapse() {
         boolean verbose = pag.getOpts().verbose();
         if( verbose ) {
-            G.v().out.println( "Total VarNodes: "+pag.getVarNodeNumberer().size()+". Collapsing SCCs..." );
+            G.v().out.println( "Total VarNodes: "+VarNode.varNodeNumberer().size()+". Collapsing SCCs..." );
         }
 
         new TopoSorter( pag, ignoreTypes ).sort();
         TreeSet<VarNode> s = new TreeSet<VarNode>();
-        for( Iterator vIt = pag.getVarNodeNumberer().iterator(); vIt.hasNext(); ) {
+        for( Iterator vIt = VarNode.varNodeNumberer().iterator(); vIt.hasNext(); ) {
             final VarNode v = (VarNode) vIt.next();
             s.add(v);
         }
@@ -83,23 +83,23 @@ public class SCCCollapser {
                             v.getType(), rootOfSCC.getType() )
                  && typeManager.castNeverFails(
                             rootOfSCC.getType(), v.getType() ) ) {
-                    rootOfSCC.mergeWith( v );
+                    rootOfSCC.mergeWith( pag, v );
                     numCollapsed++;
                 }
             } else /* ignoreTypes */ {
                 if( typeManager.castNeverFails(
                             v.getType(), rootOfSCC.getType() ) ) {
-                    rootOfSCC.mergeWith( v );
+                    rootOfSCC.mergeWith( pag, v );
                 } else if( typeManager.castNeverFails(
                             rootOfSCC.getType(), v.getType() ) ) {
-                    v.mergeWith( rootOfSCC );
+                    v.mergeWith( pag, rootOfSCC );
                 } else {
-                    rootOfSCC.getReplacement().setType( null );
-                    PointsToSetInternal set = rootOfSCC.getP2Set();
+                    rootOfSCC.getReplacement(pag).setType( null );
+                    PointsToSetInternal set = rootOfSCC.getP2Set(pag);
                     if( set != null ) {
                         set.setType( null );
                     }
-                    rootOfSCC.mergeWith( v );
+                    rootOfSCC.mergeWith( pag, v );
                 }
                 numCollapsed++;
             }

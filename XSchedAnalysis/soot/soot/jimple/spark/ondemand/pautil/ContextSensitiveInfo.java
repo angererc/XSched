@@ -92,7 +92,7 @@ public class ContextSensitiveInfo {
      */
     public ContextSensitiveInfo(PAG pag) {
         // set up method to node map
-        for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter
+        for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
                 .hasNext();) {
             VarNode varNode = (VarNode) iter.next();
             if (varNode instanceof LocalVarNode) {
@@ -277,7 +277,7 @@ public class ContextSensitiveInfo {
 
     @SuppressWarnings("unused")
     private String assignEdgesWellFormed(PAG pag) {
-        for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter
+        for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
                 .hasNext();) {
             VarNode v = (VarNode) iter.next();
             Set<AssignEdge> outgoingAssigns = getAssignBarEdges(v);

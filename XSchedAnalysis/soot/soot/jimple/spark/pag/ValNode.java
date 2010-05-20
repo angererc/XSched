@@ -24,10 +24,10 @@ import soot.*;
  * assignment graph.
  * @author Ondrej Lhotak
  */
-public class ValNode extends Node
+public abstract class ValNode extends Node
 {
-    protected ValNode( PAG pag, Type t ) {
-	super( pag, t );
+    protected ValNode( Type t ) {
+	super(t );
     }
 }
 

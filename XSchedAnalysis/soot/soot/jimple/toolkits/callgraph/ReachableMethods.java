@@ -45,7 +45,7 @@ public class ReachableMethods
         this.cg.setReachableMethods(this);
         addMethods( entryPoints );
         unprocessedMethods = reachables.reader();
-        this.edgeSource = graph.listener();
+        this.edgeSource = this.cg.listener();
         if( filter != null ) this.edgeSource = filter.wrap( this.edgeSource );
     }
     public ReachableMethods( CallGraph graph, Collection<MethodOrMethodContext> entryPoints ) {
@@ -60,6 +60,9 @@ public class ReachableMethods
                 reachables.add( m );
             }
     }
+    
+    // the reachable methods contain at least all the methods in the call graph
+    //but maybe more (for root methods that are not directly called)
     public void addCustomMethodOrMethodContext(MethodOrMethodContext m) {
     	if (set.add(m)) {
     		reachables.add( m );    		

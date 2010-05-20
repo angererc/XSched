@@ -356,7 +356,7 @@ public class SootUtil {
       e.printStackTrace();
     }
 
-    for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter.hasNext();) {
+    for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter.hasNext();) {
       VarNode varNode = (VarNode) iter.next();
       varNodeWriter.println(varNode.getNumber() + " " + varNode);
 
@@ -440,7 +440,7 @@ public class SootUtil {
     try {
       PrintWriter pw = new PrintWriter(new FileOutputStream(fileName));
 
-      for (Iterator iter = pag.getVarNodeNumberer().iterator(); iter.hasNext();) {
+      for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter.hasNext();) {
         VarNode vn = (VarNode) iter.next();
         pw.println(vn.getNumber() + "\t" + vn);
       }

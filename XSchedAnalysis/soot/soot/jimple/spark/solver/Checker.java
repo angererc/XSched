@@ -18,6 +18,7 @@
  */
 
 package soot.jimple.spark.solver;
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.*;
 import soot.jimple.spark.sets.*;
 import soot.*;
@@ -57,11 +58,11 @@ public class Checker {
         } );
     }
     protected void checkNode( Node container, Node n, Node upstream ) {
-        if( container.getReplacement() != container )
+        if( container.getReplacement(pag) != container )
             throw new RuntimeException( "container "+container+" is illegal" );
-        if( upstream.getReplacement() != upstream )
+        if( upstream.getReplacement(pag) != upstream )
             throw new RuntimeException( "upstream "+upstream+" is illegal" );
-        PointsToSetInternal p2set = container.getP2Set();
+        PointsToSetInternal p2set = container.getP2Set(pag);
         FastHierarchy fh = pag.getTypeManager().getFastHierarchy();
         if( !p2set.contains( n ) 
                 && ( fh == null || container.getType() == null ||
@@ -78,7 +79,7 @@ public class Checker {
     }
 
     protected void handleSimples( VarNode src ) {
-	PointsToSetInternal srcSet = src.getP2Set();
+	PointsToSetInternal srcSet = src.getP2Set(pag);
 	if( srcSet.isEmpty() ) return;
 	final Node[] simpleTargets = pag.simpleLookup( src );
 	for (Node element : simpleTargets) {
@@ -87,15 +88,15 @@ public class Checker {
     }
 
     protected void handleStores( final VarNode src ) {
-	final PointsToSetInternal srcSet = src.getP2Set();
+	final PointsToSetInternal srcSet = src.getP2Set(pag);
 	if( srcSet.isEmpty() ) return;
 	Node[] storeTargets = pag.storeLookup( src );
 	for (Node element : storeTargets) {
             final FieldRefNode fr = (FieldRefNode) element;
             final SparkField f = fr.getField();
-            fr.getBase().getP2Set().forall( new P2SetVisitor() {
+            fr.getBase().getP2Set(pag).forall( new P2SetVisitor() {
             public final void visit( Node n ) {
-                    AllocDotField nDotF = pag.makeAllocDotField( 
+                    AllocDotField nDotF = PAGNodeFactory.v().makeAllocDotField( 
                         (AllocNode) n, f );
                     checkAll( nDotF, srcSet, src );
                 }
@@ -106,11 +107,11 @@ public class Checker {
     protected void handleLoads( final FieldRefNode src ) {
 	final Node[] loadTargets = pag.loadLookup( src );
         final SparkField f = src.getField();
-        src.getBase().getP2Set().forall( new P2SetVisitor() {
+        src.getBase().getP2Set(pag).forall( new P2SetVisitor() {
         public final void visit( Node n ) {
                 AllocDotField nDotF = ((AllocNode)n).dot( f );
                 if( nDotF == null ) return;
-                PointsToSetInternal set = nDotF.getP2Set();
+                PointsToSetInternal set = nDotF.getP2Set(pag);
                 if( set.isEmpty() ) return;
                 for (Node element : loadTargets) {
                     VarNode target = (VarNode) element;

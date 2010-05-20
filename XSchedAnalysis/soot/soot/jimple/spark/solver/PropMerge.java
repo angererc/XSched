@@ -18,6 +18,7 @@
  */
 
 package soot.jimple.spark.solver;
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.*;
 import soot.jimple.spark.sets.*;
 import soot.*;
@@ -67,19 +68,19 @@ public final class PropMerge extends Propagator {
                 Node[] storeTargets = pag.storeLookup( src );
                 for (Node element0 : storeTargets) {
                     final FieldRefNode fr = (FieldRefNode) element0;
-                    fr.makeP2Set().addAll( src.getP2Set(), null );
+                    fr.makeP2Set(pag).addAll( src.getP2Set(pag), null );
                 }
             }
             for (Object object : pag.loadSources()) {
                 final FieldRefNode src = (FieldRefNode) object;
-                if( src != src.getReplacement() ) {
+                if( src != src.getReplacement(pag) ) {
                     throw new RuntimeException( "shouldn't happen" );
                 }
                 Node[] targets = pag.loadLookup( src );
                 for (Node element0 : targets) {
                     VarNode target = (VarNode) element0;
-                    if( target.makeP2Set().addAll(
-                                src.getP2Set(), null ) ) {
+                    if( target.makeP2Set(pag).addAll(
+                                src.getP2Set(pag), null ) ) {
                         varNodeWorkList.add( target );
                     }
                 }
@@ -96,7 +97,7 @@ public final class PropMerge extends Propagator {
 	boolean ret = false;
 	Node[] targets = pag.allocLookup( src );
 	for (Node element : targets) {
-	    if( element.makeP2Set().add( src ) ) {
+	    if( element.makeP2Set(pag).add( src ) ) {
                 varNodeWorkList.add( element );
                 ret = true;
             }
@@ -108,18 +109,18 @@ public final class PropMerge extends Propagator {
     protected final boolean handleVarNode( final VarNode src ) {
 	boolean ret = false;
 
-        if( src.getReplacement() != src )  return ret;
+        if( src.getReplacement(pag) != src )  return ret;
             /*
             throw new RuntimeException(
-                "Got bad node "+src+" with rep "+src.getReplacement() );
+                "Got bad node "+src+" with rep "+src.getReplacement(pag) );
                 */
 
-	final PointsToSetInternal newP2Set = src.getP2Set();
+	final PointsToSetInternal newP2Set = src.getP2Set(pag);
 	if( newP2Set.isEmpty() ) return false;
 
 	Node[] simpleTargets = pag.simpleLookup( src );
 	for (Node element : simpleTargets) {
-	    if( element.makeP2Set().addAll( newP2Set, null ) ) {
+	    if( element.makeP2Set(pag).addAll( newP2Set, null ) ) {
                 varNodeWorkList.add( element );
                 ret = true;
             }
@@ -128,7 +129,7 @@ public final class PropMerge extends Propagator {
         Node[] storeTargets = pag.storeLookup( src );
         for (Node element : storeTargets) {
             final FieldRefNode fr = (FieldRefNode) element;
-            if( fr.makeP2Set().addAll( newP2Set, null ) ) {
+            if( fr.makeP2Set(pag).addAll( newP2Set, null ) ) {
                 ret = true;
             }
         }
@@ -139,16 +140,16 @@ public final class PropMerge extends Propagator {
             final SparkField field = fr.getField();
             ret = newP2Set.forall( new P2SetVisitor() {
             public final void visit( Node n ) {
-                AllocDotField nDotF = pag.makeAllocDotField(
+                AllocDotField nDotF = PAGNodeFactory.v().makeAllocDotField(
                     (AllocNode) n, field );
-                Node nDotFNode = nDotF.getReplacement();
+                Node nDotFNode = nDotF.getReplacement(pag);
                 if( nDotFNode != fr ) {
-                    fr.mergeWith( nDotFNode );
+                    fr.mergeWith( pag, nDotFNode );
                     returnValue = true;
                 }
             }} ) | ret;
         }
-	//src.getP2Set().flushNew();
+	//src.getP2Set(pag).flushNew();
 	return ret;
     }
 

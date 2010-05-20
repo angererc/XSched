@@ -28,7 +28,7 @@ import java.util.*;
 public class TopoSorter {
     /** Actually perform the topological sort on the PAG. */
     public void sort() {
-        for( Iterator it = pag.getVarNodeNumberer().iterator(); it.hasNext(); ) {
+        for( Iterator it = VarNode.varNodeNumberer().iterator(); it.hasNext(); ) {
             dfsVisit( (VarNode) it.next() );
         }
         visited = null;
@@ -36,7 +36,7 @@ public class TopoSorter {
     public TopoSorter( PAG pag, boolean ignoreTypes ) {
         this.pag = pag;
         this.ignoreTypes = ignoreTypes;
-        //this.visited = new NumberedSet( pag.getVarNodeNumberer() );
+        //this.visited = new NumberedSet( VarNode.varNodeNumberer() );
         this.visited = new HashSet<VarNode>();
     }
     

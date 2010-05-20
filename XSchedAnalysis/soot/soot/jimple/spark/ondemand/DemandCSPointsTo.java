@@ -365,7 +365,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
         PointsToSet contextSensitiveResult = computeRefinedReachingObjects(v);
         if(contextSensitiveResult == null ) {
             //had to abort; return Spark's points-to set in a wrapper
-            return new WrappedPointsToSet(v.getP2Set());
+            return new WrappedPointsToSet(v.getP2Set(pag));
         } else {
             return contextSensitiveResult;    		    
         }
@@ -658,7 +658,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 		final DotPointerGraph dotGraph = new DotPointerGraph();
 		final class Helper {
 			boolean handle(VarNode curNode) {
-				assert curNode.getP2Set().contains(badLoc);
+				assert curNode.getP2Set(pag).contains(badLoc);
 				visited.add(curNode);
 				Node[] newEdges = pag.allocInvLookup(curNode);
 				for (int i = 0; i < newEdges.length; i++) {
@@ -670,7 +670,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 				}
 				for (AssignEdge assignEdge : csInfo.getAssignEdges(curNode)) {
 					VarNode other = assignEdge.getSrc();
-					if (other.getP2Set().contains(badLoc)
+					if (other.getP2Set(pag).contains(badLoc)
 							&& !visited.contains(other) && handle(other)) {
 						if (assignEdge.isCallEdge()) {
 							dotGraph.addCall(other, curNode, assignEdge
@@ -686,13 +686,13 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 					FieldRefNode frNode = (FieldRefNode) loadEdges[i];
 					SparkField field = frNode.getField();
 					VarNode base = frNode.getBase();
-					PointsToSetInternal baseP2Set = base.getP2Set();
+					PointsToSetInternal baseP2Set = base.getP2Set(pag);
 					for (Pair<VarNode, VarNode> store : fieldToStores
 							.get(field)) {
-						if (store.getO2().getP2Set().hasNonEmptyIntersection(
+						if (store.getO2().getP2Set(pag).hasNonEmptyIntersection(
 								baseP2Set)) {
 							VarNode matchSrc = store.getO1();
-							if (matchSrc.getP2Set().contains(badLoc)
+							if (matchSrc.getP2Set(pag).contains(badLoc)
 									&& !visited.contains(matchSrc)
 									&& handle(matchSrc)) {
 								dotGraph.addMatch(matchSrc, curNode);
@@ -884,7 +884,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 
 				@Override
 				boolean shouldHandleSrc(VarNode src) {
-					return realLocs.hasNonEmptyIntersection(src.getP2Set());
+					return realLocs.hasNonEmptyIntersection(src.getP2Set(pag));
 				}
 
 			};
@@ -1095,7 +1095,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 						// // for now, just give up
 						throw new TerminateEarlyException();
 					}
-					return src.getP2Set().contains(alloc);
+					return src.getP2Set(pag).contains(alloc);
 				}
 
 			}
@@ -1203,9 +1203,9 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 					for (Pair<VarNode, VarNode> load : fieldToLoads.get(field)) {
 						final VarNode loadBase = load.getO2();
 						final PointsToSetInternal loadBaseP2Set = loadBase
-								.getP2Set();
+								.getP2Set(pag);
 						final PointsToSetInternal storeBaseP2Set = storeBase
-								.getP2Set();
+								.getP2Set(pag);
 						final VarNode matchTgt = load.getO1();
 						if (matchTargets.contains(matchTgt)) {
 							if (DEBUG) {
@@ -1388,9 +1388,9 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 					for (Pair<VarNode, VarNode> load : fieldToLoads.get(field)) {
 						final VarNode loadBase = load.getO2();
 						final PointsToSetInternal loadBaseP2Set = loadBase
-								.getP2Set();
+								.getP2Set(pag);
 						final PointsToSetInternal storeBaseP2Set = storeBase
-								.getP2Set();
+								.getP2Set(pag);
 						final VarNode matchTgt = load.getO1();
 						if (matchTargets.contains(matchTgt)) {
 							if (DEBUG) {
@@ -1498,13 +1498,13 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 			Node[] assignSources = pag.simpleInvLookup(curNode);
 			for (int i = 0; i < assignSources.length; i++) {
 				VarNode assignSrc = (VarNode) assignSources[i];
-				if (assignSrc.getP2Set().hasNonEmptyIntersection(allocs)) {
+				if (assignSrc.getP2Set(pag).hasNonEmptyIntersection(allocs)) {
 					p.prop(assignSrc);
 				}
 			}
 			Set<VarNode> matchSources = vMatches.vMatchInvLookup(curNode);
 			for (VarNode matchSrc : matchSources) {
-				if (matchSrc.getP2Set().hasNonEmptyIntersection(allocs)) {
+				if (matchSrc.getP2Set(pag).hasNonEmptyIntersection(allocs)) {
 					p.prop(matchSrc);
 				}
 			}
@@ -1616,9 +1616,9 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 				for (Pair<VarNode, VarNode> store : fieldToStores.get(field)) {
 					final VarNode storeBase = store.getO2();
 					final PointsToSetInternal storeBaseP2Set = storeBase
-							.getP2Set();
+							.getP2Set(pag);
 					final PointsToSetInternal loadBaseP2Set = loadBase
-							.getP2Set();
+							.getP2Set(pag);
 					final VarNode matchSrc = store.getO1();
 					if (matchSources.contains(matchSrc)) {
 						if (h.shouldHandleSrc(matchSrc)) {
@@ -1803,7 +1803,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 			}
 			VarNode curVar = curVarAndContext.var;
 			ImmutableStack<Integer> curContext = curVarAndContext.context;
-			// Set<SootMethod> curVarTargets = getCallTargets(curVar.getP2Set(),
+			// Set<SootMethod> curVarTargets = getCallTargets(curVar.getP2Set(pag),
 			// methodSig, receiverType, allTargets);
 			// if (curVarTargets.size() <= 1) {
 			// for (SootMethod method : curVarTargets) {
@@ -1865,16 +1865,16 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 				for (Pair<VarNode, VarNode> store : fieldToStores.get(field)) {
 					final VarNode storeBase = store.getO2();
 					final PointsToSetInternal storeBaseP2Set = storeBase
-							.getP2Set();
+							.getP2Set(pag);
 					final PointsToSetInternal loadBaseP2Set = loadBase
-							.getP2Set();
+							.getP2Set(pag);
 					final VarNode matchSrc = store.getO1();
 					if (matchSources.contains(matchSrc)) {
 						// optimize for common case of constructor init
 						boolean skipMatch = false;
 						if (oneMatch) {
 							PointsToSetInternal matchSrcPTo = matchSrc
-									.getP2Set();
+									.getP2Set(pag);
 							Set<SootMethod> matchSrcCallTargets = getCallTargets(
 									matchSrcPTo, methodSig, receiverType,
 									allTargets);
@@ -2019,7 +2019,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 				if (doPointsTo) {
 					return true;
 				} else {
-					return src.getP2Set().hasNonEmptyIntersection(badLocs);
+					return src.getP2Set(pag).hasNonEmptyIntersection(badLocs);
 				}
 			}
 

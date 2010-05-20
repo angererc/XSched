@@ -6,6 +6,7 @@ import soot.jimple.toolkits.callgraph.*;
 import soot.jimple.toolkits.thread.mhp.pegcallgraph.PegCallGraph;
 import soot.*;
 import soot.jimple.*;
+import soot.jimple.spark.builder.PAGNodeFactory;
 import soot.jimple.spark.pag.*;
 import java.util.*;
 
@@ -60,7 +61,7 @@ public class AllocNodesFinder{
 							Value rightOp = ((AssignStmt)unit).getRightOp();
 							
 							Type type = ((NewExpr)rightOp).getType();
-							AllocNode allocNode = pag.makeAllocNode(
+							AllocNode allocNode = PAGNodeFactory.v().makeAllocNode(
 									PointsToAnalysis.STRING_NODE,
 									RefType.v( "java.lang.String" ), null );
 							//AllocNode allocNode = pag.makeAllocNode((NewExpr)rightOp, type, sm);
@@ -74,7 +75,7 @@ public class AllocNodesFinder{
 							Value rightOp = ((DefinitionStmt)unit).getRightOp();
 							if (rightOp instanceof NewExpr){
 								Type type = ((NewExpr)rightOp).getType();
-								AllocNode allocNode = pag.makeAllocNode(rightOp, type, sm);
+								AllocNode allocNode = PAGNodeFactory.v().makeAllocNode(rightOp, type, sm);
 								//System.out.println("make alloc node: "+allocNode);
 								allocNodes.add(allocNode);
 								multiRunAllocNodes.add(allocNode);
@@ -95,7 +96,7 @@ public class AllocNodesFinder{
 						//System.out.println("unit: "+unit);
 						
 						if (clinitMethods.contains(sm)  && unit instanceof AssignStmt){
-							AllocNode allocNode = pag.makeAllocNode(
+							AllocNode allocNode = PAGNodeFactory.v().makeAllocNode(
 									PointsToAnalysis.STRING_NODE,
 									RefType.v( "java.lang.String" ), null );
 							//   AllocNode allocNode = pag.makeAllocNode((NewExpr)rightOp, type, sm);
@@ -110,7 +111,7 @@ public class AllocNodesFinder{
 							Value rightOp = ((DefinitionStmt)unit).getRightOp();
 							if (rightOp instanceof NewExpr){
 								Type type = ((NewExpr)rightOp).getType();
-								AllocNode allocNode = pag.makeAllocNode(rightOp, type, sm);
+								AllocNode allocNode = PAGNodeFactory.v().makeAllocNode(rightOp, type, sm);
 								//System.out.println("make alloc node: "+allocNode);
 								allocNodes.add(allocNode);
 								if (fs.contains(unit)){

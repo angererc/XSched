@@ -18,6 +18,8 @@
  */
 
 package soot.jimple.spark.pag;
+import java.util.HashMap;
+
 import soot.*;
 
 /** Represents a simple variable node (Green) in the pointer assignment graph
@@ -25,11 +27,32 @@ import soot.*;
  * @author Ondrej Lhotak
  */
 public class GlobalVarNode extends VarNode {
-    GlobalVarNode( PAG pag, Object variable, Type t ) {
-	super( pag, variable, t );
+	
+	private static final HashMap<Object,GlobalVarNode> internalized = new HashMap<Object,GlobalVarNode>();
+	public static GlobalVarNode globalVarNode(Object var) {
+		return internalized.get(var);
+	}
+	
+	public GlobalVarNode internalized() {
+		GlobalVarNode ret = internalized.get(variable);
+		if(ret == null) {
+			ret = this;
+			this.fetchNumber();
+			internalized.put(variable, this);
+			this.addNodeTag(null);
+			
+		} else if( !( ret.getType().equals( type ) ) ) {
+			    throw new RuntimeException( "Value "+variable+" of type "+type+
+				    " previously had type "+ret.getType() );
+		}
+		return ret;
+	}
+	
+    public GlobalVarNode( Object variable, Type t ) {
+    	super(variable, t );
     }
     public String toString() {
-	return "GlobalVarNode "+getNumber()+" "+variable;
+    	return "GlobalVarNode "+getNumber()+" "+variable;
     }
 }
 
