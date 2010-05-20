@@ -43,13 +43,14 @@ public final class MethodContext implements MethodOrMethodContext
         }
         return false;
     }
+    
+    private static final Map<MethodContext, MethodContext> methodContext_map = new HashMap<MethodContext, MethodContext>();
     public static MethodOrMethodContext v( SootMethod method, Context context ) {
         if( context == null ) return method;
-        MethodContext probe = new MethodContext( method, context );
-        Map<MethodContext, MethodContext> map = G.v().MethodContext_map;
-        MethodContext ret = map.get( probe );
+        MethodContext probe = new MethodContext( method, context );        
+        MethodContext ret = methodContext_map.get( probe );
         if( ret == null ) {
-            map.put( probe, probe );
+        	methodContext_map.put( probe, probe );
             return probe;
         }
         return ret;
