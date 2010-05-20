@@ -32,7 +32,8 @@ public class PAGNodeFactory {
 		return instance;
 	}
 	public static void initialize(SparkOptions opts) {
-		instance = new PAGNodeFactory(opts);
+		if(instance == null)
+			instance = new PAGNodeFactory(opts);
 	}
 
 	private SparkOptions opts;

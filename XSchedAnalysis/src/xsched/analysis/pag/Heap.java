@@ -46,7 +46,7 @@ public class Heap extends PAG {
 	private HashMap<InvokeExpr, NewActivationRecord> newActivationRecords = new HashMap<InvokeExpr, NewActivationRecord>();
 	
 	public Heap(PAG parent) {
-		super();
+		super(parent.getOpts());
 		this.parent = parent;
 		super.useOnFlyCallGraph();		
 		super.setNativeMethodDriver(parent.nativeMethodDriver());

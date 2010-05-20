@@ -49,7 +49,13 @@ public class PAG implements PointsToAnalysis {
 		return methodPag;
 	}
 
-	protected PAG() {
+	public PAG( final SparkOptions opts ) {
+		this.opts = opts;
+		if( opts.add_tags() ) {
+			Node.collectNodeTags();
+		}
+		PAGNodeFactory.initialize(opts);
+		
 		typeManager = new TypeManager(this);
 		if( !opts.ignore_types() ) {
 			typeManager.setFastHierarchy( Scene.v().getOrMakeFastHierarchy() );
@@ -125,14 +131,6 @@ public class PAG implements PointsToAnalysis {
 		default:
 			throw new RuntimeException();
 		}
-	}
-	public PAG( final SparkOptions opts ) {
-		this();
-		this.opts = opts;
-		if( opts.add_tags() ) {
-			Node.collectNodeTags();
-		}
-		PAGNodeFactory.initialize(opts);		
 	}
 
 	private HashMap<Node,Node> replacements = new HashMap<Node,Node>();
