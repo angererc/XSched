@@ -112,15 +112,6 @@ public final class MethodPAG {
     protected MethodNodeFactory nodeFactory;
     public MethodNodeFactory nodeFactory() { return nodeFactory; }
 
-    public static MethodPAG v( PAG pag, SootMethod m ) {
-        MethodPAG ret = G.v().MethodPAG_methodToPag.get( m );
-        if( ret == null ) { 
-            ret = new MethodPAG( pag, m );
-            G.v().MethodPAG_methodToPag.put( m, ret );
-        }
-        return ret;
-    }
-
     public void build() {
         if( hasBeenBuilt ) return;
         hasBeenBuilt = true;

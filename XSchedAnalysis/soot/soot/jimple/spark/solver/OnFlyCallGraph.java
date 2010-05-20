@@ -58,7 +58,7 @@ public class OnFlyCallGraph {
     	ofcgb.contextManager().callGraph().reachableMethods().update();
         while(reachablesReader.hasNext()) {
             MethodOrMethodContext m = (MethodOrMethodContext) reachablesReader.next();
-            MethodPAG mpag = MethodPAG.v( pag, m.method() );
+            MethodPAG mpag = pag.methodPAGForMethod(m.method());
             mpag.build();
             mpag.addToPAG(m.context());
         }
@@ -66,7 +66,7 @@ public class OnFlyCallGraph {
     private void processCallEdges() {
         while(callEdges.hasNext()) {
             Edge e = (Edge) callEdges.next();
-            MethodPAG amp = MethodPAG.v( pag, e.tgt() );
+            MethodPAG amp = pag.methodPAGForMethod(e.tgt());
             amp.build();
             amp.addToPAG( e.tgtCtxt() );
             pag.addCallTarget( e );

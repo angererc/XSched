@@ -38,6 +38,17 @@ import soot.toolkits.scalar.Pair;
  * @author Ondrej Lhotak
  */
 public class PAG implements PointsToAnalysis {
+	private HashMap<SootMethod, MethodPAG> methodToMethodPAG = new HashMap<SootMethod,MethodPAG>();
+	//this PAG contains all the MethodPAGs that created nodes in this pag
+	public MethodPAG methodPAGForMethod(SootMethod m) {
+		MethodPAG methodPag = methodToMethodPAG.get(m);
+		if(methodPag == null) {
+			methodPag = new MethodPAG(this, m);
+			methodToMethodPAG.put(m, methodPag);
+		}
+		return methodPag;
+	}
+	
     public PAG( final SparkOptions opts ) {
         this.opts = opts;
         if( opts.add_tags() ) {
@@ -718,8 +729,8 @@ public class PAG implements PointsToAnalysis {
 
     final public void addCallTarget( Edge e ) {
         if( !e.passesParameters() ) return;
-        MethodPAG srcmpag = MethodPAG.v( this, e.src() );
-        MethodPAG tgtmpag = MethodPAG.v( this, e.tgt() );
+        MethodPAG srcmpag = this.methodPAGForMethod(e.src());
+        MethodPAG tgtmpag = this.methodPAGForMethod(e.tgt());
         if( e.isExplicit() || e.kind() == Kind.THREAD ) {
             addCallTarget( srcmpag, tgtmpag, (Stmt) e.srcUnit(),
                            e.srcCtxt(), e.tgtCtxt() );

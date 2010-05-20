@@ -86,7 +86,7 @@ public class ContextInsensitiveBuilder {
 	}
         while(callEdges.hasNext()) {
             Edge e = (Edge) callEdges.next();
-            MethodPAG.v( pag, e.tgt() ).addToPAG(null);
+            pag.methodPAGForMethod(e.tgt()).addToPAG(null);            
             pag.addCallTarget( e );
         }
 
@@ -108,7 +108,7 @@ public class ContextInsensitiveBuilder {
 	    if( !m.isConcrete() && !m.isNative() ) continue;
             totalMethods++;
             if( reachables.contains( m ) ) {
-                MethodPAG mpag = MethodPAG.v( pag, m );
+                MethodPAG mpag = pag.methodPAGForMethod(m);
                 mpag.build();
                 mpag.addToPAG(null);
                 analyzedMethods++;

@@ -31,7 +31,6 @@ import soot.dava.internal.SET.SETNode;
 import java.io.PrintStream;
 import java.util.*;
 import soot.jimple.toolkits.pointer.util.NativeHelper;
-import soot.jimple.spark.pag.MethodPAG;
 import soot.jimple.spark.sets.P2SetFactory;
 import soot.jimple.toolkits.annotation.arraycheck.Array2ndDimensionSymbol;
 import soot.jimple.toolkits.pointer.UnionFactory;
@@ -64,7 +63,6 @@ public class G extends Singletons
     public int SparkNativeHelper_tempVar = 0;
     public int PaddleNativeHelper_tempVar = 0;
     public boolean PointsToSetInternal_warnedAlready = false;
-    public HashMap<SootMethod, MethodPAG> MethodPAG_methodToPag = new HashMap<SootMethod, MethodPAG>();
     public Set MethodRWSet_allGlobals = new HashSet();
     public Set MethodRWSet_allFields = new HashSet();
     public int GeneralConstObject_counter = 0;

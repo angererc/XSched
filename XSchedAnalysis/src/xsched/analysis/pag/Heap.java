@@ -62,32 +62,27 @@ public class Heap extends PAG {
 	}
 	@Override
 	public HashMultiMap callAssigns() {
-		// TODO Auto-generated method stub
-		return super.callAssigns();
+		throw new RuntimeException("Don't use this method in the heap!");		
 	}
 
 	@Override
 	public Map<InvokeExpr, SootMethod> callToMethod() {
-		// TODO Auto-generated method stub
-		return super.callToMethod();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public SparkOptions opts() {
-		// TODO Auto-generated method stub
-		return super.opts();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public void setNativeMethodDriver(NativeMethodDriver driver) {
-		// TODO Auto-generated method stub
-		super.setNativeMethodDriver(driver);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Map<InvokeExpr, Node> virtualCallsToReceivers() {
-		// TODO Auto-generated method stub
-		return super.virtualCallsToReceivers();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	public Collection<NewHBRelationshipRecord> newHBRelationshipRecords() {
@@ -100,32 +95,27 @@ public class Heap extends PAG {
 	
 	@Override
 	public boolean addAllocEdge(AllocNode from, VarNode to) {
-		// TODO Auto-generated method stub
-		return super.addAllocEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public void addDereference(VarNode base) {
-		// TODO Auto-generated method stub
-		super.addDereference(base);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean addLoadEdge(FieldRefNode from, VarNode to) {
-		// TODO Auto-generated method stub
-		return super.addLoadEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean addSimpleEdge(VarNode from, VarNode to) {
-		// TODO Auto-generated method stub
-		return super.addSimpleEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean addStoreEdge(VarNode from, FieldRefNode to) {
-		// TODO Auto-generated method stub
-		return super.addStoreEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	private void recordActivationConstructorCall(InvokeExpr expr, Node src, Node tgt) {
@@ -215,445 +205,372 @@ public class Heap extends PAG {
 
 	@Override
 	protected boolean addToMap(Map<Object, Object> m, Node key, Node value) {
-		// TODO Auto-generated method stub
-		return super.addToMap(m, key, value);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Map<Object, Object> allocEdges() {
-		// TODO Auto-generated method stub
-		return super.allocEdges();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] allocInvLookup(VarNode key) {
-		// TODO Auto-generated method stub
-		return super.allocInvLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> allocInvSources() {
-		// TODO Auto-generated method stub
-		return super.allocInvSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> allocInvSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.allocInvSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] allocLookup(AllocNode key) {
-		// TODO Auto-generated method stub
-		return super.allocLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public QueueReader allocNodeListener() {
-		// TODO Auto-generated method stub
-		return super.allocNodeListener();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> allocSources() {
-		// TODO Auto-generated method stub
-		return super.allocSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> allocSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.allocSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public void cleanUpMerges() {
-		// TODO Auto-generated method stub
-		super.cleanUpMerges();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean doAddAllocEdge(AllocNode from, VarNode to) {
-		// TODO Auto-generated method stub
-		return super.doAddAllocEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean doAddLoadEdge(FieldRefNode from, VarNode to) {
-		// TODO Auto-generated method stub
-		return super.doAddLoadEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean doAddSimpleEdge(VarNode from, VarNode to) {
-		// TODO Auto-generated method stub
-		return super.doAddSimpleEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public boolean doAddStoreEdge(VarNode from, FieldRefNode to) {
-		// TODO Auto-generated method stub
-		return super.doAddStoreEdge(from, to);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public QueueReader edgeReader() {
-		// TODO Auto-generated method stub
-		return super.edgeReader();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public AllocDotField findAllocDotField(AllocNode an, SparkField field) {
-		// TODO Auto-generated method stub
-		return super.findAllocDotField(an, field);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ContextVarNode findContextVarNode(Object baseValue, Context context) {
-		// TODO Auto-generated method stub
-		return super.findContextVarNode(baseValue, context);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public FieldRefNode findGlobalFieldRefNode(Object baseValue,
 			SparkField field) {
-		// TODO Auto-generated method stub
-		return super.findGlobalFieldRefNode(baseValue, field);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public GlobalVarNode findGlobalVarNode(Object value) {
-		// TODO Auto-generated method stub
-		return super.findGlobalVarNode(value);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public FieldRefNode findLocalFieldRefNode(Object baseValue, SparkField field) {
-		// TODO Auto-generated method stub
-		return super.findLocalFieldRefNode(baseValue, field);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public LocalVarNode findLocalVarNode(Object value) {
-		// TODO Auto-generated method stub
-		return super.findLocalVarNode(value);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ArrayNumberer getAllocDotFieldNodeNumberer() {
-		// TODO Auto-generated method stub
-		return super.getAllocDotFieldNodeNumberer();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ArrayNumberer getAllocNodeNumberer() {
-		// TODO Auto-generated method stub
-		return super.getAllocNodeNumberer();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public List<VarNode> getDereferences() {
-		// TODO Auto-generated method stub
-		return super.getDereferences();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ArrayNumberer getFieldRefNodeNumberer() {
-		// TODO Auto-generated method stub
-		return super.getFieldRefNodeNumberer();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Map<Node, Tag> getNodeTags() {
-		// TODO Auto-generated method stub
-		return super.getNodeTags();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public int getNumAllocNodes() {
-		// TODO Auto-generated method stub
-		return super.getNumAllocNodes();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public OnFlyCallGraph getOnFlyCallGraph() {
-		// TODO Auto-generated method stub
-		return super.getOnFlyCallGraph();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public SparkOptions getOpts() {
-		// TODO Auto-generated method stub
-		return super.getOpts();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public P2SetFactory getSetFactory() {
-		// TODO Auto-generated method stub
-		return super.getSetFactory();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public TypeManager getTypeManager() {
-		// TODO Auto-generated method stub
-		return super.getTypeManager();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ArrayNumberer getVarNodeNumberer() {
-		// TODO Auto-generated method stub
-		return super.getVarNodeNumberer();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Map<Object, Object> loadEdges() {
-		// TODO Auto-generated method stub
-		return super.loadEdges();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] loadInvLookup(VarNode key) {
-		// TODO Auto-generated method stub
-		return super.loadInvLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> loadInvSources() {
-		// TODO Auto-generated method stub
-		return super.loadInvSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> loadInvSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.loadInvSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] loadLookup(FieldRefNode key) {
-		// TODO Auto-generated method stub
-		return super.loadLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> loadSources() {
-		// TODO Auto-generated method stub
-		return super.loadSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> loadSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.loadSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	protected Node[] lookup(Map<Object, Object> m, Object key) {
-		// TODO Auto-generated method stub
-		return super.lookup(m, key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public AllocDotField makeAllocDotField(AllocNode an, SparkField field) {
-		// TODO Auto-generated method stub
-		return super.makeAllocDotField(an, field);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public AllocNode makeAllocNode(Object newExpr, Type type, SootMethod m) {
-		// TODO Auto-generated method stub
-		return super.makeAllocNode(newExpr, type, m);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public AllocNode makeClassConstantNode(ClassConstant cc) {
-		// TODO Auto-generated method stub
-		return super.makeClassConstantNode(cc);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ContextVarNode makeContextVarNode(LocalVarNode base, Context context) {
-		// TODO Auto-generated method stub
-		return super.makeContextVarNode(base, context);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public ContextVarNode makeContextVarNode(Object baseValue, Type baseType,
 			Context context, SootMethod method) {
-		// TODO Auto-generated method stub
-		return super.makeContextVarNode(baseValue, baseType, context, method);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public FieldRefNode makeFieldRefNode(VarNode base, SparkField field) {
-		// TODO Auto-generated method stub
-		return super.makeFieldRefNode(base, field);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public FieldRefNode makeGlobalFieldRefNode(Object baseValue, Type baseType,
 			SparkField field) {
-		// TODO Auto-generated method stub
-		return super.makeGlobalFieldRefNode(baseValue, baseType, field);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public GlobalVarNode makeGlobalVarNode(Object value, Type type) {
-		// TODO Auto-generated method stub
-		return super.makeGlobalVarNode(value, type);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public FieldRefNode makeLocalFieldRefNode(Object baseValue, Type baseType,
 			SparkField field, SootMethod method) {
-		// TODO Auto-generated method stub
-		return super.makeLocalFieldRefNode(baseValue, baseType, field, method);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public LocalVarNode makeLocalVarNode(Object value, Type type,
 			SootMethod method) {
-		// TODO Auto-generated method stub
-		return super.makeLocalVarNode(value, type, method);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public AllocNode makeStringConstantNode(String s) {
-		// TODO Auto-generated method stub
-		return super.makeStringConstantNode(s);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public GlobalNodeFactory nodeFactory() {
-		// TODO Auto-generated method stub
-		return super.nodeFactory();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjects(Context c, Local l, SootField f) {
-		// TODO Auto-generated method stub
-		return super.reachingObjects(c, l, f);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjects(Context c, Local l) {
-		// TODO Auto-generated method stub
-		return super.reachingObjects(c, l);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjects(Local l, SootField f) {
-		// TODO Auto-generated method stub
-		return super.reachingObjects(l, f);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjects(Local l) {
-		// TODO Auto-generated method stub
-		return super.reachingObjects(l);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjects(PointsToSet s, SootField f) {
-		// TODO Auto-generated method stub
-		return super.reachingObjects(s, f);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjects(SootField f) {
-		// TODO Auto-generated method stub
-		return super.reachingObjects(f);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public PointsToSet reachingObjectsOfArrayElement(PointsToSet s) {
-		// TODO Auto-generated method stub
-		return super.reachingObjectsOfArrayElement(s);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Map<Object, Object> simpleEdges() {
-		// TODO Auto-generated method stub
-		return super.simpleEdges();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] simpleInvLookup(VarNode key) {
-		// TODO Auto-generated method stub
-		return super.simpleInvLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> simpleInvSources() {
-		// TODO Auto-generated method stub
-		return super.simpleInvSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> simpleInvSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.simpleInvSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] simpleLookup(VarNode key) {
-		// TODO Auto-generated method stub
-		return super.simpleLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> simpleSources() {
-		// TODO Auto-generated method stub
-		return super.simpleSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> simpleSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.simpleSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Map<Object, Object> storeEdges() {
-		// TODO Auto-generated method stub
-		return super.storeEdges();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] storeInvLookup(FieldRefNode key) {
-		// TODO Auto-generated method stub
-		return super.storeInvLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> storeInvSources() {
-		// TODO Auto-generated method stub
-		return super.storeInvSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> storeInvSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.storeInvSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Node[] storeLookup(VarNode key) {
-		// TODO Auto-generated method stub
-		return super.storeLookup(key);
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Set<Object> storeSources() {
-		// TODO Auto-generated method stub
-		return super.storeSources();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 	@Override
 	public Iterator<Object> storeSourcesIterator() {
-		// TODO Auto-generated method stub
-		return super.storeSourcesIterator();
+		throw new RuntimeException("Don't use this method in the heap!");
 	}
 
 }
