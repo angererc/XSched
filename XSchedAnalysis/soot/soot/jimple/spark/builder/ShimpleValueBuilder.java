@@ -50,7 +50,15 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 		return (Node) getResult();
 	}
 	
-	
+	@Override
+	@Deprecated
+	public void setResult(Object node) {
+		throw new RuntimeException("Don't use me, use setResult(node, value)");
+	}
+	private void setResult(Node node, Value value) {
+		mpag.registerNodeForValue(node, value);
+		super.setResult(node);
+	}
 	
 	@Override
 	final public void casePhiExpr(PhiExpr e) {
@@ -61,7 +69,7 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 			Node opNode = getNode();
 			mpag.addInternalEdge(opNode, phiNode);
 		}
-		setResult(phiNode);
+		setResult(phiNode, e);
 	}
 
 	@Override	
@@ -69,7 +77,7 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 		caseLocal((Local) ar.getBase());
 		
 		Node result = nodeFactory.makeFieldRefNode((VarNode) getNode(), ArrayElement.v());
-		setResult(result);
+		setResult(result, ar);		
 	}
 
 	@Override
@@ -79,33 +87,36 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 		Node opNode = getNode();
 		Node castNode = nodeFactory.makeLocalVarNode(castPair, ce.getCastType(), method);
 		mpag.addInternalEdge(opNode, castNode);
-		setResult(castNode);
+		setResult(castNode, ce);		
 	}
 
 	@Override
 	final public void caseCaughtExceptionRef(CaughtExceptionRef cer) {
-		setResult(nodeFactory.makeThrow());
+		Node node = nodeFactory.makeThrow();
+		setResult(node, cer);		
 	}
 
 	@Override
 	final public void caseInstanceFieldRef(InstanceFieldRef ifr) {
+		Node node;
 		if (PAG.opts().field_based() || PAG.opts().vta()) {
-			setResult(nodeFactory.makeGlobalVarNode(ifr.getField(), ifr.getField()
-					.getType()));
+			node = nodeFactory.makeGlobalVarNode(ifr.getField(), ifr.getField().getType());			
 		} else {
-			setResult(nodeFactory.makeLocalFieldRefNode(ifr.getBase(), ifr.getBase()
-					.getType(), ifr.getField(), method));
+			node = nodeFactory.makeLocalFieldRefNode(ifr.getBase(), ifr.getBase().getType(), ifr.getField(), method);
 		}
+		setResult(node, ifr);		
 	}
 
 	@Override
 	final public void caseLocal(Local l) {
-		setResult(nodeFactory.makeLocalVarNode(l, l.getType(), method));
+		Node node = nodeFactory.makeLocalVarNode(l, l.getType(), method);
+		setResult(node, l);		
 	}
 
 	@Override
 	final public void caseNewArrayExpr(NewArrayExpr nae) {
-		setResult(nodeFactory.makeAllocNode(nae, nae.getType(), method));
+		Node node = nodeFactory.makeAllocNode(nae, nae.getType(), method);
+		setResult(node, nae);		
 	}
 
 	private boolean isStringBuffer(Type t) {
@@ -122,21 +133,23 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 
 	@Override
 	final public void caseNewExpr(NewExpr ne) {
+		Node node;
 		if (PAG.opts().merge_stringbuffer() && isStringBuffer(ne.getType())) {
-			setResult(nodeFactory.makeAllocNode(ne.getType(), ne.getType(), null));
+			node = nodeFactory.makeAllocNode(ne.getType(), ne.getType(), null);
 		} else {
-			setResult(nodeFactory.makeAllocNode(ne, ne.getType(), method));
+			node = nodeFactory.makeAllocNode(ne, ne.getType(), method);
 		}
+		setResult(node, ne);		
 	}
 
 	@Override
-	final public void caseNewMultiArrayExpr(NewMultiArrayExpr nmae) {
+	final public void caseNewMultiArrayExpr(NewMultiArrayExpr nmae) {		
 		ArrayType type = (ArrayType) nmae.getType();
 		AllocNode prevAn = nodeFactory.makeAllocNode(new Pair<NewMultiArrayExpr, Integer>(nmae, new Integer(
 				type.numDimensions)), type, method);
 		VarNode prevVn = nodeFactory.makeLocalVarNode(prevAn, prevAn.getType(), method);
 		mpag.addInternalEdge(prevAn, prevVn);
-		setResult(prevAn);
+		setResult(prevAn, nmae);		
 		while (true) {
 			Type t = type.getElementType();
 			if (!(t instanceof ArrayType))
@@ -155,13 +168,13 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 
 	@Override
 	final public void caseParameterRef(ParameterRef pr) {
-		setResult(nodeFactory.makeParm(method, pr.getIndex()));
+		setResult(nodeFactory.makeParm(method, pr.getIndex()), pr);
 	}
 
 	@Override
 	final public void caseStaticFieldRef(StaticFieldRef sfr) {
 		setResult(nodeFactory.makeGlobalVarNode(sfr.getField(), sfr.getField()
-				.getType()));
+				.getType()), sfr);
 	}
 
 	@Override
@@ -178,17 +191,17 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 		VarNode stringConstantLocal = nodeFactory.makeGlobalVarNode(stringConstant,
 				RefType.v("java.lang.String"));
 		mpag.addConstantEdge(stringConstant, stringConstantLocal);
-		setResult(stringConstantLocal);
+		setResult(stringConstantLocal, sc);		
 	}
 
 	@Override
 	final public void caseThisRef(ThisRef tr) {
-		setResult(nodeFactory.makeThis(method));
+		setResult(nodeFactory.makeThis(method), tr);
 	}
 
 	@Override
 	final public void caseNullConstant(NullConstant nr) {
-		setResult(null);
+		setResult(null, nr);
 	}
 
 	@Override
@@ -196,8 +209,8 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 		AllocNode classConstant = nodeFactory.makeClassConstantNode(cc);
 		VarNode classConstantLocal = nodeFactory.makeGlobalVarNode(classConstant,
 				RefType.v("java.lang.Class"));
-		mpag.addConstantEdge(classConstant, classConstantLocal);		
-		setResult(classConstantLocal);
+		mpag.addConstantEdge(classConstant, classConstantLocal);
+		setResult(classConstantLocal, cc);		
 	}
 
 	@Override

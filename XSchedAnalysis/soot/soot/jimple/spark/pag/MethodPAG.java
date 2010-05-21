@@ -91,7 +91,7 @@ public final class MethodPAG {
 			Node src = (Node) reader.next();
 			Node dst = (Node) reader.next();
 			pag.addEdge(src, dst);
-		}
+		}		
 		reader = (QueueReader<?>) dereferencesReader.clone();
 		while (reader.hasNext()) {
 			VarNode node = (VarNode) reader.next();
@@ -144,6 +144,7 @@ public final class MethodPAG {
 	}
 
 	public void addDereference(VarNode base) {
+		assert(!hasBeenBuilt);
 		dereferences.add(base);
 	}
 
@@ -202,12 +203,15 @@ public final class MethodPAG {
 		return n;
 	}
 
-	public Node buildNodeForValue(Value value) {
-		ShimpleValueBuilder valueBuilder = new ShimpleValueBuilder(this);
-		value.apply(valueBuilder);
-		return valueBuilder.getNode();
+	private HashMap<Value,Node> nodeByValue = new HashMap<Value,Node>();
+	//called by ShimpleValueBuilder
+	public void registerNodeForValue(Node node, Value value) {
+		this.nodeByValue.put(value, node);
 	}
-
+	public Node nodeForValue(Value value) {
+		return nodeByValue.get(value);
+	}
+	
 	protected void buildNormal() {
 		ShimpleValueBuilder valueBuilder = new ShimpleValueBuilder(this);
 		ShimpleStatementBuilder statementBuilder = new ShimpleStatementBuilder(

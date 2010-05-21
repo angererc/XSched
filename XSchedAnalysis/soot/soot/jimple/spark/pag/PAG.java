@@ -662,7 +662,7 @@ public class PAG implements PointsToAnalysis {
 
 				 InvokeExpr ie = e.srcStmt().getInvokeExpr();
 
-				 Node parm = srcmpag.buildNodeForValue(ie.getArg(0) );
+				 Node parm = srcmpag.nodeForValue(ie.getArg(0) );
 				 parm = srcmpag.parameterize( parm, e.srcCtxt() );
 				 parm = parm.getReplacement(this);
 
@@ -681,7 +681,7 @@ public class PAG implements PointsToAnalysis {
 					 ret = tgtmpag.parameterize( ret, e.tgtCtxt() );
 					 ret = ret.getReplacement(this);
 
-					 Node lhs = srcmpag.buildNodeForValue(as.getLeftOp());
+					 Node lhs = srcmpag.nodeForValue(as.getLeftOp());
 					 lhs = srcmpag.parameterize( lhs, e.srcCtxt() );
 					 lhs = lhs.getReplacement(this);
 
@@ -703,7 +703,7 @@ public class PAG implements PointsToAnalysis {
 				 Stmt s = (Stmt) e.srcUnit();
 				 InstanceInvokeExpr iie = (InstanceInvokeExpr) s.getInvokeExpr();
 
-				 Node cls = srcmpag.buildNodeForValue(iie.getBase());
+				 Node cls = srcmpag.nodeForValue(iie.getBase());
 				 cls = srcmpag.parameterize( cls, e.srcCtxt() );
 				 cls = cls.getReplacement(this);
 				 Node newObject = PAGNodeFactory.v().makeNewInstance(this, (VarNode) cls );
@@ -715,7 +715,7 @@ public class PAG implements PointsToAnalysis {
 				 addEdge( newObject, initThis );
 				 if (s instanceof AssignStmt) {
 					 AssignStmt as = (AssignStmt)s;
-					 Node asLHS = srcmpag.buildNodeForValue(as.getLeftOp());
+					 Node asLHS = srcmpag.nodeForValue(as.getLeftOp());
 					 asLHS = srcmpag.parameterize( asLHS, e.srcCtxt());
 					 asLHS = asLHS.getReplacement(this);
 					 addEdge( newObject, asLHS);
@@ -734,7 +734,7 @@ public class PAG implements PointsToAnalysis {
 				 Value arg0 = ie.getArg(0);
 				 //if "null" is passed in, omit the edge
 				 if(arg0!=NullConstant.v()) {
-					 Node parm0 = srcmpag.buildNodeForValue(arg0 );
+					 Node parm0 = srcmpag.nodeForValue(arg0 );
 					 parm0 = srcmpag.parameterize( parm0, e.srcCtxt() );
 					 parm0 = parm0.getReplacement(this);
 
@@ -752,7 +752,7 @@ public class PAG implements PointsToAnalysis {
 				 SootMethod tgt = e.getTgt().method();
 				 //if "null" is passed in, or target has no parameters, omit the edge
 				 if(arg1!=NullConstant.v() && tgt.getParameterCount()>0) {
-					 Node parm1 = srcmpag.buildNodeForValue( arg1 );
+					 Node parm1 = srcmpag.nodeForValue( arg1 );
 					 parm1 = srcmpag.parameterize( parm1, e.srcCtxt() );
 					 parm1 = parm1.getReplacement(this);
 					 FieldRefNode parm1contents = PAGNodeFactory.v().makeFieldRefNode( (VarNode) parm1, ArrayElement.v() );
@@ -780,7 +780,7 @@ public class PAG implements PointsToAnalysis {
 					 ret = tgtmpag.parameterize( ret, e.tgtCtxt() );
 					 ret = ret.getReplacement(this);
 
-					 Node lhs = srcmpag.buildNodeForValue(as.getLeftOp());
+					 Node lhs = srcmpag.nodeForValue(as.getLeftOp());
 					 lhs = srcmpag.parameterize( lhs, e.srcCtxt() );
 					 lhs = lhs.getReplacement(this);
 
@@ -800,7 +800,7 @@ public class PAG implements PointsToAnalysis {
 				 InstanceInvokeExpr iie = (InstanceInvokeExpr) s.getInvokeExpr();
 
 				 //(1)
-				 Node cls = srcmpag.buildNodeForValue(iie.getBase() );
+				 Node cls = srcmpag.nodeForValue(iie.getBase() );
 				 cls = srcmpag.parameterize( cls, e.srcCtxt() );
 				 cls = cls.getReplacement(this);
 				 if( cls instanceof ContextVarNode ) cls = findLocalVarNode( ((VarNode)cls).getVariable() );
@@ -823,7 +823,7 @@ public class PAG implements PointsToAnalysis {
 					 SootMethod tgt = e.getTgt().method();
 					 //if "null" is passed in, or target has no parameters, omit the edge
 					 if(arg!=NullConstant.v() && tgt.getParameterCount()>0) {
-						 Node parm0 = srcmpag.buildNodeForValue( arg );
+						 Node parm0 = srcmpag.nodeForValue( arg );
 						 parm0 = srcmpag.parameterize( parm0, e.srcCtxt() );
 						 parm0 = parm0.getReplacement(this);
 						 FieldRefNode parm1contents = PAGNodeFactory.v().makeFieldRefNode( (VarNode) parm0, ArrayElement.v() );
@@ -845,7 +845,7 @@ public class PAG implements PointsToAnalysis {
 				 //(4)
 				 if (s instanceof AssignStmt) {
 					 AssignStmt as = (AssignStmt)s;
-					 Node asLHS = srcmpag.buildNodeForValue(as.getLeftOp());
+					 Node asLHS = srcmpag.nodeForValue(as.getLeftOp());
 					 asLHS = srcmpag.parameterize( asLHS, e.srcCtxt());
 					 asLHS = asLHS.getReplacement(this);
 					 addEdge( newObject, asLHS);
@@ -876,7 +876,7 @@ public class PAG implements PointsToAnalysis {
 			 if( !( arg.getType() instanceof RefLikeType ) ) continue;
 			 if( arg instanceof NullConstant ) continue;
 
-			 Node argNode = srcmpag.buildNodeForValue( arg );
+			 Node argNode = srcmpag.nodeForValue( arg );
 			 argNode = srcmpag.parameterize( argNode, srcContext );
 			 argNode = argNode.getReplacement(this);
 
@@ -892,7 +892,7 @@ public class PAG implements PointsToAnalysis {
 		 if( ie instanceof InstanceInvokeExpr ) {
 			 InstanceInvokeExpr iie = (InstanceInvokeExpr) ie;
 
-			 Node baseNode = srcmpag.buildNodeForValue(iie.getBase() );
+			 Node baseNode = srcmpag.nodeForValue(iie.getBase() );
 			 baseNode = srcmpag.parameterize( baseNode, srcContext );
 			 baseNode = baseNode.getReplacement(this);
 
@@ -910,7 +910,7 @@ public class PAG implements PointsToAnalysis {
 			 Value dest = ( (AssignStmt) s ).getLeftOp();
 			 if( dest.getType() instanceof RefLikeType && !(dest instanceof NullConstant) ) {
 
-				 Node destNode = srcmpag.buildNodeForValue( dest );
+				 Node destNode = srcmpag.nodeForValue( dest );
 				 destNode = srcmpag.parameterize( destNode, srcContext );
 				 destNode = destNode.getReplacement(this);
 
