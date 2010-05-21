@@ -25,16 +25,14 @@ public class ActivationNode extends ScheduleNode {
 	public final AllocNode activation;
 	public final AllocNode receiver;
 	public final SootMethod task;
-	public final List<Node> params;
-	
+		
 	private Heap resultPAG;
 		
-	ActivationNode(Schedule schedule, ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+	ActivationNode(Schedule schedule, ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task) {
 		super(schedule, parent);
 		this.activation = activation;
 		this.receiver = receiver;
 		this.task = task;
-		this.params = params;
 		
 		FastHierarchy fh = Scene.v().getOrMakeFastHierarchy();
 		if( ! fh.canStoreType(receiver.getType(), task.getDeclaringClass().getType())) {
@@ -55,6 +53,8 @@ public class ActivationNode extends ScheduleNode {
 		
 		//add an edge from the alloc node to the this node
 		VarNode thisNode = heap.findContextVarNode(new Pair<SootMethod,String>(task, PointsToAnalysis.THIS_NODE), this);
+		thisNode.makeP2Set(heap);
+		
 		//should eventually call addAllocEdge in PAG!
 		heap.addEdge(receiver, thisNode); 
 		

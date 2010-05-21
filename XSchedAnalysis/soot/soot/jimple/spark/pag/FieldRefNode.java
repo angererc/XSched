@@ -33,6 +33,20 @@ public class FieldRefNode extends ValNode {
 	public static ArrayNumberer fieldRefNodeNumberer() {
 		return nodeNumberer;
 	}
+	
+	/** Finds the FieldRefNode for base variable value and field
+	  * field, or returns null. */
+	 public static FieldRefNode findGlobalFieldRefNode( Object baseValue, SparkField field ) {
+		 VarNode base = GlobalVarNode.globalVarNode( baseValue );
+		 if( base == null ) return null;
+		 return base.dot( field );
+	 }
+	 
+	public static FieldRefNode localFieldRefNode(Object baseValue, SparkField field ) {
+		 VarNode base = LocalVarNode.localVarNode( baseValue );
+		 if( base == null ) return null;
+		 return base.dot( field );
+	 }
 
 	public static FieldRefNode internalized(VarNode base, SparkField field) {
 		//a field ref is defined by its base and the field and the PAGNodeFactory already does that

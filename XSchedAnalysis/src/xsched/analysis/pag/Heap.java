@@ -251,37 +251,6 @@ public class Heap extends PAG {
 	}
 
 	@Override
-	public AllocDotField findAllocDotField(AllocNode an, SparkField field) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public ContextVarNode findContextVarNode(Object baseValue, Context context) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public FieldRefNode findGlobalFieldRefNode(Object baseValue,
-			SparkField field) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public GlobalVarNode findGlobalVarNode(Object value) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public FieldRefNode findLocalFieldRefNode(Object baseValue, SparkField field) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public LocalVarNode findLocalVarNode(Object value) {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
 	public List<VarNode> getDereferences() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}

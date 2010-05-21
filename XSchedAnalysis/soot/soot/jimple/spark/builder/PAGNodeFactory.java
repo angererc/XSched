@@ -181,7 +181,7 @@ public class PAGNodeFactory {
 	
 	//note: this is the only makeXY method that actually alters the PAG!
 	public Node makeNewInstance( PAG pag, VarNode cls ) {
-		if( cls instanceof ContextVarNode ) cls = pag.findLocalVarNode( cls.getVariable() );
+		if( cls instanceof ContextVarNode ) cls = LocalVarNode.localVarNode( cls.getVariable() );
 		VarNode local = PAGNodeFactory.v().makeGlobalVarNode( cls, RefType.v( "java.lang.Object" ) );
 		for (SootClass cl : Scene.v().dynamicClasses()) {
 			AllocNode site = PAGNodeFactory.v().makeAllocNode( new Pair<VarNode,SootClass>(cls, cl), cl.getType(), null );

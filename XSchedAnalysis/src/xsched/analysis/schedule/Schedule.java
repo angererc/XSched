@@ -32,7 +32,11 @@ public class Schedule {
 		return this.createActivationNode(null, activation, receiver, task, params);
 	}
 	
-	ActivationNode createActivationNode(ScheduleNode parent, AllocNode activation, AllocNode receiver, SootMethod task, List<Node> params) {
+	ActivationNode createActivationNode(ScheduleNode parent, 
+			AllocNode activation, 
+			AllocNode receiver, 
+			SootMethod task, 
+			List<Node> params) {
 		assert(activation.getType().equals(XSchedAnalyzer.ACTIVATION_TYPE)) : "alloc node is not an activation";
 		
 		if(nodesByAllocationNode.containsKey(activation)) {

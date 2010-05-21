@@ -357,7 +357,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
      * Computes the possibly refined set of reaching objects for l.
      */
     protected PointsToSet computeReachingObjects(Local l) {
-        VarNode v = pag.findLocalVarNode(l);
+        VarNode v = LocalVarNode.localVarNode(l);
 		if (v == null) {
 		  //no reaching objects
 		  return EmptyPointsToSet.v();

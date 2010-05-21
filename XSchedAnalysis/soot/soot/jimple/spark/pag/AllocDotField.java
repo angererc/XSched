@@ -32,6 +32,15 @@ public class AllocDotField extends Node {
 		return nodeNumberer;
 	}
 	
+	/** Finds the AllocDotField for base AllocNode an and field
+	  * field, or returns null. */
+	 public static AllocDotField allocDotField( AllocNode an, SparkField field ) {
+		 if(an == null)
+			 return null;
+		 
+		 return an.dot( field );
+	 }
+	
 	public static AllocDotField internalized(AllocNode base, SparkField field) {
 		AllocDotField res = new AllocDotField(base, field);
 		nodeNumberer.add(res);

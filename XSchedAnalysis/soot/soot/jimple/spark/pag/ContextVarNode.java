@@ -30,6 +30,12 @@ public class ContextVarNode extends LocalVarNode {
     	return "ContextVarNode "+getNumber()+" "+variable+" "+method+" "+context;
     }
     
+    public static ContextVarNode contextVarNode(Object baseValue, Context context) {
+    	LocalVarNode base = LocalVarNode.localVarNode( baseValue );
+    	if( base == null ) return null;
+    	return base.context( context );
+    }
+    
     public static ContextVarNode internalized( LocalVarNode base, Context context ) {
     	return (ContextVarNode) LocalVarNode.internalize(new ContextVarNode(base, context));
     }

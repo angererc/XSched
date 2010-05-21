@@ -35,6 +35,9 @@ public class LocalVarNode extends VarNode {
 	private static final LargeNumberedMap internalizedLocals = new LargeNumberedMap( Scene.v().getLocalNumberer() );
 	private static final HashMap<Object,LocalVarNode> internalizedVals = new HashMap<Object,LocalVarNode>();
 	public static LocalVarNode localVarNode(Object value) {
+		if(PAG.opts().rta())
+			return null;
+		
 		if(value instanceof Local)
 			return (LocalVarNode) internalizedLocals.get((Local)value);
 		else

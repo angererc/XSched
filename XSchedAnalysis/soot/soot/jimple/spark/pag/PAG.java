@@ -221,7 +221,7 @@ public class PAG implements PointsToAnalysis {
     }
 	/** Returns the set of objects pointed to by variable l. */
 	public PointsToSet reachingObjects( Local l ) {
-		VarNode n = findLocalVarNode( l );
+		VarNode n = LocalVarNode.localVarNode(l);
 		if( n == null ) {
 			return EmptyPointsToSet.v();
 		}
@@ -230,7 +230,7 @@ public class PAG implements PointsToAnalysis {
 
 	/** Returns the set of objects pointed to by variable l in context c. */
 	public PointsToSet reachingObjects( Context c, Local l ) {
-		VarNode n = findContextVarNode( l, c );
+		VarNode n = ContextVarNode.contextVarNode(l, c);
 		if( n == null ) {
 			return EmptyPointsToSet.v();
 		}
@@ -241,7 +241,7 @@ public class PAG implements PointsToAnalysis {
 	public PointsToSet reachingObjects( SootField f ) {
 		if( !f.isStatic() )
 			throw new RuntimeException( "The parameter f must be a *static* field." );
-		VarNode n = findGlobalVarNode( f );
+		VarNode n = GlobalVarNode.globalVarNode(f);
 		if( n == null ) {
 			return EmptyPointsToSet.v();
 		}
@@ -265,7 +265,7 @@ public class PAG implements PointsToAnalysis {
 
 	 private PointsToSet reachingObjectsInternal( PointsToSet s, final SparkField f ) {
 		 if( getOpts().field_based() || getOpts().vta() ) {
-			 VarNode n = findGlobalVarNode( f );
+			 VarNode n = GlobalVarNode.globalVarNode(f);
 			 if( n == null ) {
 				 return EmptyPointsToSet.v();
 			 }
@@ -500,53 +500,6 @@ public class PAG implements PointsToAnalysis {
 	 public PointsToSet reachingObjects( Context c, Local l, SootField f ) {
 		 return reachingObjects( reachingObjects(c, l), f );
 	 }
-
-	 /** Finds the GlobalVarNode for the variable value, or returns null. */
-	 public GlobalVarNode findGlobalVarNode( Object value ) {
-		 if( opts.rta() ) {
-			 value = null;
-		 }
-		 return GlobalVarNode.globalVarNode(value);		 
-	 }
-	 /** Finds the LocalVarNode for the variable value, or returns null. */
-	 public LocalVarNode findLocalVarNode( Object value ) {
-		 if( opts.rta() ) {
-			 value = null;
-		 } 
-		 
-		 return LocalVarNode.localVarNode(value);		 
-	 }
-	 
-	 /** Finds the ContextVarNode for base variable value and context
-	  * context, or returns null. */
-	 public ContextVarNode findContextVarNode( Object baseValue, Context context ) {
-		 LocalVarNode base = findLocalVarNode( baseValue );
-		 if( base == null ) return null;
-		 return base.context( context );
-	 }
-
-
-	 /** Finds the FieldRefNode for base variable value and field
-	  * field, or returns null. */
-	 public FieldRefNode findLocalFieldRefNode( Object baseValue, SparkField field ) {
-		 VarNode base = findLocalVarNode( baseValue );
-		 if( base == null ) return null;
-		 return base.dot( field );
-	 }
-	 /** Finds the FieldRefNode for base variable value and field
-	  * field, or returns null. */
-	 public FieldRefNode findGlobalFieldRefNode( Object baseValue, SparkField field ) {
-		 VarNode base = findGlobalVarNode( baseValue );
-		 if( base == null ) return null;
-		 return base.dot( field );
-	 }
-	 
-	 /** Finds the AllocDotField for base AllocNode an and field
-	  * field, or returns null. */
-	 public AllocDotField findAllocDotField( AllocNode an, SparkField field ) {
-		 return an.dot( field );
-	 }
-	 
 
 	 private boolean addSimpleEdge( VarNode from, VarNode to ) {
 		 boolean ret = false;
@@ -803,7 +756,7 @@ public class PAG implements PointsToAnalysis {
 				 Node cls = srcmpag.nodeForValue(iie.getBase() );
 				 cls = srcmpag.parameterize( cls, e.srcCtxt() );
 				 cls = cls.getReplacement(this);
-				 if( cls instanceof ContextVarNode ) cls = findLocalVarNode( ((VarNode)cls).getVariable() );
+				 if( cls instanceof ContextVarNode ) cls = LocalVarNode.localVarNode(((VarNode)cls).getVariable() );
 
 				 VarNode newObject = PAGNodeFactory.v().makeGlobalVarNode( cls, RefType.v( "java.lang.Object" ) );
 				 SootClass tgtClass = e.getTgt().method().getDeclaringClass();

@@ -41,6 +41,7 @@ import soot.jimple.spark.ondemand.DemandCSPointsTo;
 import soot.jimple.spark.pag.AllocDotField;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.FieldRefNode;
+import soot.jimple.spark.pag.LocalVarNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.PAG2HTML;
@@ -201,9 +202,9 @@ public class SparkTransformer extends SceneTransformer
                         Value lhs = ((DefinitionStmt) s).getLeftOp();
                         VarNode v = null;
                         if( lhs instanceof Local ) {
-                            v = pag.findLocalVarNode( lhs );
+                            v = LocalVarNode.localVarNode( lhs );
                         } else if( lhs instanceof FieldRef ) {
-                            v = pag.findGlobalVarNode( ((FieldRef) lhs).getField() );
+                            v = LocalVarNode.localVarNode( ((FieldRef) lhs).getField() );
                         }
                         if( v != null ) {
                             PointsToSetInternal p2set = v.getP2Set(pag);

@@ -197,8 +197,7 @@ public final class PropWorklist extends Propagator {
             if( loadTargets.length > 0 ) {
                 newP2Set.forall( new P2SetVisitor() {
                 public final void visit( Node n ) {
-                        AllocDotField nDotF = pag.findAllocDotField(
-                            (AllocNode) n, field );
+                        AllocDotField nDotF = AllocDotField.allocDotField((AllocNode) n, field );
                         if( nDotF != null ) {
                             for (Node element : loadTargets) {
                                 Node[] pair = { nDotF.getReplacement(pag),
@@ -241,8 +240,7 @@ public final class PropWorklist extends Propagator {
 	src.getBase().getP2Set(pag).forall( new P2SetVisitor() {
 
 	public final void visit( Node n ) {
-                AllocDotField nDotF = pag.findAllocDotField( 
-                    (AllocNode) n, field );
+                AllocDotField nDotF = AllocDotField.allocDotField((AllocNode) n, field );
                 if( nDotF != null ) {
                     PointsToSetInternal p2Set = nDotF.getP2Set(pag);
                     if( !p2Set.getNewSet().isEmpty() ) {

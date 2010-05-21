@@ -30,6 +30,8 @@ public class GlobalVarNode extends VarNode {
 	
 	private static final HashMap<Object,GlobalVarNode> internalized = new HashMap<Object,GlobalVarNode>();
 	public static GlobalVarNode globalVarNode(Object var) {
+		if(PAG.opts().rta())
+			return null;
 		return internalized.get(var);
 	}
 	
