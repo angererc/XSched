@@ -22,23 +22,18 @@ import soot.jimple.spark.pag.Parm;
 import soot.jimple.spark.pag.SparkField;
 import soot.jimple.spark.pag.StringConstantNode;
 import soot.jimple.spark.pag.VarNode;
-import soot.options.SparkOptions;
 import soot.toolkits.scalar.Pair;
 
 public class PAGNodeFactory {
 
 	private static PAGNodeFactory instance;
 	public static PAGNodeFactory v() {
+		if(instance == null)
+			instance = new PAGNodeFactory();
 		return instance;
 	}
-	public static void initialize(SparkOptions opts) {
-		if(instance == null)
-			instance = new PAGNodeFactory(opts);
-	}
-
-	private SparkOptions opts;
-	private PAGNodeFactory(SparkOptions opts) {
-		this.opts = opts;
+		
+	private PAGNodeFactory() {	
 	}
 
 	/*
@@ -89,7 +84,7 @@ public class PAGNodeFactory {
 
 	/** Finds or creates the GlobalVarNode for the variable value, of type type. */
 	public GlobalVarNode makeGlobalVarNode( Object value, Type type ) {
-		if( opts.rta() ) {
+		if( PAG.opts().rta() ) {
 			value = null;
 			type = RefType.v("java.lang.Object");
 		}
@@ -109,12 +104,12 @@ public class PAGNodeFactory {
 	}
 
 	public AllocNode makeAllocNode( Object newExpr, Type type, SootMethod m) {
-		if( opts.types_for_sites() || opts.vta() ) newExpr = type;
+		if( PAG.opts().types_for_sites() || PAG.opts().vta() ) newExpr = type;
 		AllocNode ret = AllocNode.internalized( newExpr, type, m );		 	 
 		return ret;
 	}
 	public AllocNode makeStringConstantNode( String s ) {
-		if( opts.types_for_sites() || opts.vta() )
+		if( PAG.opts().types_for_sites() || PAG.opts().vta() )
 			return makeAllocNode( RefType.v( "java.lang.String" ),
 					RefType.v( "java.lang.String" ), null );
 		StringConstantNode ret = new StringConstantNode( s );		 
@@ -122,7 +117,7 @@ public class PAGNodeFactory {
 		return ret;
 	}
 	public AllocNode makeClassConstantNode( ClassConstant cc ) {
-		if( opts.types_for_sites() || opts.vta() )
+		if( PAG.opts().types_for_sites() || PAG.opts().vta() )
 			return makeAllocNode( RefType.v( "java.lang.Class" ),
 					RefType.v( "java.lang.Class" ), null );
 		ClassConstantNode ret = ClassConstantNode.internalized(cc);		 
@@ -132,7 +127,7 @@ public class PAGNodeFactory {
 
 	/** Finds or creates the LocalVarNode for the variable value, of type type. */
 	public LocalVarNode makeLocalVarNode( Object value, Type type, SootMethod method ) {
-		if( opts.rta() ) {
+		if( PAG.opts().rta() ) {
 			value = null;
 			type = RefType.v("java.lang.Object");
 			method = null;

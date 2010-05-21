@@ -38,7 +38,7 @@ public class PAGDumper {
             final PrintWriter file = new PrintWriter(
                     new FileOutputStream( new File(output_dir, "solution") ) );
             file.println( "Solution:" );
-            for( Iterator vnIt = VarNode.varNodeNumberer().iterator(); vnIt.hasNext(); ) {
+            for( Iterator<?> vnIt = VarNode.varNodeNumberer().iterator(); vnIt.hasNext(); ) {
                 final VarNode vn = (VarNode) vnIt.next();
                 if( vn.getReplacement(pag) != vn ) {
                     continue;
@@ -143,7 +143,7 @@ public class PAGDumper {
         HashSet<Type> declaredTypes = new HashSet<Type>();
         HashSet<Type> actualTypes = new HashSet<Type>();
         HashSet<SparkField> allFields = new HashSet<SparkField>();
-        for( Iterator nIt = VarNode.varNodeNumberer().iterator(); nIt.hasNext(); ) {
+        for( Iterator<?> nIt = VarNode.varNodeNumberer().iterator(); nIt.hasNext(); ) {
             final Node n = (Node) nIt.next();
             Type t = n.getType();
             if( t != null ) declaredTypes.add( t );
@@ -200,7 +200,7 @@ public class PAGDumper {
             }
         }
         file.println( "Variable Types:" );
-        for( Iterator nIt = VarNode.varNodeNumberer().iterator(); nIt.hasNext(); ) {
+        for( Iterator<?> nIt = VarNode.varNodeNumberer().iterator(); nIt.hasNext(); ) {
             final Node n = (Node) nIt.next();
             if( n.getReplacement(pag) != n ) continue;
             Type t = n.getType();

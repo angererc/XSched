@@ -59,9 +59,9 @@ public class PagToDotDumper {
 	 */
 	private void buildVmatchEdges() {
 		// for each store and load pair
-		for (Iterator iter = pag.loadSourcesIterator(); iter.hasNext();) {
+		for (Iterator<?> iter = pag.loadSourcesIterator(); iter.hasNext();) {
 			final FieldRefNode frn1 = (FieldRefNode) iter.next();
-			for (Iterator iter2 = pag.storeInvSourcesIterator(); iter2
+			for (Iterator<?> iter2 = pag.storeInvSourcesIterator(); iter2
 					.hasNext();) {
 				final FieldRefNode frn2 = (FieldRefNode) iter2.next();
 				VarNode base1 = frn1.getBase();
@@ -260,7 +260,7 @@ public class PagToDotDumper {
 
 	private void dumpLocalP2Set(String mName, final PrintStream ps) {
 
-		for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
+		for (Iterator<?> iter = VarNode.varNodeNumberer().iterator(); iter
 				.hasNext();) {
 			VarNode vNode = (VarNode) iter.next();
 
@@ -302,7 +302,7 @@ public class PagToDotDumper {
 	private void dumpLocalPAG(String cName, String mName, final PrintStream ps) {
 //		this.queryMethod = mName;
 		// iterate over all variable nodes
-		for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
+		for (Iterator<?> iter = VarNode.varNodeNumberer().iterator(); iter
 				.hasNext();) {
 			final Node node = (Node) iter.next();
 
@@ -391,7 +391,7 @@ public class PagToDotDumper {
 			ps.println("digraph G {");
 
 			// iterate over all variable nodes
-			for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
+			for (Iterator<?> iter = VarNode.varNodeNumberer().iterator(); iter
 					.hasNext();) {
 				final VarNode n = (VarNode) iter.next();
 
@@ -432,7 +432,7 @@ public class PagToDotDumper {
 			ps.println("digraph G {");
 
 			// iterate over all variable nodes
-			for (Iterator iter = VarNode.varNodeNumberer().iterator(); iter
+			for (Iterator<?> iter = VarNode.varNodeNumberer().iterator(); iter
 					.hasNext();) {
 				final VarNode n = (VarNode) iter.next();
 

@@ -31,30 +31,48 @@ import soot.jimple.toolkits.pointer.util.NativeMethodDriver;
 import soot.util.*;
 import soot.util.queue.*;
 import soot.options.SparkOptions;
-import soot.tagkit.*;
 import soot.toolkits.scalar.Pair;
 
 /** Pointer assignment graph.
  * @author Ondrej Lhotak
  */
 public class PAG implements PointsToAnalysis {
-	private HashMap<SootMethod, MethodPAG> methodToMethodPAG = new HashMap<SootMethod,MethodPAG>();
-	//this PAG contains all the MethodPAGs that created nodes in this pag
-	public MethodPAG methodPAGForMethod(SootMethod m) {
-		MethodPAG methodPag = methodToMethodPAG.get(m);
-		if(methodPag == null) {
-			methodPag = new MethodPAG(this, m);
-			methodToMethodPAG.put(m, methodPag);
-		}
-		return methodPag;
+	
+	private Set<MethodPAG> addedMethods = new HashSet<MethodPAG>();
+	private Set<Pair<MethodPAG, Context>> addedContexts = new HashSet<Pair<MethodPAG, Context>>();
+	
+	boolean hasBeenAdded(MethodPAG methodPAG) {
+		return addedMethods.contains(methodPAG);
 	}
-
-	public PAG( final SparkOptions opts ) {
-		this.opts = opts;
+	boolean hasBeenAdded(MethodPAG methodPAG, Context context) {
+		return addedContexts.contains(new Pair<MethodPAG, Context>(methodPAG, context));
+	}
+	
+	boolean setHasBeenAdded(MethodPAG methodPAG) {
+		return addedMethods.add(methodPAG);
+	}
+	
+	boolean setHasBeenAdded(MethodPAG methodPAG, Context object) {
+		return addedContexts.add(new Pair<MethodPAG, Context>(methodPAG, object));
+	}
+	
+	private static SparkOptions opts;
+	public static SparkOptions opts() {
+		return opts;
+	}
+	private static NativeMethodDriver nativeMethodDriver;
+	public static NativeMethodDriver nativeMethodDriver() {
+		return nativeMethodDriver;
+	}
+	public static void setNativeMethodDriver(NativeMethodDriver driver) {
+		 nativeMethodDriver = driver;
+	 }
+	
+	public PAG( final SparkOptions aOpts ) {
+		opts = aOpts;
 		if( opts.add_tags() ) {
 			Node.collectNodeTags();
 		}
-		PAGNodeFactory.initialize(opts);
 		
 		typeManager = new TypeManager(this);
 		if( !opts.ignore_types() ) {
@@ -631,8 +649,8 @@ public class PAG implements PointsToAnalysis {
 
 	 final public void addCallTarget( Edge e ) {
 		 if( !e.passesParameters() ) return;
-		 MethodPAG srcmpag = this.methodPAGForMethod(e.src());
-		 MethodPAG tgtmpag = this.methodPAGForMethod(e.tgt());
+		 MethodPAG srcmpag = MethodPAG.methodPAGForMethod(e.src());
+		 MethodPAG tgtmpag = MethodPAG.methodPAGForMethod(e.tgt());
 		 if( e.isExplicit() || e.kind() == Kind.THREAD ) {
 			 addCallTarget( srcmpag, tgtmpag, (Stmt) e.srcUnit(),
 					 e.srcCtxt(), e.tgtCtxt() );
@@ -908,8 +926,6 @@ public class PAG implements PointsToAnalysis {
 	 }
 	 /* End of package methods. */
 
-	 protected SparkOptions opts;
-
 	 protected Map<Object, Object> simple = new HashMap<Object, Object>();
 	 protected Map<Object, Object> load = new HashMap<Object, Object>();
 	 protected Map<Object, Object> store = new HashMap<Object, Object>();
@@ -956,14 +972,6 @@ public class PAG implements PointsToAnalysis {
 	 private final ArrayList<VarNode> dereferences = new ArrayList<VarNode>();
 	 protected TypeManager typeManager;
 	 
-	 public void setNativeMethodDriver(NativeMethodDriver driver) {
-		 this.nativeMethodDriver = driver;
-	 }
-	 public NativeMethodDriver nativeMethodDriver() {
-		 return this.nativeMethodDriver;
-	 }
-	 protected NativeMethodDriver nativeMethodDriver;
-
 	 public HashMultiMap callAssigns() {
 		 return this.callAssigns;
 	 }

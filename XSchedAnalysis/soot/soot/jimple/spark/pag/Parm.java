@@ -32,8 +32,9 @@ public class Parm implements SparkField {
         method = m;
         Scene.v().getFieldNumberer().add(this);
     }
-    public static Parm v( SootMethod m, int index ) {
-        Pair p = new Pair( m, new Integer(index) );
+    @SuppressWarnings("unchecked")
+	public static Parm v( SootMethod m, int index ) {
+        Pair<SootMethod, Integer> p = new Pair<SootMethod, Integer>( m, new Integer(index) );
         Parm ret = (Parm) G.v().Parm_pairToElement.get( p );
         if( ret == null ) {
             G.v().Parm_pairToElement.put( p, ret = new Parm( m, index ) );

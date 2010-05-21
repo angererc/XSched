@@ -35,7 +35,7 @@ public class PAG2HTML {
         this.output_dir = output_dir;
     }
     public void dump() {
-        for( Iterator vIt = VarNode.varNodeNumberer().iterator(); vIt.hasNext(); ) {
+        for( Iterator<?> vIt = VarNode.varNodeNumberer().iterator(); vIt.hasNext(); ) {
             final VarNode v = (VarNode) vIt.next();
             mergedNodes.put( v.getReplacement(pag), v );
             if( v instanceof LocalVarNode ) {
@@ -48,11 +48,11 @@ public class PAG2HTML {
         try {
             JarOutputStream jarOut = new JarOutputStream(
                     new FileOutputStream( new File(output_dir, "pag.jar") ) );
-            for( Iterator vIt = mergedNodes.keySet().iterator(); vIt.hasNext(); ) {
+            for( Iterator<?> vIt = mergedNodes.keySet().iterator(); vIt.hasNext(); ) {
                 final VarNode v = (VarNode) vIt.next();
                 dumpVarNode( v, jarOut );
             }
-            for( Iterator mIt = methodToNodes.keySet().iterator(); mIt.hasNext(); ) {
+            for( Iterator<?> mIt = methodToNodes.keySet().iterator(); mIt.hasNext(); ) {
                 final SootMethod m = (SootMethod) mIt.next();
                 dumpMethod( m, jarOut );
             }
@@ -111,7 +111,7 @@ public class PAG2HTML {
     protected String varNodeReps( VarNode v ) {
         StringBuffer ret = new StringBuffer();
         ret.append( "<ul>\n" );
-        for( Iterator vvIt = mergedNodes.get( v ).iterator(); vvIt.hasNext(); ) {
+        for( Iterator<?> vvIt = mergedNodes.get( v ).iterator(); vvIt.hasNext(); ) {
             final VarNode vv = (VarNode) vvIt.next();
             ret.append( varNode( "", vv ) );
         }
@@ -157,13 +157,13 @@ public class PAG2HTML {
         out.println( "<html>" );
         
         out.println( "This is method "+htmlify( m.toString() )+"<hr>" );
-        for( Iterator it = methodToNodes.get( m ).iterator(); it.hasNext(); ) {
+        for( Iterator<?> it = methodToNodes.get( m ).iterator(); it.hasNext(); ) {
             out.println( varNode( "nodes/", (VarNode) it.next() ) );
         }
         out.println( "</html>" );
         out.flush();
     }
-    protected void addSymLinks( Iterator nodes, JarOutputStream jarOut ) throws IOException {
+    protected void addSymLinks( Iterator<?> nodes, JarOutputStream jarOut ) throws IOException {
         jarOut.putNextEntry( new ZipEntry( "symlinks.sh" ) );
         final PrintWriter out = new PrintWriter( jarOut );
         out.println( "#!/bin/sh" );

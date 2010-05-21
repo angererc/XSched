@@ -55,18 +55,6 @@ public class Heap extends PAG {
 	public void freeze() {
 		this.frozen = true;
 	}
-	
-	@Override
-	public MethodPAG methodPAGForMethod(SootMethod m) {
-		// the Heap has its own methodPAGs, so this method is OK
-		return super.methodPAGForMethod(m);
-	}
-
-	@Override
-	public NativeMethodDriver nativeMethodDriver() {
-		//we did set the nativeMethodDriver to our parent's, so this is OK, too
-		return super.nativeMethodDriver();
-	}
 
 	@Override
 	public void useOnFlyCallGraph() {
@@ -86,11 +74,6 @@ public class Heap extends PAG {
 
 	@Override
 	public Map<InvokeExpr, SootMethod> callToMethod() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
-	public void setNativeMethodDriver(NativeMethodDriver driver) {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}
 

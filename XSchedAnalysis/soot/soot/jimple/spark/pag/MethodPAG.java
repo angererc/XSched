@@ -34,13 +34,21 @@ import soot.util.queue.*;
  */
 public final class MethodPAG {
 
-	private final PAG pag;
-	private Set<Context> addedContexts;
+	private static HashMap<SootMethod, MethodPAG> methodToMethodPAG = new HashMap<SootMethod,MethodPAG>();
+	//this PAG contains all the MethodPAGs that created nodes in this pag
+	public static MethodPAG methodPAGForMethod(SootMethod m) {
+		MethodPAG methodPag = methodToMethodPAG.get(m);
+		if(methodPag == null) {
+			methodPag = new MethodPAG(m);
+			methodToMethodPAG.put(m, methodPag);
+		}
+		return methodPag;
+	}
+	
 	private final SootMethod method;
 	private final PAGNodeFactory nodeFactory;
-
-	protected MethodPAG(PAG pag, SootMethod m) {
-		this.pag = pag;
+	
+	protected MethodPAG(SootMethod m) {		
 		this.method = m;
 		this.nodeFactory = PAGNodeFactory.v();
 	}
@@ -49,34 +57,26 @@ public final class MethodPAG {
 		return method;
 	}
 
-	public PAG pag() {
-		return pag;
-	}
-
 	public boolean hasBeenBuilt() {
 		return this.hasBeenBuilt;
 	}
-
-	public boolean hasBeenAdded() {
-		return this.hasBeenAdded;
-	}
-
+	
 	/**
 	 * Adds this method to the main PAG, with all VarNodes parameterized by
 	 * varNodeParameter.
 	 */
-	public void addToPAG(Context varNodeParameter) {
-		if (!hasBeenBuilt)
-			throw new RuntimeException();
+	public void addToPAG(PAG pag, Context varNodeParameter) {
+		assert(hasBeenBuilt);
 		if (varNodeParameter == null) {
-			if (hasBeenAdded)
+			if (pag.hasBeenAdded(this))
 				return;
-			hasBeenAdded = true;
+			
+			pag.setHasBeenAdded(this);			
 		} else {
-			if (addedContexts == null)
-				addedContexts = new HashSet<Context>();
-			if (!addedContexts.add(varNodeParameter))
+			if(pag.hasBeenAdded(this, varNodeParameter))
 				return;
+			
+			pag.setHasBeenAdded(this, varNodeParameter);			
 		}
 		QueueReader<?> reader = (QueueReader<?>) internalReader.clone();
 		while (reader.hasNext()) {
@@ -114,47 +114,41 @@ public final class MethodPAG {
 	}
 
 	public void addConstantEdge(AllocNode src, Node dst) {
+		assert(!hasBeenBuilt);
 		constantEdges.add(src);
-		constantEdges.add(dst);
-		if (hasBeenAdded) {
-			pag.addEdge(src, dst);
-		}
+		constantEdges.add(dst);		
 	}
 
 	public void addInternalEdge(Node src, Node dst) {
 		if (src == null)
 			return;
+		assert(!hasBeenBuilt);
 		internalEdges.add(src);
-		internalEdges.add(dst);
-		if (hasBeenAdded) {
-			pag.addEdge(src, dst);
-		}
+		internalEdges.add(dst);		
 	}
 
 	public void addInEdge(Node src, Node dst) {
 		if (src == null)
 			return;
+		assert(!hasBeenBuilt);
 		inEdges.add(src);
-		inEdges.add(dst);
-		if (hasBeenAdded) {
-			pag.addEdge(src, dst);
-		}
+		inEdges.add(dst);		
 	}
 
 	public void addOutEdge(Node src, Node dst) {
 		if (src == null)
 			return;
+		assert(!hasBeenBuilt);
 		outEdges.add(src);
-		outEdges.add(dst);
-		if (hasBeenAdded) {
-			pag.addEdge(src, dst);
-		}
+		outEdges.add(dst);		
 	}
 
 	public void addDereference(VarNode base) {
 		dereferences.add(base);
 	}
 
+	protected boolean hasBeenBuilt = false;
+	
 	private final ChunkedQueue<VarNode> dereferences = new ChunkedQueue<VarNode>();
 	private final ChunkedQueue<Node> internalEdges = new ChunkedQueue<Node>();
 	private final ChunkedQueue<Node> constantEdges = new ChunkedQueue<Node>();
@@ -172,7 +166,7 @@ public final class MethodPAG {
 			return;
 		hasBeenBuilt = true;
 		if (method.isNative()) {
-			if (pag().getOpts().simulate_natives()) {
+			if (PAG.opts().simulate_natives()) {
 				buildNative();
 			}
 		} else {
@@ -207,9 +201,6 @@ public final class MethodPAG {
 			return parameterize((FieldRefNode) n, varNodeParameter);
 		return n;
 	}
-
-	protected boolean hasBeenAdded = false;
-	protected boolean hasBeenBuilt = false;
 
 	public Node buildNodeForValue(Value value) {
 		ShimpleValueBuilder valueBuilder = new ShimpleValueBuilder(this);
@@ -248,7 +239,7 @@ public final class MethodPAG {
 				continue;
 			args[i] = (ValNode) nodeFactory.makeParm(method, i);
 		}
-		pag.nativeMethodDriver.process(method, thisNode, retNode, args);
+		PAG.nativeMethodDriver().process(method, thisNode, retNode, args);
 	}
 
 	protected void addMiscEdges() {
@@ -352,7 +343,8 @@ public final class MethodPAG {
 		VarNode v = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.DEFAULT_CLASS_LOADER_LOCAL, RefType
 						.v("java.lang.ClassLoader"));
-		pag.addEdge(a, v);
+		constantEdges.add(a);
+		constantEdges.add(v);		
 		return v;
 	}
 
@@ -363,7 +355,8 @@ public final class MethodPAG {
 		VarNode v = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.MAIN_CLASS_NAME_STRING_LOCAL, RefType
 						.v("java.lang.String"));
-		pag.addEdge(a, v);
+		constantEdges.add(a);
+		constantEdges.add(v);
 		return v;
 	}
 
@@ -373,8 +366,9 @@ public final class MethodPAG {
 						.v("java.lang.ThreadGroup"), null);
 		VarNode threadGroupNodeLocal = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.MAIN_THREAD_GROUP_NODE_LOCAL, RefType
-						.v("java.lang.ThreadGroup"));
-		pag.addEdge(threadGroupNode, threadGroupNodeLocal);
+						.v("java.lang.ThreadGroup"));		
+		constantEdges.add(threadGroupNode);
+		constantEdges.add(threadGroupNodeLocal);
 		return threadGroupNodeLocal;
 	}
 
@@ -386,7 +380,8 @@ public final class MethodPAG {
 		VarNode v = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.PRIVILEGED_ACTION_EXCEPTION_LOCAL, RefType
 						.v("java.security.PrivilegedActionException"));
-		pag.addEdge(a, v);
+		constantEdges.add(a);
+		constantEdges.add(v);
 		return v;
 	}
 
@@ -397,7 +392,8 @@ public final class MethodPAG {
 		VarNode v = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.CANONICAL_PATH_LOCAL, RefType
 						.v("java.lang.String"));
-		pag.addEdge(a, v);
+		constantEdges.add(a);
+		constantEdges.add(v);
 		return v;
 	}
 
@@ -408,7 +404,8 @@ public final class MethodPAG {
 		VarNode threadNodeLocal = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.MAIN_THREAD_NODE_LOCAL, RefType
 						.v("java.lang.Thread"));
-		pag.addEdge(threadNode, threadNodeLocal);
+		constantEdges.add(threadNode);
+		constantEdges.add(threadNodeLocal);
 		return threadNodeLocal;
 	}
 
@@ -425,10 +422,15 @@ public final class MethodPAG {
 		VarNode stringNodeLocal = nodeFactory.makeGlobalVarNode(
 				PointsToAnalysis.STRING_NODE_LOCAL, RefType
 						.v("java.lang.String"));
-		pag.addEdge(argv, sanl);
-		pag.addEdge(stringNode, stringNodeLocal);
-		pag.addEdge(stringNodeLocal, nodeFactory.makeFieldRefNode(sanl,
-				ArrayElement.v()));
+		
+		constantEdges.add(argv);
+		constantEdges.add(sanl);
+		
+		constantEdges.add(stringNode);
+		constantEdges.add(stringNodeLocal);
+		
+		constantEdges.add(stringNodeLocal);
+		constantEdges.add(nodeFactory.makeFieldRefNode(sanl, ArrayElement.v()));
 		return sanl;
 	}
 }

@@ -58,9 +58,9 @@ public class OnFlyCallGraph {
     	ofcgb.contextManager().callGraph().reachableMethods().update();
         while(reachablesReader.hasNext()) {
             MethodOrMethodContext m = (MethodOrMethodContext) reachablesReader.next();
-            MethodPAG mpag = pag.methodPAGForMethod(m.method());
+            MethodPAG mpag = MethodPAG.methodPAGForMethod(m.method());
             mpag.build();
-            mpag.addToPAG(m.context());
+            mpag.addToPAG(pag, m.context());
         }
     }
     private void processCallEdges() {
@@ -71,9 +71,8 @@ public class OnFlyCallGraph {
             //in processReachables all methods in the call graph should have been added to the PAG already;
             //so no reason to do this again
             //but i want to assert this...
-            MethodPAG amp = pag.methodPAGForMethod(e.tgt());
+            MethodPAG amp = MethodPAG.methodPAGForMethod(e.tgt());
             assert(amp.hasBeenBuilt());
-            assert(amp.hasBeenAdded());
             
             //add edge to PAG
             pag.addCallTarget( e );

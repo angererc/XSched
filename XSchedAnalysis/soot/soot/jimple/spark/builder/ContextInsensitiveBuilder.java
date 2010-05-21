@@ -40,7 +40,7 @@ public class ContextInsensitiveBuilder {
             change = false;
             for( Iterator<SootClass> cIt = new ArrayList<SootClass>(Scene.v().getClasses()).iterator(); cIt.hasNext(); ) {
                 final SootClass c = cIt.next();
-                for( Iterator mIt = c.methodIterator(); mIt.hasNext(); ) {
+                for( Iterator<?> mIt = c.methodIterator(); mIt.hasNext(); ) {
                     final SootMethod m = (SootMethod) mIt.next();
                     if( !m.isConcrete() ) continue;
                     if( m.isNative() ) continue;
@@ -57,7 +57,7 @@ public class ContextInsensitiveBuilder {
     public PAG setup( SparkOptions opts ) {
         pag = new PAG( opts );
         if( opts.simulate_natives() ) {
-            pag.setNativeMethodDriver(new NativeMethodDriver(new SparkNativeHelper(pag)));
+            PAG.setNativeMethodDriver(new NativeMethodDriver(new SparkNativeHelper(pag)));
         }
         if( opts.on_fly_cg() && !opts.vta() ) {
         	pag.useOnFlyCallGraph();
@@ -69,7 +69,7 @@ public class ContextInsensitiveBuilder {
     }
     /** Fills in the pointer assignment graph returned by setup. */
     public void build() {
-        QueueReader callEdges;
+        QueueReader<?> callEdges;
         if( ofcg != null ) {
             callEdges = ofcg.callGraph().listener();
             ofcg.build();
@@ -80,13 +80,13 @@ public class ContextInsensitiveBuilder {
             cgb.build();
             reachables = cgb.reachables();
         }
-        for( Iterator cIt = Scene.v().getClasses().iterator(); cIt.hasNext(); ) {
+        for( Iterator<?> cIt = Scene.v().getClasses().iterator(); cIt.hasNext(); ) {
             final SootClass c = (SootClass) cIt.next();
 	    handleClass( c );
 	}
         while(callEdges.hasNext()) {
             Edge e = (Edge) callEdges.next();
-            pag.methodPAGForMethod(e.tgt()).addToPAG(null);            
+            MethodPAG.methodPAGForMethod(e.tgt()).addToPAG(pag, null);
             pag.addCallTarget( e );
         }
 
@@ -101,16 +101,16 @@ public class ContextInsensitiveBuilder {
     /* End of package methods. */
     protected void handleClass( SootClass c ) {
         boolean incedClasses = false;
-	Iterator methodsIt = c.methodIterator();
+	Iterator<?> methodsIt = c.methodIterator();
 	while( methodsIt.hasNext() ) 
 	{
 	    SootMethod m = (SootMethod) methodsIt.next();
 	    if( !m.isConcrete() && !m.isNative() ) continue;
             totalMethods++;
             if( reachables.contains( m ) ) {
-                MethodPAG mpag = pag.methodPAGForMethod(m);
+                MethodPAG mpag = MethodPAG.methodPAGForMethod(m);
                 mpag.build();
-                mpag.addToPAG(null);
+                mpag.addToPAG(pag, null);
                 analyzedMethods++;
                 if( !incedClasses ) {
                     incedClasses = true;

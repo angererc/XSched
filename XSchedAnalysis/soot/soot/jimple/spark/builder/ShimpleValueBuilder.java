@@ -25,21 +25,19 @@ import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.ArrayElement;
 import soot.jimple.spark.pag.MethodPAG;
 import soot.jimple.spark.pag.Node;
+import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.VarNode;
-import soot.options.SparkOptions;
 import soot.shimple.AbstractShimpleValueSwitch;
 import soot.shimple.PhiExpr;
 import soot.toolkits.scalar.Pair;
 
 public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 	private final SootMethod method;
-	private final SparkOptions opts;
 	private final MethodPAG mpag;
 	private final PAGNodeFactory nodeFactory;
 	
 	public ShimpleValueBuilder(MethodPAG mpag) {
-		this.mpag = mpag;
-		opts = mpag.pag().getOpts();
+		this.mpag = mpag;		
 		this.method = mpag.getMethod();
 		this.nodeFactory = PAGNodeFactory.v();
 	}
@@ -91,7 +89,7 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 
 	@Override
 	final public void caseInstanceFieldRef(InstanceFieldRef ifr) {
-		if (opts.field_based() || opts.vta()) {
+		if (PAG.opts().field_based() || PAG.opts().vta()) {
 			setResult(nodeFactory.makeGlobalVarNode(ifr.getField(), ifr.getField()
 					.getType()));
 		} else {
@@ -124,7 +122,7 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 
 	@Override
 	final public void caseNewExpr(NewExpr ne) {
-		if (opts.merge_stringbuffer() && isStringBuffer(ne.getType())) {
+		if (PAG.opts().merge_stringbuffer() && isStringBuffer(ne.getType())) {
 			setResult(nodeFactory.makeAllocNode(ne.getType(), ne.getType(), null));
 		} else {
 			setResult(nodeFactory.makeAllocNode(ne, ne.getType(), method));
@@ -169,7 +167,7 @@ public class ShimpleValueBuilder extends AbstractShimpleValueSwitch {
 	@Override
 	final public void caseStringConstant(StringConstant sc) {
 		AllocNode stringConstant;
-		if (opts.string_constants()
+		if (PAG.opts().string_constants()
 				|| Scene.v().containsClass(sc.value)
 				|| (sc.value.length() > 0 && sc.value.charAt(0) == '[')) {
 			stringConstant = nodeFactory.makeStringConstantNode(sc.value);

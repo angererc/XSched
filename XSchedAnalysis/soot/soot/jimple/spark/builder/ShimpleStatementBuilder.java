@@ -15,22 +15,20 @@ import soot.jimple.StaticFieldRef;
 import soot.jimple.ThrowStmt;
 import soot.jimple.spark.pag.MethodPAG;
 import soot.jimple.spark.pag.Node;
+import soot.jimple.spark.pag.PAG;
 import soot.jimple.spark.pag.Parm;
 import soot.jimple.spark.pag.VarNode;
-import soot.options.SparkOptions;
 
 public class ShimpleStatementBuilder extends AbstractStmtSwitch {
 
 	private final ShimpleValueBuilder valueBuilder;
-	private final SootMethod method;
-	private final SparkOptions opts;
+	private final SootMethod method;	
 	private final MethodPAG mpag;
 	private final PAGNodeFactory nodeFactory;
 	
 	public ShimpleStatementBuilder(ShimpleValueBuilder valueBuilder) {
 		this.valueBuilder = valueBuilder;
-		this.mpag = valueBuilder.mpag();
-		opts = mpag.pag().getOpts();
+		this.mpag = valueBuilder.mpag();		
 		this.method = mpag.getMethod();
 		this.nodeFactory = PAGNodeFactory.v();
 	}
@@ -57,7 +55,7 @@ public class ShimpleStatementBuilder extends AbstractStmtSwitch {
 		if (r instanceof StaticFieldRef) {
 			StaticFieldRef sfr = (StaticFieldRef) r;
 			SootFieldRef s = sfr.getFieldRef();
-			if (opts.empties_as_allocs()) {
+			if (PAG.opts().empties_as_allocs()) {
 				if (s.declaringClass().getName().equals(
 				"java.util.Collections")) {
 					if (s.name().equals("EMPTY_SET")) {
