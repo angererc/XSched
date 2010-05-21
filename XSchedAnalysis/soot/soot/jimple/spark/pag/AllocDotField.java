@@ -31,21 +31,13 @@ public class AllocDotField extends Node {
 	public static ArrayNumberer allocDotFieldNodeNumberer() {
 		return nodeNumberer;
 	}
-	@Override
-	public AllocDotField internalized() {
-		if(this.getNumber() > 0)
-			return this;
+	
+	public static AllocDotField internalized(AllocNode base, SparkField field) {
+		AllocDotField res = new AllocDotField(base, field);
+		nodeNumberer.add(res);
+		return res;
+	}
 		
-		//alloc dot fields are unique on their own; but we need a number
-		this.fetchNumber();		
-		return this;		
-	}
-	
-	@Override
-	protected void fetchNumber() {
-		nodeNumberer.add(this);
-	}
-	
 	/** Returns the base AllocNode. */
 	public AllocNode getBase() { return base; }
 	/** Returns the field of this node. */
@@ -56,7 +48,7 @@ public class AllocDotField extends Node {
 
 	/* End of public methods. */
 
-	public AllocDotField( AllocNode base, SparkField field ) {
+	private AllocDotField( AllocNode base, SparkField field ) {
 		super( null );
 		if( field == null ) throw new RuntimeException( "null field" );
 		this.base = base;

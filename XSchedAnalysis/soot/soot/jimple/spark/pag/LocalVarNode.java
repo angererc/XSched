@@ -40,30 +40,33 @@ public class LocalVarNode extends VarNode {
 		else
 			return internalizedVals.get(value);
 	}
-	public LocalVarNode internalized() {
-		
-		if(this.variable instanceof Local) {
-			Local val = (Local)this.variable;
+	public static LocalVarNode internalized(Object variable, Type t, SootMethod m) {
+		return internalize(new LocalVarNode(variable, t, m));
+	}
+	
+	protected static LocalVarNode internalize(LocalVarNode node) {		
+		if(node.variable instanceof Local) {
+			Local val = (Local)node.variable;
 			if(val.getNumber() == 0) Scene.v().getLocalNumberer().add(val);
 			LocalVarNode ret = (LocalVarNode)internalizedLocals.get(val);
 			if(ret == null) {
-				ret = this;
-				this.fetchNumber();
-				internalizedLocals.put(val, this);
-				this.addNodeTag(this.getMethod());
-			} else if( !( ret.getType().equals( type ) ) ) {
-                throw new RuntimeException( "Value "+val+" of type "+type+
+				ret = new LocalVarNode(node.variable, node.type, node.method);
+				VarNode.nodeNumberer.add(ret);
+				internalizedLocals.put(val, ret);
+				ret.addNodeTag(node.method);
+			} else if( !( ret.getType().equals( node.type ) ) ) {
+                throw new RuntimeException( "Value "+val+" of type "+node.type+
                         " previously had type "+ret.getType() );
             }
 			return ret;
 		} else {
-			LocalVarNode ret = internalizedVals.get(this.variable);
+			LocalVarNode ret = internalizedVals.get(node.variable);
 			if(ret == null) {
-				ret = this;
-				this.fetchNumber();
-				internalizedVals.put(this.variable, this);
-			} else if( !( ret.getType().equals( type ) ) ) {
-	            throw new RuntimeException( "Value "+this.variable+" of type "+type+
+				ret = new LocalVarNode(node.variable, node.type, node.method);
+				VarNode.nodeNumberer.add(ret);
+				internalizedVals.put(node.variable, ret);
+			} else if( !( ret.getType().equals( node.type ) ) ) {
+	            throw new RuntimeException( "Value "+node.variable+" of type "+node.type+
 	                    " previously had type "+ret.getType() );
 	        }
 			return ret;
@@ -84,7 +87,7 @@ public class LocalVarNode extends VarNode {
 
 	/* End of public methods. */
 
-	public LocalVarNode(Object variable, Type t, SootMethod m) {
+	protected LocalVarNode(Object variable, Type t, SootMethod m) {
 		super(variable, t);
 		this.method = m;
 		// if( m == null ) throw new RuntimeException(

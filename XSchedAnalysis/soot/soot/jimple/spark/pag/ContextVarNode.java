@@ -27,13 +27,17 @@ public class ContextVarNode extends LocalVarNode {
     private Context context;
     public Context context() { return context; }
     public String toString() {
-	return "ContextVarNode "+getNumber()+" "+variable+" "+method+" "+context;
+    	return "ContextVarNode "+getNumber()+" "+variable+" "+method+" "+context;
+    }
+    
+    public static ContextVarNode internalized( LocalVarNode base, Context context ) {
+    	return (ContextVarNode) LocalVarNode.internalize(new ContextVarNode(base, context));
     }
 
     /* End of public methods. */
 
-    public ContextVarNode( LocalVarNode base, Context context ) {
-	super( base.getVariable(), base.getType(), base.getMethod() );
+    private ContextVarNode( LocalVarNode base, Context context ) {
+    	super( base.getVariable(), base.getType(), base.getMethod() );
         this.context = context;
         base.addContext( this, context );
     }

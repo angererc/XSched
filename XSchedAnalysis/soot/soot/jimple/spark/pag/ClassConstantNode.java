@@ -32,10 +32,14 @@ public class ClassConstantNode extends AllocNode {
     public ClassConstant getClassConstant() {
         return (ClassConstant) newExpr;
     }
+    
+    public static ClassConstantNode internalized(ClassConstant cc) {
+    	return (ClassConstantNode) AllocNode.internalize(new ClassConstantNode(cc));		
+	}
 
     /* End of public methods. */
 
-    public ClassConstantNode( ClassConstant cc ) {
+    private ClassConstantNode( ClassConstant cc ) {
         super( cc, RefType.v( "java.lang.Class" ), null );
     }
 }

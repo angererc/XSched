@@ -29,15 +29,11 @@ import java.util.*;
 @SuppressWarnings("unchecked")
 public abstract class VarNode extends ValNode implements Comparable {
 
-	private final static ArrayNumberer nodeNumberer = new ArrayNumberer();
+	protected final static ArrayNumberer nodeNumberer = new ArrayNumberer();
 	public static ArrayNumberer varNodeNumberer() {
 		return nodeNumberer;
 	}
-	@Override
-	protected void fetchNumber() {
-		nodeNumberer.add(this);
-	}
-	
+		
 	public Context context() { return null; }
 	/** Returns all field ref nodes having this node as their base. */
 	public Collection<?> getAllFieldRefs() { 

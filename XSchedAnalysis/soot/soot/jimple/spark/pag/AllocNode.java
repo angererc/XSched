@@ -50,21 +50,18 @@ public class AllocNode extends Node implements Context {
 		return nodeNumberer;
 	}
 	
-	@Override
-	public void fetchNumber() {
-		nodeNumberer.add(this);
+	public static AllocNode internalized(Object newExpr, Type t, SootMethod m) {
+		return internalize(new AllocNode(newExpr, t, m));
 	}
-	
-	@Override
-	public AllocNode internalized() {
-		AllocNode ret = internalized.get(newExpr);
+	protected static AllocNode internalize(AllocNode node) {
+		AllocNode ret = internalized.get(node.newExpr);
 		if(ret == null) {
-			ret = this;
-			this.fetchNumber();
-			internalized.put(newExpr, this);
-			newAllocNodes.add(this);
-		} else if( !( ret.getType().equals( type ) ) ) {
-			    throw new RuntimeException( "NewExpr "+newExpr+" of type "+type+
+			ret = node;
+			nodeNumberer.add(ret);			
+			internalized.put(ret.newExpr, ret);
+			newAllocNodes.add(ret);
+		} else if( !( ret.getType().equals( node.type ) ) ) {
+			    throw new RuntimeException( "NewExpr "+node.newExpr+" of type "+node.type+
 				    " previously had type "+ret.getType() );
 		}
 		return ret;
@@ -87,7 +84,7 @@ public class AllocNode extends Node implements Context {
 
 	/* End of public methods. */
 
-	public AllocNode( Object newExpr, Type t, SootMethod m ) {
+	protected AllocNode( Object newExpr, Type t, SootMethod m ) {
 		super( t );
 		this.method = m;
 		if( t instanceof RefType ) {

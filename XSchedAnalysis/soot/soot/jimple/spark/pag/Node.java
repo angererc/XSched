@@ -36,16 +36,6 @@ import soot.jimple.spark.sets.PointsToSetInternal;
  */
 public abstract class Node implements ReferenceVariable, Numberable {
 	
-	//internalize the node into the node's pag. called when the node is added to the pag (e.g., through the addEdge method).
-	//the methodpag creates fresh nodes (since it doesn't alter the pag in any way) but we want to make sure that equivalent nodes
-	//are only added once. therefore, the pag will call internalized() which gives the node a chance to return
-	//an internalized version that can be compared with ==
-	public abstract Node internalized();
-	//when a node is internalized, it should fetch its number from somewhere (some node numberer).
-	//I keep this to be somwhat backwards compatible...
-	//numbers of nodes are global, so they don't depend on the PAG
-	protected abstract void fetchNumber(); 
-	
 	//we use a static hash map so that the instances don't need a tag field
 	//because creating tags can be turned on and off and because the nodes now don't know the PAG any more
 	//we use a nodeToTag == nil as a hint that we don't collect tags

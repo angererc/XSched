@@ -58,7 +58,7 @@ public class PAGNodeFactory {
 	public ContextVarNode makeContextVarNode( LocalVarNode base, Context context ) {
 		ContextVarNode ret = base.context( context );
 		if( ret == null ) {
-			ret = new ContextVarNode( base, context );			
+			ret = ContextVarNode.internalized( base, context );			
 		}
 		return ret;
 	}
@@ -82,7 +82,7 @@ public class PAGNodeFactory {
 	public FieldRefNode makeFieldRefNode( VarNode base, SparkField field ) {
 		FieldRefNode ret = base.dot( field );
 		if( ret == null ) {
-			ret = new FieldRefNode( base, field );			 
+			ret = FieldRefNode.internalized( base, field );			 
 		}
 		return ret;
 	}
@@ -93,7 +93,7 @@ public class PAGNodeFactory {
 			value = null;
 			type = RefType.v("java.lang.Object");
 		}
-		GlobalVarNode ret = new GlobalVarNode( value, type );		 
+		GlobalVarNode ret = GlobalVarNode.internalized( value, type );		 
 
 		return ret;
 	}
@@ -103,14 +103,14 @@ public class PAGNodeFactory {
 	public AllocDotField makeAllocDotField( AllocNode an, SparkField field ) {
 		AllocDotField ret = an.dot( field );
 		if( ret == null ) {
-			ret = new AllocDotField( an, field );
+			ret = AllocDotField.internalized( an, field );
 		}
 		return ret;
 	}
 
 	public AllocNode makeAllocNode( Object newExpr, Type type, SootMethod m) {
 		if( opts.types_for_sites() || opts.vta() ) newExpr = type;
-		AllocNode ret = new AllocNode( newExpr, type, m );		 	 
+		AllocNode ret = AllocNode.internalized( newExpr, type, m );		 	 
 		return ret;
 	}
 	public AllocNode makeStringConstantNode( String s ) {
@@ -125,7 +125,7 @@ public class PAGNodeFactory {
 		if( opts.types_for_sites() || opts.vta() )
 			return makeAllocNode( RefType.v( "java.lang.Class" ),
 					RefType.v( "java.lang.Class" ), null );
-		ClassConstantNode ret = new ClassConstantNode(cc);		 
+		ClassConstantNode ret = ClassConstantNode.internalized(cc);		 
 
 		return ret;
 	}
@@ -139,11 +139,11 @@ public class PAGNodeFactory {
 		} else if( value instanceof Local ) {
 			Local val = (Local) value;
 			if( val.getNumber() == 0 ) Scene.v().getLocalNumberer().add(val);
-			LocalVarNode ret = new LocalVarNode(value, type, method );
+			LocalVarNode ret = LocalVarNode.internalized(value, type, method );
 
 			return ret;
 		}
-		LocalVarNode ret = new LocalVarNode(value, type, method );
+		LocalVarNode ret = LocalVarNode.internalized(value, type, method );
 
 		return ret;
 	}

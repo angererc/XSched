@@ -33,22 +33,21 @@ public class GlobalVarNode extends VarNode {
 		return internalized.get(var);
 	}
 	
-	public GlobalVarNode internalized() {
+	public static GlobalVarNode internalized(Object variable, Type t) {
 		GlobalVarNode ret = internalized.get(variable);
 		if(ret == null) {
-			ret = this;
-			this.fetchNumber();
-			internalized.put(variable, this);
-			this.addNodeTag(null);
-			
-		} else if( !( ret.getType().equals( type ) ) ) {
-			    throw new RuntimeException( "Value "+variable+" of type "+type+
+			ret = new GlobalVarNode(variable, t);
+			VarNode.nodeNumberer.add(ret);
+			internalized.put(variable, ret);
+			ret.addNodeTag(null);			
+		} else if( !( ret.getType().equals( t ) ) ) {
+			    throw new RuntimeException( "Value "+variable+" of type "+t+
 				    " previously had type "+ret.getType() );
 		}
 		return ret;
 	}
 	
-    public GlobalVarNode( Object variable, Type t ) {
+    private GlobalVarNode( Object variable, Type t ) {
     	super(variable, t );
     }
     public String toString() {

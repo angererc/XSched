@@ -27,7 +27,7 @@ import soot.*;
 public abstract class ValNode extends Node
 {
     protected ValNode( Type t ) {
-	super(t );
+    	super(t );
     }
 }
 

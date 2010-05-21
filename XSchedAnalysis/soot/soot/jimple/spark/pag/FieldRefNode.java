@@ -33,24 +33,21 @@ public class FieldRefNode extends ValNode {
 	public static ArrayNumberer fieldRefNodeNumberer() {
 		return nodeNumberer;
 	}
-	@Override
-	protected void fetchNumber() {
-		nodeNumberer.add(this);
-	}
 
-	public FieldRefNode internalized() {
+	public static FieldRefNode internalized(VarNode base, SparkField field) {
 		//a field ref is defined by its base and the field and the PAGNodeFactory already does that
 		//so no reason to internalize much here...
-		if(this.getNumber() > 0)
-			return this;
-
-		this.fetchNumber();
+		
+		FieldRefNode res = new FieldRefNode(base, field);
+		nodeNumberer.add(res);
+		
 		if( base instanceof LocalVarNode ) {
-			this.addNodeTag( ((LocalVarNode) base).getMethod() );
+			res.addNodeTag( ((LocalVarNode) base).getMethod() );
 		} else {
-			this.addNodeTag( null );
+			res.addNodeTag( null );
 		}
-		return this;
+		
+		return res;		
 	}
 
 	/** Returns the base of this field reference. */
@@ -80,7 +77,7 @@ public class FieldRefNode extends ValNode {
 
 	/* End of public methods. */
 
-	public FieldRefNode( VarNode base, SparkField field ) {
+	private FieldRefNode( VarNode base, SparkField field ) {
 		super( null );
 		if( field == null ) throw new RuntimeException( "null field" );
 		this.base = base;
