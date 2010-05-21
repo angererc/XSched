@@ -18,7 +18,6 @@
  */
 
 package soot.jimple.spark.sets;
-import java.util.List;
 
 import soot.Scene;
 import soot.Type;
@@ -34,9 +33,8 @@ import soot.util.BitVector;
  * @author Ondrej Lhotak
  */
 public final class HybridPointsToSet extends PointsToSetInternal {
-    public HybridPointsToSet( Type type, PAG pag ) {
+    public HybridPointsToSet( Type type ) {
         super( type );
-        this.pag = pag;
     }
     /** Returns true if this set contains no run-time objects. */
     public final boolean isEmpty() {
@@ -52,7 +50,7 @@ public final class HybridPointsToSet extends PointsToSetInternal {
     private final boolean nativeAddAll( HybridPointsToSet other, HybridPointsToSet exclude ) {
         boolean ret = false;
         BitVector mask = null;
-        TypeManager typeManager = pag.getTypeManager();
+        TypeManager typeManager = PAG.typeManager();
         if( !typeManager.castNeverFails( other.getType(), this.getType() ) ) {
             mask = typeManager.get( this.getType() );
         }
@@ -174,7 +172,7 @@ public final class HybridPointsToSet extends PointsToSetInternal {
     }
     /** Adds n to this set, returns true if n was not already in this set. */
     public final boolean add( Node n ) {
-        if( pag.getTypeManager().castNeverFails( n.getType(), type ) ) {
+        if( PAG.typeManager().castNeverFails( n.getType(), type ) ) {
             return fastAdd( n );
         }
         return false;
@@ -205,8 +203,8 @@ public final class HybridPointsToSet extends PointsToSetInternal {
     }
     public final static P2SetFactory getFactory() {
         return new P2SetFactory() {
-            public final PointsToSetInternal newSet( Type type, PAG pag ) {
-                return new HybridPointsToSet( type, pag );
+            public final PointsToSetInternal newSet( Type type ) {
+                return new HybridPointsToSet( type );
             }
         };
     }
@@ -279,12 +277,11 @@ public final class HybridPointsToSet extends PointsToSetInternal {
     private Node n15 = null;
     private Node n16 = null; 
     private BitVector bits = null;
-    private PAG pag;
     private boolean empty = true;
 
     public static HybridPointsToSet intersection(final HybridPointsToSet set1,
         final HybridPointsToSet set2, PAG pag) {
-    final HybridPointsToSet ret = new HybridPointsToSet(Scene.v().getObjectType(), pag);
+    final HybridPointsToSet ret = new HybridPointsToSet(Scene.v().getObjectType() );
     BitVector s1Bits = set1.bits;
     BitVector s2Bits = set2.bits;
     if (s1Bits == null || s2Bits == null) {

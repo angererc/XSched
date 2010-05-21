@@ -68,7 +68,7 @@ public class PAGDumper {
             PrintWriter file = new PrintWriter(
                 new FileOutputStream( new File(output_dir, "pag") ) );
 
-            if( pag.getOpts().topo_sort() ) {
+            if( PAG.opts().topo_sort() ) {
                 new TopoSorter( pag, false ).sort();
             }
             file.println( "Allocations:" );
@@ -120,7 +120,7 @@ public class PAGDumper {
                     file.println( "");
                 }
             }
-            if( pag.getOpts().dump_types() ) {
+            if( PAG.opts().dump_types() ) {
                 dumpTypes( file );
             }
             file.close();
@@ -226,7 +226,7 @@ public class PAGDumper {
             FieldRefNode fn = (FieldRefNode) n;
             dumpNode( fn.getBase(), out );
             out.print( " "+fieldToNum( fn.getField() ) );
-        } else if( pag.getOpts().class_method_var() && n instanceof VarNode ) {
+        } else if( PAG.opts().class_method_var() && n instanceof VarNode ) {
             VarNode vn = (VarNode) n;
             SootMethod m = null;
             if( vn instanceof LocalVarNode ) {
@@ -244,7 +244,7 @@ public class PAGDumper {
             }
             */
             out.print( ""+cl.num+" "+me.num+" "+vr.num );
-        } else if( pag.getOpts().topo_sort() && n instanceof VarNode ) {
+        } else if( PAG.opts().topo_sort() && n instanceof VarNode ) {
             out.print( ""+((VarNode) n).finishingNumber );
         } else {
             out.print( ""+n.getNumber() );

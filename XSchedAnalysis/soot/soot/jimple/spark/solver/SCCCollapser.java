@@ -32,7 +32,7 @@ import soot.jimple.spark.internal.*;
 public class SCCCollapser {
     /** Actually collapse the SCCs in the PAG. */
     public void collapse() {
-        boolean verbose = pag.getOpts().verbose();
+        boolean verbose = PAG.opts().verbose();
         if( verbose ) {
             G.v().out.println( "Total VarNodes: "+VarNode.varNodeNumberer().size()+". Collapsing SCCs..." );
         }

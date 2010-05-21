@@ -440,7 +440,7 @@ public class LockAllocator extends SceneTransformer
 						G.v().out.println("[wjtp.tn] Lock: num " + lockNum + " type " + newStaticLock.getType() + " obj " + newStaticLock);
 						lockToLockNum.put(newStaticLockEqVal, lockNum);
 						lockToLockNum.put(newStaticLock, lockNum);
-						PointsToSetInternal dummyLockPT = new HashPointsToSet(newStaticLock.getType(), (PAG) pta); // KILLS CHA-BASED ANALYSIS (pointer exception)
+						PointsToSetInternal dummyLockPT = new HashPointsToSet(newStaticLock.getType()); // KILLS CHA-BASED ANALYSIS (pointer exception)
 						lockPTSets.add(dummyLockPT);
 					}
 					else
@@ -492,7 +492,7 @@ public class LockAllocator extends SceneTransformer
 								{
 									G.v().out.println("[wjtp.tn] Lock: num " + lockPTSets.size() + " type " + lock.getType() + " obj " + lock);
 									lockToLockNum.put(lock, new Integer(lockPTSets.size()));
-									PointsToSetInternal otherLockPT = new HashPointsToSet(lockPT.getType(), (PAG) pta);
+									PointsToSetInternal otherLockPT = new HashPointsToSet(lockPT.getType() );
 									lockPTSets.add(otherLockPT);
 									otherLockPT.addAll(lockPT, null);
 								}
@@ -512,7 +512,7 @@ public class LockAllocator extends SceneTransformer
 									G.v().out.println("[wjtp.tn] Lock: num " + lockNum + " type " + lock.getType() + " obj " + lock);
 									lockToLockNum.put(lockEqVal, lockNum);
 									lockToLockNum.put(lock, lockNum);
-									PointsToSetInternal dummyLockPT = new HashPointsToSet(lock.getType(), (PAG) pta);
+									PointsToSetInternal dummyLockPT = new HashPointsToSet(lock.getType() );
 									lockPTSets.add(dummyLockPT);
 								}
 							}

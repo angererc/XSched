@@ -190,7 +190,7 @@ public class CodeBlockRWSet extends MethodRWSet
 						{
 							final PointsToSetInternal pti1 = (PointsToSetInternal) pts1;
 							final PointsToSetInternal pti2 = (PointsToSetInternal) pts2;
-							final PointsToSetInternal newpti = new HashPointsToSet(pti1.getType(), (PAG) Scene.v().getPointsToAnalysis());
+							final PointsToSetInternal newpti = new HashPointsToSet(pti1.getType());
 
 							pti1.forall( 
 								new P2SetVisitor() 
@@ -231,7 +231,7 @@ public class CodeBlockRWSet extends MethodRWSet
 		if( base == null )
 		{			
 			// NOTE: this line makes unsafe assumptions about the PTA
-			PointsToSetInternal newpti = new HashPointsToSet(((PointsToSetInternal)otherBase).getType(), (PAG) Scene.v().getPointsToAnalysis());
+			PointsToSetInternal newpti = new HashPointsToSet(((PointsToSetInternal)otherBase).getType());
 			base = newpti;
 			fields.put( field, base );
 		} 

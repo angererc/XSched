@@ -30,9 +30,9 @@ import soot.Type;
  * @author Ondrej Lhotak
  */
 public final class BitPointsToSet extends PointsToSetInternal {
-    public BitPointsToSet( Type type, PAG pag ) {
+    public BitPointsToSet( Type type ) {
         super( type );
-        this.pag = pag;
+
         bits = new BitVector( AllocNode.allocNodeNumberer().size() );
     }
     /** Returns true if this set contains no run-time objects. */
@@ -48,7 +48,7 @@ public final class BitPointsToSet extends PointsToSetInternal {
 
     private final boolean nativeAddAll( BitPointsToSet other, BitPointsToSet exclude ) {
         BitVector mask = null;
-        TypeManager typeManager = pag.getTypeManager();
+        TypeManager typeManager = PAG.typeManager();
         if( !typeManager.castNeverFails( other.getType(), this.getType() ) ) {
             mask = typeManager.get( this.getType() );
         }
@@ -79,7 +79,7 @@ public final class BitPointsToSet extends PointsToSetInternal {
     }
     /** Adds n to this set, returns true if n was not already in this set. */
     public final boolean add( Node n ) {
-        if( pag.getTypeManager().castNeverFails( n.getType(), type ) ) {
+        if( PAG.typeManager().castNeverFails( n.getType(), type ) ) {
             return fastAdd( n );
         }
         return false;
@@ -90,8 +90,8 @@ public final class BitPointsToSet extends PointsToSetInternal {
     }
     public static P2SetFactory getFactory() {
         return new P2SetFactory() {
-            public PointsToSetInternal newSet( Type type, PAG pag ) {
-                return new BitPointsToSet( type, pag );
+            public PointsToSetInternal newSet( Type type ) {
+                return new BitPointsToSet( type );
             }
         };
     }
@@ -106,7 +106,6 @@ public final class BitPointsToSet extends PointsToSetInternal {
     }
 
     private BitVector bits = null;
-    private boolean empty = true;
-    private PAG pag = null;
+    private boolean empty = true;    
 }
 

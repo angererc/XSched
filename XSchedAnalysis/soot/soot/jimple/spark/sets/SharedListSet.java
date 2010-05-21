@@ -5,7 +5,6 @@ import java.util.List;
 
 import soot.Type;
 import soot.jimple.spark.pag.Node;
-import soot.jimple.spark.pag.PAG;
 import soot.util.BitVector;
 
 /* 
@@ -52,18 +51,17 @@ add: O(n), and might add things to other lists too
  */
 public class SharedListSet extends PointsToSetInternal
 {
-	public SharedListSet(Type type, PAG pag)
+	public SharedListSet(Type type)
 	{
-        super( type );
-        this.pag = pag;
+        super( type );        
 	}
 	
 	// Ripped from the other points-to sets - returns a factory that can be
 	// used to construct SharedHybridSets
 	public final static P2SetFactory getFactory() {
 		return new P2SetFactory() {
-			public final PointsToSetInternal newSet(Type type, PAG pag) {
-				return new SharedListSet(type, pag);
+			public final PointsToSetInternal newSet(Type type) {
+				return new SharedListSet(type);
 			}
 		};
 	}
@@ -259,7 +257,7 @@ public class SharedListSet extends PointsToSetInternal
 			SharedListSet realOther = (SharedListSet) other,
 				realExclude = (SharedListSet) exclude;
 
-			BitVector mask = getBitMask(realOther, pag);
+			BitVector mask = getBitMask(realOther);
 
 			ListNode excludeData = (realExclude == null)? null : realExclude.data;
 			
@@ -344,8 +342,6 @@ public class SharedListSet extends PointsToSetInternal
 	
 	//private final Map allNodes = AllSharedListNodes.v().allNodes;
 	//private static Map allNodes = new HashMap();
-	private PAG pag; // I think this is needed to get the size of the bit
-	// vector and the mask for casting
 	
 	private ListNode data = null;
 	

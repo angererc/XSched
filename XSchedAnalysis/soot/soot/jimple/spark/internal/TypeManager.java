@@ -29,8 +29,7 @@ import soot.Type;
  * @author Ondrej Lhotak
  */
 public final class TypeManager {
-    public TypeManager( PAG pag ) {
-        this.pag = pag;
+    public TypeManager() {        
     }
     public static boolean isUnresolved(Type type) {
         if( !(type instanceof RefType) ) return false;
@@ -77,7 +76,7 @@ public final class TypeManager {
         if( fh == null ) return;
 
         int numTypes = Scene.v().getTypeNumberer().size();
-        if( pag.getOpts().verbose() )
+        if( PAG.opts().verbose() )
             G.v().out.println( "Total types: "+numTypes );
 
         ArrayNumberer allocNodes = AllocNode.allocNodeNumberer();
@@ -115,8 +114,7 @@ public final class TypeManager {
     public void setFastHierarchy( FastHierarchy fh ) { this.fh = fh; }
     public FastHierarchy getFastHierarchy() { return fh; }
 
-    protected FastHierarchy fh = null;
-    protected PAG pag;
+    protected FastHierarchy fh = null;    
     protected QueueReader allocNodeListener = null;
 }
 

@@ -19,7 +19,6 @@
 
 package soot.jimple.spark.sets;
 import soot.jimple.spark.pag.Node;
-import soot.jimple.spark.pag.PAG;
 import java.util.*;
 
 import soot.*;
@@ -30,11 +29,10 @@ import soot.*;
  * @author Ondrej Lhotak
  */
 public class DoublePointsToSet extends PointsToSetInternal {
-    public DoublePointsToSet( Type type, PAG pag ) {
+    public DoublePointsToSet( Type type ) {
         super( type );
-        newSet = G.v().newSetFactory.newSet( type, pag );
-        oldSet = G.v().oldSetFactory.newSet( type, pag );
-        this.pag = pag;
+        newSet = G.v().newSetFactory.newSet( type );
+        oldSet = G.v().oldSetFactory.newSet( type );
     }
     /** Returns true if this set contains no run-time objects. */
     public boolean isEmpty() {
@@ -87,12 +85,12 @@ public class DoublePointsToSet extends PointsToSetInternal {
     /** Sets all newly-added nodes to old nodes. */
     public void flushNew() {
         oldSet.addAll( newSet, null );
-        newSet = G.v().newSetFactory.newSet( type, pag );
+        newSet = G.v().newSetFactory.newSet( type );
     }
     /** Sets all nodes to newly-added nodes. */
     public void unFlushNew() {
         newSet.addAll( oldSet, null );
-        oldSet = G.v().oldSetFactory.newSet( type, pag );
+        oldSet = G.v().oldSetFactory.newSet( type );
     }
     /** Merges other into this set. */
     public void mergeWith( PointsToSetInternal other ) {
@@ -106,8 +104,8 @@ public class DoublePointsToSet extends PointsToSetInternal {
         if( other.type == null && type != null ) {
             throw new RuntimeException( "different types "+type+" and "+other.type );
         }
-        final PointsToSetInternal newNewSet = G.v().newSetFactory.newSet( type, pag );
-        final PointsToSetInternal newOldSet = G.v().oldSetFactory.newSet( type, pag );
+        final PointsToSetInternal newNewSet = G.v().newSetFactory.newSet( type );
+        final PointsToSetInternal newOldSet = G.v().oldSetFactory.newSet( type );
         oldSet.forall( new P2SetVisitor() {
         public final void visit( Node n ) {
             if( o.oldSet.contains( n ) ) newOldSet.add( n );
@@ -127,8 +125,8 @@ public class DoublePointsToSet extends PointsToSetInternal {
         G.v().newSetFactory = newFactory;
         G.v().oldSetFactory = oldFactory;
         return new P2SetFactory() {
-            public PointsToSetInternal newSet( Type type, PAG pag ) {
-                return new DoublePointsToSet( type, pag );
+            public PointsToSetInternal newSet( Type type ) {
+                return new DoublePointsToSet( type );
             }
         };
     }
@@ -136,7 +134,6 @@ public class DoublePointsToSet extends PointsToSetInternal {
     /* End of public methods. */
     /* End of package methods. */
 
-    private PAG pag;
     protected PointsToSetInternal newSet;
     protected PointsToSetInternal oldSet;
 }

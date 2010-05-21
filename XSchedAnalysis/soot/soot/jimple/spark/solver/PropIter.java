@@ -43,7 +43,7 @@ public final class PropIter extends Propagator {
 	do {
 	    change = false;
             TreeSet<Object> simpleSources = new TreeSet<Object>( pag.simpleSources() );
-            if( pag.getOpts().verbose() ) {
+            if( PAG.opts().verbose() ) {
                 G.v().out.println( "Iteration "+(iteration++) );
             }
             for (Object object : simpleSources) {

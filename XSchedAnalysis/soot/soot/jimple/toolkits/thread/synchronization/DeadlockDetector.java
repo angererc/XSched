@@ -318,7 +318,7 @@ public class DeadlockDetector {
 										Integer daeNum = new Integer(-lockPTSets.size()); // negative indicates a static lock
 										permanentOrder.addNode(daeNum);
 										lockToLockNum.put(dae, daeNum);
-										PointsToSetInternal dummyLockPT = new HashPointsToSet(lock1.getType(), (PAG) Scene.v().getPointsToAnalysis());
+										PointsToSetInternal dummyLockPT = new HashPointsToSet(lock1.getType() );
 										lockPTSets.add(dummyLockPT);
 
 										// Add it to the locksets of tn1 and whoever says l2 before l1

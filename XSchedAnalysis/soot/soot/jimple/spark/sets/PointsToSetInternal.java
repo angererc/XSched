@@ -166,7 +166,7 @@ public abstract class PointsToSetInternal implements PointsToSet, EqualsSupporti
     protected Type type;
     
     //Added by Adam Richard
-    protected BitVector getBitMask(PointsToSetInternal other, PAG pag)
+    protected BitVector getBitMask(PointsToSetInternal other )
     {
 		/*Prevents propogating points-to sets of inappropriate type.
 		 *E.g. if you have in the code being analyzed:
@@ -177,7 +177,7 @@ public abstract class PointsToSetInternal implements PointsToSet, EqualsSupporti
 		//Code ripped from BitPointsToSet
 
     	BitVector mask = null;
-    	TypeManager typeManager = pag.getTypeManager();
+    	TypeManager typeManager = PAG.typeManager();
     	if( !typeManager.castNeverFails( other.getType(), this.getType() ) ) {
     		mask = typeManager.get( this.getType() );
     	}

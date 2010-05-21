@@ -23,12 +23,21 @@
 package soot.options;
 import java.util.*;
 
+import soot.jimple.spark.sets.BitPointsToSet;
+import soot.jimple.spark.sets.DoublePointsToSet;
+import soot.jimple.spark.sets.HashPointsToSet;
+import soot.jimple.spark.sets.HybridPointsToSet;
+import soot.jimple.spark.sets.P2SetFactory;
+import soot.jimple.spark.sets.SharedHybridSet;
+import soot.jimple.spark.sets.SharedListSet;
+import soot.jimple.spark.sets.SortedArraySet;
+
 /** Option parser for Spark. */
 public class SparkOptions
 {
-    private Map options;
+    private Map<?,?> options;
 
-    public SparkOptions( Map options ) {
+    public SparkOptions( Map<?,?> options ) {
         this.options = options;
     }
     
@@ -40,6 +49,82 @@ public class SparkOptions
      */
     public boolean enabled() {
         return soot.PhaseOptions.getBoolean( options, "enabled" );
+    }
+    
+    public P2SetFactory createSetFactory() {
+    	P2SetFactory setFactory;
+    	switch( set_impl() ) {
+		case SparkOptions.set_impl_hash:
+			setFactory = HashPointsToSet.getFactory();
+			break;
+		case SparkOptions.set_impl_hybrid:
+			setFactory = HybridPointsToSet.getFactory();
+			break;
+		case SparkOptions.set_impl_heintze:
+			setFactory = SharedHybridSet.getFactory();
+			break;
+		case SparkOptions.set_impl_sharedlist:
+			setFactory = SharedListSet.getFactory();
+			break;
+		case SparkOptions.set_impl_array:
+			setFactory = SortedArraySet.getFactory();
+			break;
+		case SparkOptions.set_impl_bit:
+			setFactory = BitPointsToSet.getFactory();
+			break;
+		case SparkOptions.set_impl_double:
+			P2SetFactory oldF;
+			P2SetFactory newF;
+			switch( double_set_old() ) {
+			case SparkOptions.double_set_old_hash:
+				oldF = HashPointsToSet.getFactory();
+				break;
+			case SparkOptions.double_set_old_hybrid:
+				oldF = HybridPointsToSet.getFactory();
+				break;
+			case SparkOptions.double_set_old_heintze:
+				oldF = SharedHybridSet.getFactory();
+				break;
+			case SparkOptions.double_set_old_sharedlist:
+				oldF = SharedListSet.getFactory();
+				break;
+			case SparkOptions.double_set_old_array:
+				oldF = SortedArraySet.getFactory();
+				break;
+			case SparkOptions.double_set_old_bit:
+				oldF = BitPointsToSet.getFactory();
+				break;
+			default:
+				throw new RuntimeException();
+			}
+			switch( double_set_new() ) {
+			case SparkOptions.double_set_new_hash:
+				newF = HashPointsToSet.getFactory();
+				break;
+			case SparkOptions.double_set_new_hybrid:
+				newF = HybridPointsToSet.getFactory();
+				break;
+			case SparkOptions.double_set_new_heintze:
+				newF = SharedHybridSet.getFactory();
+				break;
+			case SparkOptions.double_set_new_sharedlist:
+				newF = SharedListSet.getFactory();
+				break;
+			case SparkOptions.double_set_new_array:
+				newF = SortedArraySet.getFactory();
+				break;
+			case SparkOptions.double_set_new_bit:
+				newF = BitPointsToSet.getFactory();
+				break;
+			default:
+				throw new RuntimeException();
+			}
+			setFactory = DoublePointsToSet.getFactory( newF, oldF );
+			break;
+		default:
+			throw new RuntimeException();
+		}
+    	return setFactory;
     }
     
     /** Verbose --

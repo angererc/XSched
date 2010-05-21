@@ -40,7 +40,7 @@ public final class PropMerge extends Propagator {
 	    handleAllocNode( (AllocNode) object );
 	}
 
-        boolean verbose = pag.getOpts().verbose();
+        boolean verbose = PAG.opts().verbose();
 	do {
             if( verbose ) {
                 G.v().out.println( "Worklist has "+varNodeWorkList.size()+

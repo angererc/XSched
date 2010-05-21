@@ -5,7 +5,6 @@ import soot.util.BitSetIterator;
 import soot.util.BitVector;
 import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
-import soot.jimple.spark.pag.PAG;
 
 import java.util.*;
 
@@ -43,12 +42,11 @@ import java.util.*;
 
 public class SharedHybridSet extends PointsToSetInternal {
 
-	public SharedHybridSet(Type type, PAG pag) {
+	public SharedHybridSet(Type type ) {
 		// I'm not sure what "type" is for, but this is the way the other set
 		// representations
 		// did it
-		super(type);
-		this.pag = pag;
+		super(type);		
 		//System.out.println("Using new heintze set");
 	}
 
@@ -137,7 +135,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 				if (bitVectorCardinality < AllSharedHybridNodes.v().lookupMap.map.length
 						&& AllSharedHybridNodes.v().lookupMap.map[bitVectorCardinality] != null) 
 				{
-					ListIterator i = AllSharedHybridNodes.v().lookupMap.map[bitVectorCardinality]
+					ListIterator<?> i = AllSharedHybridNodes.v().lookupMap.map[bitVectorCardinality]
 							.listIterator();
 					while (i.hasNext()) {
 						// for each existing bit vector with bitVectorCardinality
@@ -223,7 +221,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 		 * bitvector, just combine the overflow lists.
 		 */
 
-        BitVector mask = getBitMask(other, pag);
+        BitVector mask = getBitMask(other);
 
 		if (exclude != null)
 		{
@@ -238,7 +236,7 @@ public class SharedHybridSet extends PointsToSetInternal {
 					newBitVector = new PointsToBitVector(exclude.bitVector);
 				}
 				add(newBitVector, exclude.overflow);
-				exclude = new SharedHybridSet(type, pag);
+				exclude = new SharedHybridSet(type);
 				exclude.bitVector = newBitVector;
 			}
 
@@ -452,8 +450,8 @@ public class SharedHybridSet extends PointsToSetInternal {
 	// used to construct SharedHybridSets
 	public final static P2SetFactory getFactory() {
 		return new P2SetFactory() {
-			public final PointsToSetInternal newSet(Type type, PAG pag) {
-				return new SharedHybridSet(type, pag);
+			public final PointsToSetInternal newSet(Type type ) {
+				return new SharedHybridSet(type );
 			}
 		};
 	}
@@ -462,9 +460,6 @@ public class SharedHybridSet extends PointsToSetInternal {
 												// sets
 
 	private OverflowList overflow = new OverflowList();
-
-	private PAG pag; // I think this is needed to get the size of the bit
-						// vector and the mask for casting
 
 	private int numElements = 0; // # of elements in the set
 

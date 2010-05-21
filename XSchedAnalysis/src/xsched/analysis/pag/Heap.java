@@ -261,11 +261,6 @@ public class Heap extends PAG {
 	}
 
 	@Override
-	public SparkOptions getOpts() {
-		throw new RuntimeException("Don't use this method in the heap!");
-	}
-
-	@Override
 	public P2SetFactory getSetFactory() {
 		throw new RuntimeException("Don't use this method in the heap!");
 	}

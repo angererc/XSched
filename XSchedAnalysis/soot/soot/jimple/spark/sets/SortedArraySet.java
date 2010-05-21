@@ -18,11 +18,9 @@
  */
 
 package soot.jimple.spark.sets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import soot.jimple.spark.pag.AllocNode;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
 import soot.util.*;
@@ -32,9 +30,8 @@ import soot.Type;
  * @author Ondrej Lhotak
  */
 public final class SortedArraySet extends PointsToSetInternal {
-    public SortedArraySet( Type type, PAG pag ) {
+    public SortedArraySet( Type type) {
         super( type );
-        this.pag = pag;
     }
     /** Returns true if this set contains no run-time objects. */
     public final boolean isEmpty() {
@@ -45,7 +42,7 @@ public final class SortedArraySet extends PointsToSetInternal {
     public final boolean addAll( final PointsToSetInternal other,
             final PointsToSetInternal exclude ) {
         boolean ret = false;
-        BitVector typeMask = (pag.getTypeManager()).get( type );
+        BitVector typeMask = (PAG.typeManager()).get( type );
         if( other instanceof SortedArraySet ) {
             SortedArraySet o = (SortedArraySet) other;
             Node[] mya = nodes;
@@ -111,7 +108,7 @@ public final class SortedArraySet extends PointsToSetInternal {
     }
     /** Adds n to this set, returns true if n was not already in this set. */
     public final boolean add( Node n ) {
-        if( pag.getTypeManager().castNeverFails( n.getType(), type ) ) {
+        if( PAG.typeManager().castNeverFails( n.getType(), type ) ) {
             if( contains(n) ) return false;
             int left = 0;
             int right = size;
@@ -158,8 +155,8 @@ public final class SortedArraySet extends PointsToSetInternal {
     }
     public final static P2SetFactory getFactory() {
         return new P2SetFactory() {
-            public final PointsToSetInternal newSet( Type type, PAG pag ) {
-                return new SortedArraySet( type, pag );
+            public final PointsToSetInternal newSet( Type type ) {
+                return new SortedArraySet( type );
             }
         };
     }
@@ -169,6 +166,6 @@ public final class SortedArraySet extends PointsToSetInternal {
 
     private Node[] nodes = null;
     private int size = 0;
-    private PAG pag = null;
+  
 }
 

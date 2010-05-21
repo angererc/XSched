@@ -55,7 +55,8 @@ public class ContextInsensitiveBuilder {
     }
     /** Creates an empty pointer assignment graph. */
     public PAG setup( SparkOptions opts ) {
-        pag = new PAG( opts );
+    	PAG.setOptions(opts);
+        pag = new PAG();
         if( opts.simulate_natives() ) {
             PAG.setNativeMethodDriver(new NativeMethodDriver(new SparkNativeHelper(pag)));
         }
@@ -90,7 +91,7 @@ public class ContextInsensitiveBuilder {
             pag.addCallTarget( e );
         }
 
-        if( pag.getOpts().verbose() ) {
+        if( PAG.opts().verbose() ) {
             G.v().out.println( "Total methods: "+totalMethods );
             G.v().out.println( "Initially reachable methods: "+analyzedMethods );
             G.v().out.println( "Classes with at least one reachable method: "+classes );

@@ -57,7 +57,7 @@ public final class PropAlias extends Propagator {
 	    handleAllocNode( (AllocNode) object );
 	}
 
-        boolean verbose = pag.getOpts().verbose();
+        boolean verbose = PAG.opts().verbose();
 	do {
             if( verbose ) {
                 G.v().out.println( "Worklist has "+varNodeWorkList.size()+
@@ -213,7 +213,7 @@ public final class PropAlias extends Propagator {
     protected final PointsToSetInternal makeP2Set( FieldRefNode n ) {
         PointsToSetInternal ret = (PointsToSetInternal) loadSets.get(n);
         if( ret == null ) {
-            ret = pag.getSetFactory().newSet( null, pag );
+            ret = pag.getSetFactory().newSet( null );
             loadSets.put( n, ret );
         }
         return ret;

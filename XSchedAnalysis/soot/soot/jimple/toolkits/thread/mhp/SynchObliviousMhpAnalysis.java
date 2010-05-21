@@ -75,7 +75,7 @@ public class SynchObliviousMhpAnalysis implements MhpTester, Runnable
 		   throw new RuntimeException("You must use Spark for points-to analysis when computing MHP information!");
 		}
 		PAG pag = (PAG) pta;
-		SparkOptions so = pag.getOpts();
+		SparkOptions so = PAG.opts();
 		if(so.rta())
 		   throw new RuntimeException("MHP cannot be calculated using RTA due to incomplete call graph");
 

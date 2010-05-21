@@ -56,9 +56,20 @@ public class PAG implements PointsToAnalysis {
 		return addedContexts.add(new Pair<MethodPAG, Context>(methodPAG, object));
 	}
 	
+	/* static global factories, used by all PAGs in the system */
 	private static SparkOptions opts;
 	public static SparkOptions opts() {
 		return opts;
+	}
+	public static void setOptions(SparkOptions aOpts) {
+		opts = aOpts;
+		if( opts.add_tags() ) {
+			Node.collectNodeTags();
+		}
+		if( !opts.ignore_types() ) {
+			typeManager.setFastHierarchy( Scene.v().getOrMakeFastHierarchy() );
+		}
+		setFactory = opts.createSetFactory();
 	}
 	private static NativeMethodDriver nativeMethodDriver;
 	public static NativeMethodDriver nativeMethodDriver() {
@@ -68,87 +79,20 @@ public class PAG implements PointsToAnalysis {
 		 nativeMethodDriver = driver;
 	 }
 	
-	public PAG( final SparkOptions aOpts ) {
-		opts = aOpts;
-		if( opts.add_tags() ) {
-			Node.collectNodeTags();
-		}
+	private static TypeManager typeManager = new TypeManager();
+	public static TypeManager typeManager() {
+		return typeManager;
+	}
+	
+	private static P2SetFactory setFactory;
+	
+	
+	/*
+	 * instance stuff
+	 */
+	
+	public PAG(  ) {
 		
-		typeManager = new TypeManager(this);
-		if( !opts.ignore_types() ) {
-			typeManager.setFastHierarchy( Scene.v().getOrMakeFastHierarchy() );
-		}
-		switch( opts.set_impl() ) {
-		case SparkOptions.set_impl_hash:
-			setFactory = HashPointsToSet.getFactory();
-			break;
-		case SparkOptions.set_impl_hybrid:
-			setFactory = HybridPointsToSet.getFactory();
-			break;
-		case SparkOptions.set_impl_heintze:
-			setFactory = SharedHybridSet.getFactory();
-			break;
-		case SparkOptions.set_impl_sharedlist:
-			setFactory = SharedListSet.getFactory();
-			break;
-		case SparkOptions.set_impl_array:
-			setFactory = SortedArraySet.getFactory();
-			break;
-		case SparkOptions.set_impl_bit:
-			setFactory = BitPointsToSet.getFactory();
-			break;
-		case SparkOptions.set_impl_double:
-			P2SetFactory oldF;
-			P2SetFactory newF;
-			switch( opts.double_set_old() ) {
-			case SparkOptions.double_set_old_hash:
-				oldF = HashPointsToSet.getFactory();
-				break;
-			case SparkOptions.double_set_old_hybrid:
-				oldF = HybridPointsToSet.getFactory();
-				break;
-			case SparkOptions.double_set_old_heintze:
-				oldF = SharedHybridSet.getFactory();
-				break;
-			case SparkOptions.double_set_old_sharedlist:
-				oldF = SharedListSet.getFactory();
-				break;
-			case SparkOptions.double_set_old_array:
-				oldF = SortedArraySet.getFactory();
-				break;
-			case SparkOptions.double_set_old_bit:
-				oldF = BitPointsToSet.getFactory();
-				break;
-			default:
-				throw new RuntimeException();
-			}
-			switch( opts.double_set_new() ) {
-			case SparkOptions.double_set_new_hash:
-				newF = HashPointsToSet.getFactory();
-				break;
-			case SparkOptions.double_set_new_hybrid:
-				newF = HybridPointsToSet.getFactory();
-				break;
-			case SparkOptions.double_set_new_heintze:
-				newF = SharedHybridSet.getFactory();
-				break;
-			case SparkOptions.double_set_new_sharedlist:
-				newF = SharedListSet.getFactory();
-				break;
-			case SparkOptions.double_set_new_array:
-				newF = SortedArraySet.getFactory();
-				break;
-			case SparkOptions.double_set_new_bit:
-				newF = BitPointsToSet.getFactory();
-				break;
-			default:
-				throw new RuntimeException();
-			}
-			setFactory = DoublePointsToSet.getFactory( newF, oldF );
-			break;
-		default:
-			throw new RuntimeException();
-		}
 	}
 
 	private HashMap<Node,Node> replacements = new HashMap<Node,Node>();
@@ -175,7 +119,7 @@ public class PAG implements PointsToAnalysis {
 		PointsToSetInternal p2set = p2sets.get(rep);
 		if(p2set == null) {
 			assert(rep.getType() == node.getType());
-			p2set = this.getSetFactory().newSet( rep.getType(), this );
+			p2set = this.getSetFactory().newSet( rep.getType() );
         	p2sets.put(rep, p2set);
         	return p2set;
 		} else {
@@ -264,19 +208,18 @@ public class PAG implements PointsToAnalysis {
 	 }
 
 	 private PointsToSet reachingObjectsInternal( PointsToSet s, final SparkField f ) {
-		 if( getOpts().field_based() || getOpts().vta() ) {
+		 if( opts.field_based() || opts.vta() ) {
 			 VarNode n = GlobalVarNode.globalVarNode(f);
 			 if( n == null ) {
 				 return EmptyPointsToSet.v();
 			 }
 			 return this.getP2SetForNode(n);
 		 }
-		 if( (getOpts()).propagator() == SparkOptions.propagator_alias ) {
+		 if( (opts).propagator() == SparkOptions.propagator_alias ) {
 			 throw new RuntimeException( "The alias edge propagator does not compute points-to information for instance fields! Use a different propagator." );
 		 }
 		 PointsToSetInternal bases = (PointsToSetInternal) s;
-		 final PointsToSetInternal ret = setFactory.newSet( 
-				 (f instanceof SootField) ? ((SootField)f).getType() : null, this );
+		 final PointsToSetInternal ret = setFactory.newSet((f instanceof SootField) ? ((SootField)f).getType() : null );
 		 bases.forall( new P2SetVisitor() {
 			 public final void visit( Node n ) {
 				 Node nDotF = ((AllocNode) n).dot( f );
@@ -485,8 +428,6 @@ public class PAG implements PointsToAnalysis {
 		 else return ((Object[]) set).length;
 	 }
 
-
-	 protected P2SetFactory setFactory;
 	 protected boolean somethingMerged = false;
 
 	 /** Returns the set of objects pointed to by instance field f
@@ -596,9 +537,6 @@ public class PAG implements PointsToAnalysis {
 	 public List<VarNode> getDereferences() {
 		 return dereferences;
 	 }
-
-	 /** Returns SparkOptions for this graph. */
-	 public SparkOptions getOpts() { return opts; }
 
 	 final public void addCallTarget( Edge e ) {
 		 if( !e.passesParameters() ) return;
@@ -923,8 +861,7 @@ public class PAG implements PointsToAnalysis {
 	 //therefore: the ofcg can contain fewer methods than the pag, but never more
 	 protected OnFlyCallGraph ofcg;
 	 private final ArrayList<VarNode> dereferences = new ArrayList<VarNode>();
-	 protected TypeManager typeManager;
-	 
+	 	 
 	 public HashMultiMap callAssigns() {
 		 return this.callAssigns;
 	 }

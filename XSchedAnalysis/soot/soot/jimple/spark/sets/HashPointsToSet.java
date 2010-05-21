@@ -28,9 +28,8 @@ import soot.Type;
  * @author Ondrej Lhotak
  */
 public final class HashPointsToSet extends PointsToSetInternal {
-    public HashPointsToSet( Type type, PAG pag ) {
+    public HashPointsToSet( Type type ) {
         super( type );
-        this.pag = pag;
     }
     /** Returns true if this set contains no run-time objects. */
     public final boolean isEmpty() {
@@ -42,7 +41,7 @@ public final class HashPointsToSet extends PointsToSetInternal {
             final PointsToSetInternal exclude ) {
         if( other instanceof HashPointsToSet
         && exclude == null
-        && ( pag.getTypeManager().getFastHierarchy() == null ||
+        && ( PAG.typeManager().getFastHierarchy() == null ||
             type == null || type.equals( other.type ) ) ) {
             return s.addAll( ((HashPointsToSet) other).s );
         } else {
@@ -62,7 +61,7 @@ public final class HashPointsToSet extends PointsToSetInternal {
     }
     /** Adds n to this set, returns true if n was not already in this set. */
     public final boolean add( Node n ) {
-        if( pag.getTypeManager().castNeverFails( n.getType(), type ) ) {
+        if( PAG.typeManager().castNeverFails( n.getType(), type ) ) {
 
             return s.add( n );
         }
@@ -74,8 +73,8 @@ public final class HashPointsToSet extends PointsToSetInternal {
     }
     public static P2SetFactory getFactory() {
         return new P2SetFactory() {
-            public PointsToSetInternal newSet( Type type, PAG pag ) {
-                return new HashPointsToSet( type, pag );
+            public PointsToSetInternal newSet( Type type ) {
+                return new HashPointsToSet( type );
             }
         };
     }
@@ -84,6 +83,6 @@ public final class HashPointsToSet extends PointsToSetInternal {
     /* End of package methods. */
 
     private final HashSet<Node> s = new HashSet<Node>(4);
-    private PAG pag = null;
+  
 }
 

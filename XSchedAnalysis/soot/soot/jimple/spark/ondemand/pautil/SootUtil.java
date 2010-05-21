@@ -259,8 +259,8 @@ public class SootUtil {
 
   @SuppressWarnings("unused")
   private static void checkSetsEqual(final HybridPointsToSet intersection, final PointsToSetInternal set1,
-      final PointsToSetInternal set2, PAG pag) {
-    final PointsToSetInternal ret = new HybridPointsToSet(Scene.v().getObjectType(), pag);
+      final PointsToSetInternal set2) {
+    final PointsToSetInternal ret = new HybridPointsToSet(Scene.v().getObjectType());
     set1.forall(new P2SetVisitor() {
 
       @Override

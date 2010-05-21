@@ -454,7 +454,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 			final PointsToSetInternal oldLocs = contextsForAllocsCache.get(
 					varAndContext).getO1();
 			final PointsToSetInternal tmpSet = new HybridPointsToSet(locs
-					.getType(), pag);
+					.getType());
 			locs.forall(new P2SetVisitor() {
 
 				@Override
@@ -468,7 +468,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 			oldLocs.addAll(tmpSet, null);
 		} else {
 			PointsToSetInternal storedSet = new HybridPointsToSet(locs
-					.getType(), pag);
+					.getType());
 			storedSet.addAll(locs, null);
 			contextsForAllocsCache.put(varAndContext,
 					new Pair<PointsToSetInternal, AllocAndContextSet>(
@@ -907,7 +907,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 								.addAll(ret);
 					} else {
 						PointsToSetInternal storedSet = new HybridPointsToSet(
-								locs.getType(), pag);
+								locs.getType());
 						storedSet.addAll(locs, null);
 						contextsForAllocsCache
 								.put(
@@ -923,7 +923,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 							ret);
 				} else {
 					PointsToSetInternal storedSet = new HybridPointsToSet(locs
-							.getType(), pag);
+							.getType());
 					storedSet.addAll(locs, null);
 					contextsForAllocsCache.put(varAndContext,
 							new Pair<PointsToSetInternal, AllocAndContextSet>(
@@ -1002,7 +1002,7 @@ public final class DemandCSPointsTo implements PointsToAnalysis {
 						debugPrint("CHECKING " + alloc);
 					}
 					PointsToSetInternal tmp = new HybridPointsToSet(alloc
-							.getType(), pag);
+							.getType());
 					tmp.add(alloc);
 					AllocAndContextSet allocContexts = findContextsForAllocs(
 							new VarAndContext(matchSrc, EMPTY_CALLSTACK), tmp);

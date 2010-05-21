@@ -42,7 +42,7 @@ public final class PropCycle extends Propagator {
 	/** Actually does the propagation. */
 	public final void propagate() {
 		ofcg = pag.getOnFlyCallGraph();
-		boolean verbose = pag.getOpts().verbose();
+		boolean verbose = PAG.opts().verbose();
 		Collection<VarNode> bases = new HashSet<VarNode>();
 		for (Iterator frnIt = FieldRefNode.fieldRefNodeNumberer().iterator(); frnIt
 				.hasNext();) {
