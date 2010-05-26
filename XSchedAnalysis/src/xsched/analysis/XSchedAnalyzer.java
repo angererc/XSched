@@ -1,8 +1,6 @@
 package xsched.analysis;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
@@ -20,6 +18,9 @@ import soot.toolkits.scalar.Pair;
 
 import xsched.Activation;
 import xsched.analysis.schedule.ActivationNode;
+import xsched.analysis.schedule.Factory;
+import xsched.analysis.schedule.Heap;
+import xsched.analysis.schedule.P2Set;
 import xsched.analysis.schedule.Schedule;
 import xsched.utils.PAG2DOT;
 
@@ -37,7 +38,7 @@ public class XSchedAnalyzer {
 		
 	private SparkOptions sparkOptions;
 	private PAG pag;
-	private Schedule schedule;
+	private Schedule<Node> schedule;
 	private Propagator propagator;
 	
 	static {
@@ -61,29 +62,41 @@ public class XSchedAnalyzer {
 		
 		loadInitialSootClasses(taskMethodSignature);
 		createPAG();
-		ActivationNode enterNode = initSchedule(taskMethodSignature);
+		
+		initSchedule(taskMethodSignature);
 		
 		new PAG2DOT().dump(pag, SourceLocator.v().getOutputDir() + "/before.dot");
 		propagator = new PropIter(pag);
 		
-		enterNode.analyze(propagator);		
+		schedule.analyze();		
 	}
 	
-	private ActivationNode initSchedule(String taskMethodSignature)
+	private void initSchedule(String taskMethodSignature)
     {
-		SootMethod initialTask = Scene.v().getMethod(taskMethodSignature);
-		
-        this.schedule = new Schedule();
+		this.schedule = new Schedule<Node>(new Factory<Node>() {
+			@Override
+			public Heap<Node> newHeap() {
+				throw new RuntimeException("nyi");
+			}
+
+			@Override
+			public P2Set<Node> newP2Set() {
+				throw new RuntimeException("nyi");
+			}
+        	
+        });
         
-        AllocNode enterActivation = PAGNodeFactory.v().makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
-        AllocNode enterInstance = PAGNodeFactory.v().makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), initialTask.getDeclaringClass().getType(), null);
-        ActivationNode enterNode = this.schedule.createInitialActivationNode(enterActivation, enterInstance, initialTask, new ArrayList<Node>());
+		//create the main activation
+		SootMethod mainTask = Scene.v().getMethod(taskMethodSignature);
+		AllocNode mainActivationAlloc = PAGNodeFactory.v().makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialActivation"), ACTIVATION_TYPE, null);
+        ActivationNode<Node> mainActivation = this.schedule.getOrCreateActivationNode(mainActivationAlloc, null /* fixme, dont' use null but some wrapped soot method */);
         
-        enterNode.addHappensBefore(this.schedule.exitNode);
+        //create the main "this"; could be the mainActivationAlloc in the future, if I allow static tasks
+        //AllocNode mainInstance = PAGNodeFactory.v().makeAllocNode(new Pair<XSchedAnalyzer,String>(this,"initialInstance"), mainTask.getDeclaringClass().getType(), null);        
+        this.schedule.addCreationEdge(this.schedule.enterNode, mainActivation, null, null /*TODO: fixme; don't use null but a newly created alloc node in a p2 set*/);
                 
         //update the call graph
         pag.getOnFlyCallGraph().build();
-        return enterNode;
     }
 	
 	private void createPAG() {

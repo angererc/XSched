@@ -1,4 +1,4 @@
-package xsched.analysis.pag;
+package xsched.analysis.soot;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,25 +18,21 @@ import soot.Value;
 import soot.jimple.InvokeExpr;
 import soot.jimple.StringConstant;
 import soot.jimple.spark.internal.TypeManager;
-import soot.jimple.spark.pag.AllocDotField;
 import soot.jimple.spark.pag.AllocNode;
-import soot.jimple.spark.pag.ContextVarNode;
 import soot.jimple.spark.pag.FieldRefNode;
 import soot.jimple.spark.pag.GlobalVarNode;
 import soot.jimple.spark.pag.LocalVarNode;
-import soot.jimple.spark.pag.MethodPAG;
 import soot.jimple.spark.pag.Node;
 import soot.jimple.spark.pag.PAG;
-import soot.jimple.spark.pag.SparkField;
 import soot.jimple.spark.pag.VarNode;
 import soot.jimple.spark.sets.P2SetFactory;
 import soot.jimple.spark.solver.OnFlyCallGraph;
-import soot.jimple.toolkits.pointer.util.NativeMethodDriver;
-import soot.options.SparkOptions;
 import soot.toolkits.scalar.Pair;
 import soot.util.HashMultiMap;
 import soot.util.queue.QueueReader;
 import xsched.analysis.XSchedAnalyzer;
+import xsched.analysis.heap.NewActivationRecord;
+import xsched.analysis.heap.NewHBRelationshipRecord;
 
 public class Heap extends PAG {
 
@@ -46,10 +42,9 @@ public class Heap extends PAG {
 	private HashMap<InvokeExpr, NewActivationRecord> newActivationRecords = new HashMap<InvokeExpr, NewActivationRecord>();
 	
 	public Heap(PAG parent) {
-		super(parent.getOpts());
+		super();
 		this.parent = parent;
-		super.useOnFlyCallGraph();		
-		super.setNativeMethodDriver(parent.nativeMethodDriver());
+		super.useOnFlyCallGraph();				
 	}
 	
 	public void freeze() {
