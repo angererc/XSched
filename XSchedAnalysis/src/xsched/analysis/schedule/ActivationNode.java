@@ -4,8 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import xsched.analysis.heap.NewHBRelationshipRecord;
 
-public class ActivationNode<Context> extends ScheduleNode<Context>
- {
+public class ActivationNode<Context> extends ScheduleNode<Context> {
 	
 	public final Context context;	
 	public final Task task;

@@ -9,4 +9,12 @@ public abstract class ActivationsTreeInnerNode<Context> extends ActivationsTree<
 	protected ActivationsTreeInnerNode(Context context) {
 		super(context);
 	}
+	
+	public void addChild(ActivationsTree<Context> child) {
+		this.children.add(child);
+	}
+	
+	public List<ActivationsTree<Context>> children() {
+		return children;
+	}
 }

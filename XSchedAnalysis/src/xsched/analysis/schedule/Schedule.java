@@ -73,10 +73,6 @@ public class Schedule<Context> {
 		workingSet.add(node);
 	}
 	
-	public CreationEdge<Context> addCreationEdge(ScheduleNode<Context> source, ScheduleNode<Context> target, P2Set<Context> receivers, List<P2Set<Context>> params) {
-		throw new RuntimeException("noy yet implemented");
-	}
-			
 	public void addHappensBefore(ScheduleNode<Context> earlier, ScheduleNode<Context> later) {
 		List<ScheduleNode<Context>> outgoing = outgoingEdges.get(earlier);
 		if(outgoing == null) {
@@ -88,17 +84,38 @@ public class Schedule<Context> {
 		List<ScheduleNode<Context>> incoming = incomingEdges.get(later);
 		if(incoming == null) {
 			incoming = new ArrayList<ScheduleNode<Context>>();
-			incomingEdges.put(earlier, incoming);
+			incomingEdges.put(later, incoming);
 		}
 		incoming.add(earlier);
 	}
 	
+	private HashMap<ScheduleNode<Context>, List<CreationEdge<Context>>> incomingCreationEdges = new HashMap<ScheduleNode<Context>, List<CreationEdge<Context>>>();
+	private HashMap<ScheduleNode<Context>, List<CreationEdge<Context>>> outgoingCreationEdges = new HashMap<ScheduleNode<Context>, List<CreationEdge<Context>>>();
+	
+	public CreationEdge<Context> addCreationEdge(ScheduleNode<Context> earlier, ScheduleNode<Context> later, P2Set<Context> receivers, List<P2Set<Context>> params) {
+		CreationEdge<Context> edge = new CreationEdge<Context>(earlier, later, receivers, params);
+		List<CreationEdge<Context>> outgoing = outgoingCreationEdges.get(earlier);
+		if(outgoing == null) {
+			outgoing = new ArrayList<CreationEdge<Context>>();
+			outgoingCreationEdges.put(earlier, outgoing);
+		}
+		outgoing.add(edge);
+		
+		List<CreationEdge<Context>> incoming = incomingCreationEdges.get(later);
+		if(incoming == null) {
+			incoming = new ArrayList<CreationEdge<Context>>();
+			incomingCreationEdges.put(later, incoming);
+		}
+		incoming.add(edge);
+		return edge;
+	}
+	
 	public List<CreationEdge<Context>> incomingCreationEdges(ScheduleNode<Context> node) {
-		throw new RuntimeException("nyi");
+		return incomingCreationEdges.get(node);
 	}
 	
 	public List<CreationEdge<Context>> outgoingCreationEdges(ScheduleNode<Context> node) {
-		throw new RuntimeException("nyi");
+		return outgoingCreationEdges.get(node);
 	}
 	
 	public List<ScheduleNode<Context>> incomingHBEdges(ScheduleNode<Context> node) {
