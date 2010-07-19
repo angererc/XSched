@@ -1,0 +1,73 @@
+.basedir "dataset"
+
+### Domains
+	BC	29		bytecode.map
+	V	29 		variable.map
+	H	11 		heap.map
+	F	3		field.map
+	N	3		name.map
+	M	3		method.map
+	
+### Relations
+
+	#input to or computed by pointsToAnalysis
+	methodInvokes			(method:M, invokeBC:BC, name:N) 	inputtuples
+	invocationEdge			(invokeBC:BC, target:M)				inputtuples
+	store					(bc:BC, base:V, field:F, source:V) 	inputtuples
+	load					(bc:BC, base:V, field:F, dest:V) 	inputtuples
+	variablePT				(variable:V, object:H)				inputtuples
+	
+	#preprocessor does this for the schedule analysis
+	varIntoActivationPhi	(phiBC:BC, source:V, phiObject:H) 	inputtuples
+	methodContainsBC		(method:M, bc:BC) 					inputtuples
+	scheduleStatement		(schedBC:BC, actObject:H)			inputtuples
+	arrowStatement			(arrowBC:BC, lhs:V, rhs:V)			inputtuples
+
+	# outputs and transient relations
+	activationTaskImpl		(act:H, method:M) 					outputtuples
+	
+	methodReaches			(method:M, bc:BC) 					outputtuples
+	activationReaches		(act:H, bc:BC) 						outputtuples
+	
+	multiple				(v:V) 								outputtuples
+	singleton				(v:V) 								outputtuples
+	
+	# real output tuples, the ones i'm interested in
+	read					(actObject:H, readBC:BC, object:H) 	outputtuples
+	write					(actObject:H, writeBC:BC, object:H)	outputtuples
+	readWrite				(actObject:H, rwBC:BC, object:H) 	outputtuples
+	
+	#instead of having one single relation edge(type, source, target), we use four different relations
+	#which makes the post processing a little easier (it's not terribly important, though)
+	#we also keep the bytecode from where the edge came from because we can use that info during post-processing
+	creationEdge			(bc:BC, sourceActivation:H, targetActivation:H) 	outputtuples
+	solidEdge				(bc:BC, sourceActivation:H, targetActivation:H) 	outputtuples
+	dottedEdge				(bc:BC, sourceActivation:H, targetPhiActivation:H) 	outputtuples
+	recursionEdge			(bc:BC, sourceActivation:H, targetPhiActivation:H) 	outputtuples
+	
+### Rules
+	
+	activationTaskImpl(act, m) :- scheduleStatement(schedBC, act), invocationEdge(schedBC, m).
+	activationTaskImpl(phiAct, m) :- dottedEdge(_, sourceAct, phiAct),  activationTaskImpl(sourceAct, m).
+	
+	methodReaches(m, bc) :- methodContainsBC(m, bc).
+	methodReaches(m, bc) :- methodInvokes(m, invokeBC, _), invocationEdge(invokeBC, m2), methodReaches(m2, bc).
+	
+	activationReaches(act, bc) :- activationTaskImpl(act, m), methodReaches(m, bc).
+	activationReaches(phiAct, bc) :- dottedEdge(_, srcAct, phiAct), activationReaches(srcAct, bc).
+	
+	read(act, bc, obj) 		:- activationReaches(act, bc), load(bc, v, _, _), variablePT(v, obj).
+	write(act, bc, obj) 	:- activationReaches(act, bc), store(bc, v, _, _), variablePT(v, obj).
+	readWrite(act, bc, obj)	:- read(act, bc, obj).
+	readWrite(act, bc, obj)	:- write(act, bc, obj).
+	
+	multiple(v) :- variablePT(v, obj1), variablePT(v, obj2), obj1 != obj2.
+	singleton(v) :- !multiple(v).
+	
+	creationEdge(schedBC, now, target) :- activationReaches(now, schedBC), scheduleStatement(schedBC, target).
+	
+	solidEdge(bc, source, target) :- arrowStatement(bc, lhs, rhs), variablePT(lhs, source), variablePT(rhs, target), singleton(lhs), singleton(rhs).
+	
+	recursionEdge(bc, phiNode, target) :- arrowStatement(bc, lhs, rhs), variablePT(lhs, phiNode), dottedEdge(_, target, phiNode), variablePT(rhs, target).
+	
+	dottedEdge(bc, sourceObj, phiAct) :- varIntoActivationPhi(bc, sourceVar, phiAct), variablePT(sourceVar, sourceObj).

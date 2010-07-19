@@ -1,0 +1,14 @@
+#fake call to writeToOut with now, this, and input vector
+15 0
+16 1
+17 2
+#assignments in the code, including phi nodes
+9 5
+18 15
+19 15
+23 18
+23 25
+24 19
+24 26
+25 21
+26 22

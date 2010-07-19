@@ -1,0 +1,44 @@
+.basedir "dataset"
+
+### Domains
+	BC	29		bytecode.map
+	V	29 		variable.map
+	H	11 		heap.map
+	F	3		field.map
+	N	3		name.map
+	M	3		method.map
+	
+### Relations
+	#relations computed by previous analysis
+	invocationEdge				(invokeBC:BC, target:M)					inputtuples
+	methodReaches				(method:M, bc:BC) 						inputtuples
+	activationReaches			(act:H, bc:BC) 							inputtuples
+	read						(actObject:H, readBC:BC, object:H)	 	inputtuples
+	write						(actObject:H, writeBC:BC, object:H)		inputtuples
+	parallel					(act1:H, act2:H)						inputtuples
+	
+	#relations the preprocessor should generate for this analysis
+	atomicSectionContainsBC		(atomicStartBC:BC, bc:BC)				inputtuples
+	
+	#output relations
+	bcGuardedByAtomic			(activation:H, bc:BC) 					outputtuples
+	readInsideTransaction		(activation:H, object:H) 				outputtuples
+	writtenInsideTransaction	(activation:H, object:H) 				outputtuples
+	
+	requiresReadBarrier			(readBC:BC) 							outputtuples
+	requiresWriteBarrier		(writeBC:BC) 							outputtuples
+	
+### Rules
+
+	bcGuardedByAtomic(act, bc) :- activationReaches(act, atomicStartBC), atomicSectionContainsBC(atomicStartBC, bc).
+	bcGuardedByAtomic(act, bc) :- bcGuardedByAtomic(act, callBC), invocationEdge(callBC, m), methodReaches(m, bc).
+	
+	readInsideTransaction(act, obj:H) :- bcGuardedByAtomic(act, readBC), read(act, readBC, obj).
+	writtenInsideTransaction(act, obj:H) :- bcGuardedByAtomic(act, writeBC), write(act, writeBC, obj).
+
+	requiresReadBarrier(readBC) :- read(act1, readBC, obj), writtenInsideTransaction(act2, obj), parallel(act1, act2).
+	
+	requiresWriteBarrier(writeBC) :- read(act1, writeBC, obj), writtenInsideTransaction(act2, obj), parallel(act1, act2).
+								
+	requiresWriteBarrier(writeBC) :- read(act1, writeBC, obj), readInsideTransaction(act2, obj), parallel(act1, act2).
+									

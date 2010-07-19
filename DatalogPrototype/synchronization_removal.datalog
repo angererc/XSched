@@ -1,0 +1,42 @@
+.basedir "dataset"
+
+### Domains
+	BC	29		bytecode.map
+	V	29 		variable.map
+	H	11 		heap.map
+	F	3		field.map
+	N	3		name.map
+	M	3		method.map
+	
+### Relations
+	#relations computed by previous analysis
+	variablePT						(variable:V, object:H)					inputtuples
+	activationReaches				(act:H, bc:BC)	 						inputtuples
+	invocationEdge					(invokeBC:BC, target:M)					inputtuples
+	methodReaches					(method:M, bc:BC)	 					inputtuples
+	write							(actObject:H, writeBC:BC, object:H)		inputtuples
+	readWrite						(actObject:H, rwBC:BC, object:H) 		inputtuples
+	parallel						(act1:H, act2:H)						inputtuples
+	
+	#relations the preprocessor should generate for this analysis
+	lockVariable					(monitorEnterBC:BC, variable:V)			inputtuples
+	synchronizedSectionContainsBC	(monitorEnterBC:BC, bc:BC)				inputtuples
+	
+	#output tuples
+	lockObject						(monitorEnterBC:BC, object:H)			outputtuples
+	bcGuardedByMonitorEnter			(activation:H, bc:BC, monitorEnterBC:BC) outputtuples
+	requiredMonitorEnter			(monitorEnterBC:BC)						outputtuples
+	unnecessaryMonitorEnter			(monitorEnterBC:BC)						outputtuples
+		
+### Rules
+
+	lockObject(monitorEnterBC, obj)	:- lockVariable(monitorEnterBC, v), variablePT(v, obj).
+	
+	bcGuardedByMonitorEnter(act, bc, monitorEnterBC) :- activationReaches(act, monitorEnterBC), synchronizedSectionContainsBC(monitorEnterBC, bc).
+	
+	bcGuardedByMonitorEnter(act, bc, monitorEnterBC) :- bcGuardedByMonitorEnter(act, callBC, monitorEnterBC), invocationEdge(callBC, m), methodReaches(m, bc).
+														
+	requiredMonitorEnter(monitorEnterBC1) :- readWrite(act1, readWriteBC, obj), write(act2, writeBC, obj), bcGuardedByMonitorEnter(act1, readWriteBC, monitorEnterBC1), bcGuardedByMonitorEnter(act2, writeBC, monitorEnterBC2), lockObject(monitorEnterBC1, lockObj), lockObject(monitorEnterBC2, lockObj),	parallel(act1, act2).
+	
+	unnecessaryMonitorEnter(monitorEnterBC) :- !requiredMonitorEnter(monitorEnterBC).
+	
