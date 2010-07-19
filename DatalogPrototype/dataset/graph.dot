@@ -1,0 +1,149 @@
+digraph G {
+	/* heap */
+	node [shape=box]
+	h0  [label="initial now"]
+	h1  [label="initial this"]
+	h2  [label="input vector"]
+	h3  [label="vector elem 1"]
+	h4  [label="vector elem 2"]
+	h5  [label="phi(r2, r2_2)"]
+	h6  [label="phi(r3, r3_2)"]
+	h7  [label="sched process"]
+	h8  [label="sched write"]
+	h9  [label="complex computation"]
+	h10  [label="initial out field"]
+	
+	/* variables */
+	node [shape=circle]
+	v0  [label="initial now"]
+	v1  [label="initial this"]
+	v2  [label="input vector"]
+	v3  [label="vector elem1"]
+	v4  [label="vector elem2"]
+	v5  [label="process.now"]
+	v6  [label="process.r0"]
+	v7  [label="process.r1"]
+	v8  [label="process.$r3"]
+	v9  [label="process.$r2"]
+	v10 [label="write.now"]
+	v11 [label="write.r0"]
+	v12 [label="write.r1"]
+	v13 [label="write.$r2"]
+	v14 [label="write.$r3"]
+	v15 [label="writeToOut.now"]
+	v16 [label="writeToOut.r0"]
+	v17 [label="writeToOut.r1"]
+	v18 [label="writeToOut.r2"]
+	v19 [label="writeToOut.r3"]
+	v20 [label="writeToOut.r5"]
+	v21 [label="writeToOut.6"]
+	v22 [label="writeToOut.r7"]
+	v23 [label="writeToOut.r2_1"]
+	v24 [label="writeToOut.r3_1"]
+	v25 [label="writeToOut.r2_2"]
+	v26 [label="writeToOut.r3_2"]
+	v27 [label="writeToOut.$z0"]
+	v28 [label="initial out]
+	
+	/* variable PT */
+	edge [style=dotted]
+	v0  -> h0 
+	v16 -> h1 
+	v8  -> h9 
+	v24 -> h0 
+	v24 -> h8 
+	v24 -> h6 
+	v4  -> h4 
+	v20 -> h4 
+	v20 -> h3 
+	v12 -> h7 
+	v28 -> h10 
+	v2  -> h2 
+	v18 -> h0 
+	v10 -> h8 
+	v26 -> h8 
+	v6  -> h1 
+	v22 -> h8 
+	v14 -> h9 
+	v1  -> h1 
+	v17 -> h2 
+	v9  -> h7 
+	v25 -> h7 
+	v5  -> h7 
+	v21 -> h7 
+	v13 -> h10 
+	v3  -> h3 
+	v19 -> h0 
+	v11 -> h1 
+	v7  -> h4 
+	v7  -> h3 
+	v23 -> h0 
+	v23 -> h5 
+	v23 -> h7 
+	v15 -> h0
+	
+	/* heap PT */
+	edge [style=bold]
+	h7  -> h9 
+	h2  -> h4 
+	h2  -> h3 
+	h10 -> h9 
+	h1  -> h10
+	
+	/* assign */
+	edge [style=dashed, color=red, dir=back]
+	v16 -> v1 
+	v24 -> v26 
+	v24 -> v19 
+	v12 -> v21 
+	v18 -> v15 
+	v10 -> v22 
+	v26 -> v22 
+	v6  -> v16 
+	v17 -> v2 
+	v9  -> v5 
+	v25 -> v21 
+	v5  -> v21 
+	v19 -> v15 
+	v11 -> v16 
+	v7  -> v20 
+	v23 -> v18 
+	v23 -> v25 
+	v15 -> v0
+	
+	/* solid edge */
+	edge [style=bold, color=blue, dir=fwd]
+	
+	h7 -> h8
+	
+	/* creation edge */
+	edge [style=bold, color=green, dir=fwd]
+	h0 -> h7 
+	h0 -> h8
+	
+	/* dotted edge */
+	edge [style=dashed, color=brown, dir=fwd]
+	h0 -> h6 
+	h8 -> h6 
+	h0 -> h5 
+	h7 -> h5
+	
+	/* recursion edges */
+	edge [style=normal, color=navy, dir=fwd]
+	h5 -> h7 	
+	h6 -> h8
+	
+	/* reads */
+	edge [style=dashed, color=orange, dir=fwd]
+	h8 -> h1 
+	h6 -> h1 
+	h8 -> h7 
+	h6 -> h7
+	
+	/* writes */
+	edge [style=normal, color=orange, dir=fwd]
+	h5 -> h7 
+	h7 -> h7 
+	h8 -> h10 
+	h6 -> h10
+}
