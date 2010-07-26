@@ -3,7 +3,12 @@
 	<classpathentry kind="src" path="shared_tests"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="tests"/>
+	<classpathentry kind="src" path="jchord"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.core"/>
+	<classpathentry kind="lib" path="/Users/angererc/Projects/XSched/XSchedAnalysis/lib/bddbddb/bddbddb.jar"/>
+	<classpathentry kind="lib" path="/Users/angererc/Projects/XSched/XSchedAnalysis/lib/bddbddb/javabdd-1.0b2.jar"/>
+	<classpathentry kind="lib" path="/Users/angererc/Projects/XSched/XSchedAnalysis/lib/bddbddb/jdom.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
