@@ -1,10 +1,13 @@
 
 public class TestClass {
+	private int myX;
 	public void foo(String[] args){
-		int x = 0, y = 1, z = 0;
+		int x = myX, y = 1, z = 0;
 		
 		if(x == y) {
-			z = 42;
+			synchronized(this) {
+				z = 42;
+			}
 		} else {
 			z = 99;
 		}
