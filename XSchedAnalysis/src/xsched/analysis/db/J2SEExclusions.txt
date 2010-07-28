@@ -1,0 +1,10 @@
+javax\/.*
+sun\/.*
+com\/.*
+org\/.*
+java\/[^l].*
+apple\/.*
+sunw\/.*
+java\/lang\/OutOfMemoryError
+java\/lang\/Override
+java\/lang\/[^O].*

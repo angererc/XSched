@@ -1,12 +1,21 @@
-package xsched.analysis.db;
+	package xsched.analysis.db;
 
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+
+import xsched.analysis.bddbddb.BinaryRelation;
 import xsched.analysis.bddbddb.Domain;
 import xsched.analysis.bddbddb.QuaternaryRelation;
+import xsched.analysis.bddbddb.Relation;
 import xsched.analysis.bddbddb.TernaryRelation;
 
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
+import com.ibm.wala.types.Selector;
+import com.ibm.wala.types.TypeName;
 
 public class ExtensionalDatabase {
 
@@ -15,26 +24,116 @@ public class ExtensionalDatabase {
 	/* **************
 	 * Domains
 	 */
-	public final Domain<SSAInstruction> bytecode = new Domain<SSAInstruction>("BC");
-	public final Domain<NewSiteReference> heap = new Domain<NewSiteReference>("H");
-	public final Domain<Variable> variable = new Domain<Variable>("V");
-	public final Domain<FieldReference> field = new Domain<FieldReference>("F");
+	public final Domain<SSAInstruction> bytecodes = new Domain<SSAInstruction>("Bytecode");
+	public final Domain<NewSiteReference> objects = new Domain<NewSiteReference>("Object");
+	public final Domain<Variable> variables = new Domain<Variable>("Variable");
+	public final Domain<FieldReference> fields = new Domain<FieldReference>("Field");
+	//TODO we don't use TypeReference because that defines a type as a tuple of class loader and type
+	//but class loaders are hierarchical which we cannot handle in this flat type domain.
+	//one possibility (the more correct one) would be to flatten the types by adding a type for each class loader
+	//(e.g., <Application, Ljava/lang/Object> and <Primordial, Ljava/lang/Object>)
+	//or we just use the name and don't handle all this class loader craziness correctly.
+	public final Domain<TypeName> types = new Domain<TypeName>("Type");  
+	public final Domain<IMethod> methods = new Domain<IMethod>("Method");
+	public final Domain<Selector> selectors = new Domain<Selector>("Selector");
+	public final Domain<Integer> paramPositions = new Domain<Integer>("ParamPosition");
 	
+	public FieldReference arrayElementField = FieldReference.findOrCreate(ClassLoaderReference.Primordial, "gen_array", "element", "Ljava/lang/Object");
 	/* **************
 	 * Relations
 	 */
-	public TernaryRelation<SSAInstruction, Variable, NewSiteReference> newStatement = 
-					new TernaryRelation<SSAInstruction, Variable, NewSiteReference>("newStatement", bytecode, variable, heap, "BC0_V0_H0");
+	public BinaryRelation<Variable, NewSiteReference> newStatement = 
+		new BinaryRelation<Variable, NewSiteReference>("newStatement", variables, objects, "Variable0_Object0");
 	
+	//(base, field, dest) => dest = base.field
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> load =
-					new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("load", bytecode, variable, field, variable, "BC0_V0_F0_V1");
+		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("load", bytecodes, variables, fields, variables, "Bytecode0_Variable0_Field0_Variable1");
 	
+	//(base, field, source) => base.field = source
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> store =
-		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("store", bytecode, variable, field, variable, "BC0_V0_F0_V1");
+		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("store", bytecodes, variables, fields, variables, "Bytecode0_Variable0_Field0_Variable1");
+	
+	public BinaryRelation<Variable, TypeName> variableType =
+		new BinaryRelation<Variable, TypeName>("variableType", variables, types, "Variable0_Type0");
+	
+	public BinaryRelation<NewSiteReference, TypeName> objectType =
+		new BinaryRelation<NewSiteReference, TypeName>("objectType", objects, types, "Object0_Type0");
+	
+	public BinaryRelation<TypeName, TypeName> assignable =
+		new BinaryRelation<TypeName, TypeName>("assignable", types, types, "Type0_Type1");
+	
+	public TernaryRelation<TypeName, Selector, IMethod> methodImplementation =
+		new TernaryRelation<TypeName, Selector, IMethod>("methodImplementation", types, selectors, methods, "Type0_Selector0_Method0");
+	
+	public TernaryRelation<IMethod, Integer, Variable> formals =
+		new TernaryRelation<IMethod, Integer, Variable>("formal", methods, paramPositions, variables, "Method0_ParamPosition0_Variable0");
+	
+	public BinaryRelation<IMethod, Variable> methodReturns =
+		new BinaryRelation<IMethod, Variable>("methodReturn", methods, variables, "Method0_Variable0");
+	
+	public TernaryRelation<SSAInstruction, Integer, Variable> actuals =
+		new TernaryRelation<SSAInstruction, Integer, Variable>("actual", bytecodes, paramPositions, variables, "Bytecode0_ParamPosition0_Variable0");
+	
+	public BinaryRelation<SSAInstruction, Variable> callSiteReturns =
+		new BinaryRelation<SSAInstruction, Variable>("callSiteReturns", bytecodes, variables, "Bytecode0_Variable0");
+	
+	public BinaryRelation<SSAInstruction, IMethod> staticInvokes =
+		new BinaryRelation<SSAInstruction, IMethod>("staticInvoke", bytecodes, methods, "Bytecode0_Method0");
+	
+	public BinaryRelation<SSAInstruction, Selector> methodInvokes =
+		new BinaryRelation<SSAInstruction, Selector>("methodInvoke", bytecodes, selectors, "Bytecode0_Selector0");
+	
+	/* *******************
+	 * Methods
+	 */
 	
 	public void domainsAreComplete() {
-		newStatement.zero();
-		load.zero();
-		store.zero();
+		for(Relation<?> relation : relations()) {
+			relation.zero();
+		}	
 	}
+	
+	public void save(String dirName) {
+		for(Domain<?> domain : domains()) {
+			domain.save(dirName, true);
+		}
+		
+		for(Relation<?> relation : relations()) {
+			relation.save(dirName);
+		}
+		
+	}
+	
+	private ArrayList<Domain<?>> domains() {
+		ArrayList<Domain<?>> result = new ArrayList<Domain<?>>();
+		for(Field f : this.getClass().getFields()) {
+			if(Domain.class.isAssignableFrom(f.getType())) {
+				try {
+					result.add((Domain<?>) f.get(this));
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return result;
+	}
+	
+	private ArrayList<Relation<?>> relations() {
+		ArrayList<Relation<?>> result = new ArrayList<Relation<?>>();
+		for(Field f : this.getClass().getFields()) {
+			if(Relation.class.isAssignableFrom(f.getType())) {
+				try {
+					result.add((Relation<?>) f.get(this));
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return result;
+	}
+	
 }

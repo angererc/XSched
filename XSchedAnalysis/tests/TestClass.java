@@ -1,17 +1,29 @@
+import java.util.Vector;
+import xsched.Activation;
 
 public class TestClass {
-	private int myX;
-	public void foo(String[] args){
-		int x = myX, y = 1, z = 0;
-		
-		if(x == y) {
-			synchronized(this) {
-				z = 42;
-			}
-		} else {
-			z = 99;
-		}
-		
-		args[z] = "foo";
-	}
+	Vector<Object> out;
+    
+    public Object process(Object data) {
+        return new Object();
+    }
+    public void write(Activation<Object> processActivation) {
+        out.add(processActivation.result()); 
+    }    
+    public void writeToOut(Vector<Object> input) {
+        Activation<Object> lastProcess = Activation.now();
+        Activation<Void> lastWrite = Activation.now();
+        
+        for(Object data : input) {
+            Activation<Object> process = new Activation<Object>(this, "process", data);
+            Activation<Void> write = new Activation<Void>(this, "write", process);
+    
+            lastProcess.hb(process);
+            process.hb(write);
+            lastWrite.hb(write);
+            
+            lastProcess = process;
+            lastWrite = write;
+        }
+    }
 }

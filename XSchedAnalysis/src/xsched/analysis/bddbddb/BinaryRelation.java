@@ -7,6 +7,7 @@ public class BinaryRelation<A, B> extends Relation<BinaryRelation<A, B>> {
 	}
 	
 	public void add(A elemA, B elemB) {
+		System.out.println(String.format("Relation %s: adding (%s, %s)", getName(), elemA, elemB));
 		rel.add(elemA, elemB);
 	}
 	

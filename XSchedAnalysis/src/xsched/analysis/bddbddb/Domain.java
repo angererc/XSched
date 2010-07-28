@@ -54,9 +54,9 @@ public class Domain<T> implements Iterable<T> {
 		return dom.add(elem);
 	}
 	
-	public void save(String filename, boolean alsoMapFile) {
+	public void save(String dirName, boolean alsoMapFile) {
 		try {
-			dom.save(filename, alsoMapFile);
+			dom.save(dirName, alsoMapFile);
 		} catch (IOException e) {
 			//in Rel, the JChord people catch the exception like this, but in Dom they don't
 			//i catch it here to make the API a little more uniform

@@ -1,31 +1,31 @@
 package xsched.analysis.db;
 
-import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.classLoader.IMethod;
 
 public class Variable {
-	public final MethodReference methodRef;
+	public final IMethod method;
 	public final int ssaID;
 	
-	public Variable(MethodReference methodRef, int ssaID) {
-		this.methodRef = methodRef;
+	public Variable(IMethod method, int ssaID) {
+		this.method = method;
 		this.ssaID = ssaID;
 	}
 	
 	@Override
 	public String toString() {
-		return methodRef.toString() + ".v" + ssaID; 
+		return method.getSignature() + ".v" + ssaID; 
 	}
 	
 	@Override
 	public int hashCode() {
-		return methodRef.hashCode() + ssaID;
+		return method.hashCode() + ssaID;
 	}
 	
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof Variable) {
 			Variable other = (Variable)o;
-			return other.ssaID == ssaID && other.methodRef.equals(methodRef);
+			return other.ssaID == ssaID && other.method.equals(method);
 		} else {
 			return false;
 		}
