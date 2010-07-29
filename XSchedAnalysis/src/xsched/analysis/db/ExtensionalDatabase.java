@@ -49,9 +49,17 @@ public class ExtensionalDatabase {
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> load =
 		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("load", bytecodes, variables, fields, variables, "Bytecode0_Variable0_Field0_Variable1");
 	
+	//load of a primitive field; we still want to know about the access but we don't want to know the value
+	public TernaryRelation<SSAInstruction, Variable, FieldReference> primLoad =
+		new TernaryRelation<SSAInstruction, Variable, FieldReference>("primLoad", bytecodes, variables, fields, "Bytecode0_Variable0_Field0");
+	
 	//(base, field, source) => base.field = source
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> store =
 		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("store", bytecodes, variables, fields, variables, "Bytecode0_Variable0_Field0_Variable1");
+	
+	//(base, field, source) => base.field = source
+	public TernaryRelation<SSAInstruction, Variable, FieldReference> primStore =
+		new TernaryRelation<SSAInstruction, Variable, FieldReference>("primStore", bytecodes, variables, fields, "Bytecode0_Variable0_Field0");
 	
 	public BinaryRelation<Variable, TypeName> variableType =
 		new BinaryRelation<Variable, TypeName>("variableType", variables, types, "Variable0_Type0");
@@ -61,6 +69,9 @@ public class ExtensionalDatabase {
 	
 	public BinaryRelation<TypeName, TypeName> assignable =
 		new BinaryRelation<TypeName, TypeName>("assignable", types, types, "Type0_Type1");
+	
+	public BinaryRelation<Variable, Variable> assigns0 =
+		new BinaryRelation<Variable, Variable>("assigns0", variables, variables, "Variable0_Variable1");
 	
 	public TernaryRelation<TypeName, Selector, IMethod> methodImplementation =
 		new TernaryRelation<TypeName, Selector, IMethod>("methodImplementation", types, selectors, methods, "Type0_Selector0_Method0");

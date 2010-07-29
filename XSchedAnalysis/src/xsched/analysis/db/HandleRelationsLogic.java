@@ -1,18 +1,30 @@
 package xsched.analysis.db;
 
 import java.util.HashMap;
+import java.util.Set;
+
+import xsched.analysis.utils.DefUseUtils;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.NewSiteReference;
+import com.ibm.wala.ipa.callgraph.AnalysisCache;
+import com.ibm.wala.ipa.callgraph.AnalysisOptions;
+import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.SSAArrayLoadInstruction;
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
+import com.ibm.wala.ssa.SSACheckCastInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.types.FieldReference;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 
@@ -28,19 +40,28 @@ import com.ibm.wala.types.TypeReference;
  */
 class HandleRelationsLogic {
 
+	private final AnalysisCache cache;
+	private final AnalysisOptions options;
 	private final ExtensionalDatabase database;
 	private final ClassHierarchy classHierarchy;
-
+	
 	private HashMap<Integer, Variable> variables;
 	private IMethod method;
+	private IR ir;
+	private DefUse defUse;
 	
 	HandleRelationsLogic(FillExtensionalDatabase parent) {
 		this.database = parent.database;
 		this.classHierarchy = parent.classHierarchy;
+		this.cache = parent.cache;
+		this.options = parent.options;
 	}
 	
-	private void addToVariableType(Variable variable, TypeReference type) {		
-		database.variableType.add(variable, type.getName());
+	private void addToVariableType(Variable variable) {
+		Set<TypeReference> types = DefUseUtils.definedReferenceTypes(ir, defUse, variable.ssaID);
+		for(TypeReference type : types) {
+			database.variableType.add(variable, type.getName());
+		}
 	}
 
 	void addToAssignableRel(IClass klass) {
@@ -52,34 +73,91 @@ class HandleRelationsLogic {
 			superKlass = superKlass.getSuperclass();
 		}
 	}
+	
+	void addToAssignsRel(SSACheckCastInstruction instruction) {
+		if(DefUseUtils.definesReferenceType(ir, defUse, instruction)) {
+			Variable lhs = variable(instruction.getResult());
+			Variable rhs = variable(instruction.getVal());
+			database.assigns0.add(lhs, rhs);
+			addToVariableType(lhs);
+		}
+	}
+	
+	void addToAssignsRel(SSAPhiInstruction instruction) {
+		if(DefUseUtils.definesReferenceType(ir, defUse, instruction)) {
+			Variable lhs = variable(instruction.getDef());
+			for(int i = 0; i < instruction.getNumberOfUses(); i++) {
+				Variable rhs = variable(instruction.getUse(i));
+				database.assigns0.add(lhs, rhs);
+			}
+			
+			addToVariableType(lhs);
+		}
+	}
+	
+	void addToStoreRel(SSAArrayStoreInstruction instruction) {
+		//base.field = source		
+		Variable lhs = variable(instruction.getArrayRef());
+		FieldReference field = database.arrayElementField;
 		
+		if(instruction.getElementType().isReferenceType()) {
+			Variable rhs = variable(instruction.getValue());;
+			database.store.add(instruction, lhs, field, rhs);
+		} else {
+			database.primStore.add(instruction, lhs, field);
+		}
+				
+	}
+	
 	void addToStoreRel(SSAPutInstruction instruction) {
 		//base.field = source
 		Variable lhs = variable(instruction.getRef());
 		FieldReference field = instruction.getDeclaredField();
-		Variable rhs = variable(instruction.getVal());;		
-		database.store.add(instruction, lhs, field, rhs);		
+		if(field.getFieldType().isReferenceType()) {
+			Variable rhs = variable(instruction.getVal());
+			database.store.add(instruction, lhs, field, rhs);
+		} else {
+			database.primStore.add(instruction, lhs, field);
+		}
+	}
+	
+	void addToLoadRel(SSAArrayLoadInstruction instruction) {
+		Variable lhs = variable(instruction.getDef());
+		Variable rhs = variable(instruction.getArrayRef());
+		FieldReference field = database.arrayElementField;
+		
+		if(DefUseUtils.definesReferenceType(ir, defUse, lhs.ssaID)) {
+			//***************
+			// load relation
+			database.load.add(instruction, rhs, field, lhs);
+			addToVariableType(lhs);
+		} else {
+			database.primLoad.add(instruction, rhs, field);
+		}
 	}
 	
 	void addToLoadRel(SSAGetInstruction instruction) {
 		Variable lhs = variable(instruction.getDef());
-		Variable rhs = variable(instruction.getRef());
 		FieldReference field = instruction.getDeclaredField();
-		//***************
-		// load relation
-		database.load.add(instruction, lhs, field, rhs);
-		addToVariableType(lhs, instruction.getDeclaredFieldType());
+		Variable rhs = variable(instruction.getRef());
+		
+		if(DefUseUtils.definesReferenceType(ir, defUse, lhs.ssaID)) {					
+			//***************
+			// load relation
+			database.load.add(instruction, rhs, field, lhs);
+			addToVariableType(lhs);
+		} else {
+			database.primLoad.add(instruction, rhs, field);
+		}
 	}
 	
 	void addToNewStatementRel(SSANewInstruction instruction) {
 		NewSiteReference object = instruction.getNewSite();
 		Variable lhs = variable(instruction.getDef());
-		database.newStatement.add(lhs, object);
-		
-		TypeReference objectType = object.getDeclaredType();
+		database.newStatement.add(lhs, object);		
 		database.objectType.add(object, object.getDeclaredType().getName());
 		
-		addToVariableType(lhs, objectType);
+		addToVariableType(lhs);
 	}
 	
 	void addToMethodImplementationRel(IClass klass) {
@@ -92,13 +170,15 @@ class HandleRelationsLogic {
 		}
 	}
 	
-	void addToFormalRel(IR ir) {
+	void addToFormalRel() {
 		//TODO we only handle formals for java methods here, not formals for native methods!
 		int[] params = ir.getParameterValueNumbers();
 		for(int i = 0; i < params.length; i++) {
-			Variable param = variable(params[i]);
-			database.formals.add(ir.getMethod(), i, param);
-			addToVariableType(param, ir.getParameterType(i));			
+			if(ir.getParameterType(i).isReferenceType()) {
+				Variable param = variable(params[i]);
+				database.formals.add(ir.getMethod(), i, param);
+				addToVariableType(param);
+			}
 		}		
 	}
 	
@@ -110,25 +190,39 @@ class HandleRelationsLogic {
 	}
 
 	void addToActualsRel(SSAInvokeInstruction instruction) {
-		for(int i = 0; i < instruction.getNumberOfParameters(); i++) {
-			Variable param = variable(instruction.getUse(i));
-			database.actuals.add(instruction, i, param);
-		}
+		final MethodReference target = instruction.getCallSite().getDeclaredTarget();
+		
+		if(instruction.getCallSite().isStatic()) {
+			for(int i = 0; i < instruction.getNumberOfParameters(); i++) {
+				if(target.getParameterType(i).isReferenceType()) {
+					Variable param = variable(instruction.getUse(i));
+					database.actuals.add(instruction, i, param);
+				}
+			}
+		} else {
+			//a virtual call, so 0 is the this pointer
+			Variable param = variable(instruction.getUse(0));
+			database.actuals.add(instruction, 0, param);
+			for(int i = 1; i < instruction.getNumberOfParameters(); i++) {
+				if(target.getParameterType(i-1).isReferenceType()) { //the method.getParameterType() doesn't contain "this"
+					param = variable(instruction.getUse(i));
+					database.actuals.add(instruction, i, param);
+				}
+			}
+		}		
 	}
 	
 	void addToCallSiteReturnsRel(SSAInvokeInstruction instruction) {		
 		Variable exception = variable(instruction.getException()); 
 		database.callSiteReturns.add(instruction, exception);
-		if(instruction.getExceptionTypes().size() == 1) {
-			addToVariableType(exception, instruction.getExceptionTypes().iterator().next());
-		} else {
-			addToVariableType(exception, TypeReference.JavaLangError);
-		}
+		addToVariableType(exception);
 		
 		for(int i = 0; i < instruction.getNumberOfReturnValues(); i++) {
-			Variable ret = variable(instruction.getReturnValue(i));
-			database.callSiteReturns.add(instruction, ret);
-			addToVariableType(ret, instruction.getDeclaredResultType());
+			if(instruction.getDeclaredResultType().isReferenceType()) {
+				Variable ret = variable(instruction.getReturnValue(i));
+				database.callSiteReturns.add(instruction, ret);
+				addToVariableType(ret);
+			}
 		}
 	}
 	
@@ -155,7 +249,9 @@ class HandleRelationsLogic {
 		return v;
 	}	
 	
-	void beginMethod(IMethod method) {
+	void beginMethod(IMethod method, IR ssa) {
+		ir = ssa;
+		defUse = cache.getSSACache().findOrCreateDU(method, Everywhere.EVERYWHERE, options.getSSAOptions());
 		variables = new HashMap<Integer, Variable>();
 		this.method = method;
 	}

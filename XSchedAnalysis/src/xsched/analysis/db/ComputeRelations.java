@@ -6,29 +6,18 @@ import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ssa.IR;
-import com.ibm.wala.ssa.SSAArrayLengthInstruction;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
-import com.ibm.wala.ssa.SSABinaryOpInstruction;
 import com.ibm.wala.ssa.SSACheckCastInstruction;
-import com.ibm.wala.ssa.SSAComparisonInstruction;
-import com.ibm.wala.ssa.SSAConditionalBranchInstruction;
-import com.ibm.wala.ssa.SSAConversionInstruction;
 import com.ibm.wala.ssa.SSAGetCaughtExceptionInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
-import com.ibm.wala.ssa.SSAGotoInstruction;
-import com.ibm.wala.ssa.SSAInstanceofInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSALoadMetadataInstruction;
-import com.ibm.wala.ssa.SSAMonitorInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
-import com.ibm.wala.ssa.SSAPiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.ssa.SSAReturnInstruction;
-import com.ibm.wala.ssa.SSASwitchInstruction;
 import com.ibm.wala.ssa.SSAThrowInstruction;
-import com.ibm.wala.ssa.SSAUnaryOpInstruction;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
 
 class ComputeRelations {
@@ -65,12 +54,12 @@ class ComputeRelations {
 	}
 	
 	private void processCallableMethod(IMethod method) {
-		IR ssa = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
+		IR ir = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
 		
-		handler.beginMethod(method);
+		handler.beginMethod(method, ir);
 		
-		handler.addToFormalRel(ssa);
-		ssa.visitAllInstructions(visitor);
+		handler.addToFormalRel();
+		ir.visitAllInstructions(visitor);
 	}
 	
 	private class MethodVisitor extends Visitor {
@@ -79,81 +68,32 @@ class ComputeRelations {
 		 * the visitor implementation that
 		 * actually fills the extensional database
 		 * *******************/
-	
-		@Override
-		public void visitArrayLength(SSAArrayLengthInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
+		
 		@Override
 		public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
-			// TODO Auto-generated method stub
-	
+			handler.addToLoadRel(instruction);
 		}
 	
 		@Override
 		public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitBinaryOp(SSABinaryOpInstruction instruction) {
-			// TODO Auto-generated method stub
-	
+			handler.addToStoreRel(instruction);
 		}
 	
 		@Override
 		public void visitCheckCast(SSACheckCastInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitComparison(SSAComparisonInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitConditionalBranch(
-				SSAConditionalBranchInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitConversion(SSAConversionInstruction instruction) {
-			// TODO Auto-generated method stub
-	
+			handler.addToAssignsRel(instruction);
 		}
 	
 		@Override
 		public void visitGet(SSAGetInstruction instruction) {	
-			handler.addToLoadRel(instruction);
+			handler.addToLoadRel(instruction);		
+		}
+	
+		@Override
+		public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instruction) {
+			new RuntimeException("no idea how to handle that yet...").printStackTrace();
+		}
 			
-		}
-	
-		@Override
-		public void visitGetCaughtException(
-				SSAGetCaughtExceptionInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitGoto(SSAGotoInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitInstanceof(SSAInstanceofInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
 		@Override
 		public void visitInvoke(SSAInvokeInstruction instruction) {
 			handler.addToActualsRel(instruction);
@@ -162,14 +102,7 @@ class ComputeRelations {
 	
 		@Override
 		public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitMonitor(SSAMonitorInstruction instruction) {
-			// TODO Auto-generated method stub
-	
+			new RuntimeException("no idea how to handle that yet...").printStackTrace();
 		}
 	
 		@Override
@@ -179,16 +112,9 @@ class ComputeRelations {
 	
 		@Override
 		public void visitPhi(SSAPhiInstruction instruction) {
-			// TODO Auto-generated method stub
-	
+			handler.addToAssignsRel(instruction);
 		}
-	
-		@Override
-		public void visitPi(SSAPiInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
+		
 		@Override
 		public void visitPut(SSAPutInstruction instruction) {
 			handler.addToStoreRel(instruction);			
@@ -200,21 +126,8 @@ class ComputeRelations {
 		}
 	
 		@Override
-		public void visitSwitch(SSASwitchInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
 		public void visitThrow(SSAThrowInstruction instruction) {
-			// TODO Auto-generated method stub
-	
-		}
-	
-		@Override
-		public void visitUnaryOp(SSAUnaryOpInstruction instruction) {
-			// TODO Auto-generated method stub
-	
+			new RuntimeException("no idea how to handle that yet...").printStackTrace();
 		}
 	}
 }

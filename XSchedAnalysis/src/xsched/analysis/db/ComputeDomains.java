@@ -2,17 +2,21 @@ package xsched.analysis.db;
 
 import java.util.Iterator;
 
+import xsched.analysis.utils.DefUseUtils;
+
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
+import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.TypeName;
@@ -47,10 +51,6 @@ class ComputeDomains {
 		}
 	}
 	
-	private boolean includeBytecode(SSAInstruction inst) {
-		return (inst instanceof SSAGetInstruction) || (inst instanceof SSAPutInstruction) || (inst instanceof SSAAbstractInvokeInstruction);
-	}
-	
 	private void addCheatingElements() {
 		System.err.println("!!!! Cheating while computing domains!!!");
 		database.types.add(TypeReference.JavaLangStringBuilder.getName());
@@ -60,6 +60,7 @@ class ComputeDomains {
 		database.types.add(TypeReference.JavaLangError.getName());
 		database.types.add(TypeReference.JavaUtilIterator.getName());
 		database.types.add(TypeReference.JavaUtilVector.getName());
+		database.types.add(TypeName.findOrCreate("V"));
 		database.types.add(TypeName.findOrCreate("Z"));
 		database.types.add(TypeName.findOrCreate("I"));
 		database.types.add(TypeName.findOrCreate("J"));
@@ -87,9 +88,11 @@ class ComputeDomains {
 		//********
 		// Fields domain
 		for(IField field : klass.getDeclaredInstanceFields()) {
+			//we keep even primitive fields because we might use them in datalog files for datarace checks etc
 			database.fields.add(field.getReference());
 		}
 		for(IField field : klass.getDeclaredStaticFields()) {
+			//we keep even primitive fields because we might use them in datalog files for datarace checks etc
 			database.fields.add(field.getReference());
 		}
 		
@@ -112,6 +115,14 @@ class ComputeDomains {
 		
 	}
 
+	private boolean includeBytecode(SSAInstruction inst) {
+		return 
+			(inst instanceof SSAGetInstruction) || 
+			(inst instanceof SSAPutInstruction) || 
+			(inst instanceof SSAAbstractInvokeInstruction) ||
+			(inst instanceof SSAPhiInstruction);
+	}
+	
 	private void processCallableMethod(IMethod method) {
 		//************
 		// Methods domain
@@ -122,16 +133,20 @@ class ComputeDomains {
 		}
 		
 		//Method has a body
-		IR ssa = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
+		IR ir = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
 		
-		for(int variable = 0; variable <= ssa.getSymbolTable().getMaxValueNumber(); variable++) {
+		DefUse defUse = cache.getSSACache().findOrCreateDU(ir, Everywhere.EVERYWHERE);
+		
+		for(int variable = 1; variable <= ir.getSymbolTable().getMaxValueNumber(); variable++) {
 			//************
 			//Variables domain
-			database.variables.add(new Variable(method, variable));
+			if(DefUseUtils.definesReferenceType(ir, defUse, variable)) {
+				database.variables.add(new Variable(method, variable));
+			}
 		}
 		
 		//domains extracted from the body
-		Iterator<SSAInstruction> it = ssa.iterateAllInstructions();
+		Iterator<SSAInstruction> it = ir.iterateAllInstructions();
 		while(it.hasNext()) {
 			SSAInstruction instruction = it.next();
 			
@@ -147,24 +162,7 @@ class ComputeDomains {
 				database.objects.add(((SSANewInstruction)instruction).getNewSite());
 			}
 		}
-/*
-	    // construct an IR; it will be cached
-	    IR ssa = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
-	    
-	    //we "fake" and additional visit method to handle stuff that is done for every instruction
-	    ComputeDomains computeDomains = new ComputeDomains(database, method.getReference());
-	    ssa.visitAllInstructions(computeDomains);
-	    
-	    database.domainsAreComplete();
-	    
-	    ComputeRelations computeRelations= new ComputeRelations(database, computeDomains.getVariables());
-	    ssa.visitAllInstructions(computeRelations);
-	    
-	    ControlFlowGraph cfg = ssa.getControlFlowGraph();
-	    ControlDependenceGraph cdg = new ControlDependenceGraph(cfg);
-	    System.out.println(ssa);
-	    System.out.println(cdg);
-	 */
+
 	}
 	
 }

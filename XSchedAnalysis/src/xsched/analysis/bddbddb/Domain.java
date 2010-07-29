@@ -28,6 +28,11 @@ public class Domain<T> implements Iterable<T> {
 		return dom.getName();
 	}
 	
+	@Override
+	public String toString() {
+		return "Domain " + dom.getName();
+	}
+	
 	/**
 	 * this method is here more for sanity checks than for usefullness.
 	 * you know that elem is in the domain, return it; if its not, crash
