@@ -9,7 +9,6 @@ import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.util.config.AnalysisScopeReader;
-import com.ibm.wala.util.io.FileProvider;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 
 public class FillExtensionalDatabase {
@@ -18,11 +17,14 @@ public class FillExtensionalDatabase {
 	final ClassHierarchy classHierarchy;
 	final AnalysisOptions options = new AnalysisOptions();
 	final AnalysisCache cache = new AnalysisCache();
+	final Cheater cheater;
 		
-	public FillExtensionalDatabase(ExtensionalDatabase database, String scopeString) throws IOException, ClassHierarchyException {
+	public FillExtensionalDatabase(ExtensionalDatabase database, String scopeString, Cheater cheater) throws IOException, ClassHierarchyException {
 		this.database = database;
+		this.cheater = cheater;
+		this.cheater.setContext(this);
 		
-		File exclude = FileProvider.getFile("xsched/analysis/db/J2SEExclusions.txt");
+		File exclude = cheater.openExclusionsFile();
 		scope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(scopeString, exclude);
 		
 		 // build a type hierarchy
@@ -42,6 +44,26 @@ public class FillExtensionalDatabase {
 	    new ComputeRelations(this);
 	    	    
 	    System.out.println("done");
+	}
+	
+	public ExtensionalDatabase database() {
+		return database;
+	}
+	
+	public AnalysisScope analysisScope() {
+		return scope;
+	}
+	
+	public ClassHierarchy classHierarchy() {
+		return classHierarchy;
+	}
+	
+	public AnalysisOptions analysisOptions() {
+		return options;
+	}
+	
+	public AnalysisCache analysisCache() {
+		return cache;
 	}
 	
 }

@@ -18,9 +18,6 @@ import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
-import com.ibm.wala.types.ClassLoaderReference;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.TypeReference;
 
 class ComputeDomains {
 	private final ExtensionalDatabase database;
@@ -37,7 +34,7 @@ class ComputeDomains {
 		//add some default stuff to the domains
 		addDefaultElements();
 		
-		addCheatingElements();
+		parent.cheater.cheatBeforeDomainComputation();
 		
 		//work on all the classes in the hierarchy
 		for(IClass klass : parent.classHierarchy) {
@@ -47,30 +44,6 @@ class ComputeDomains {
 		//***********
 		// ParamPosition domain
 		for(int i = 0; i < maxNumberOfParameters; i++) {
-			database.paramPositions.add(i);
-		}
-	}
-	
-	private void addCheatingElements() {
-		System.err.println("!!!! Cheating while computing domains!!!");
-		database.types.add(TypeReference.JavaLangStringBuilder.getName());
-		database.types.add(TypeReference.JavaLangNullPointerException.getName());
-		database.types.add(TypeReference.JavaLangString.getName());
-		database.types.add(TypeReference.JavaLangClass.getName());
-		database.types.add(TypeReference.JavaLangError.getName());
-		database.types.add(TypeReference.JavaUtilIterator.getName());
-		database.types.add(TypeReference.JavaUtilVector.getName());
-		database.types.add(TypeName.findOrCreate("V"));
-		database.types.add(TypeName.findOrCreate("Z"));
-		database.types.add(TypeName.findOrCreate("I"));
-		database.types.add(TypeName.findOrCreate("J"));
-		database.types.add(TypeReference.findOrCreateArrayOf(TypeReference.JavaLangString).getName());
-		database.types.add(TypeReference.findOrCreate(ClassLoaderReference.Primordial, "Ljava/lang/IllegalArgumentException").getName());
-		//not sure if that's cheating or if it's correct to keep the Activation class out of this
-		database.types.add(TypeReference.findOrCreate(ClassLoaderReference.Primordial, "Lxsched/Activation").getName());
-		
-		//make sure we have at least that many params
-		for(int i = 0; i < 5; i++) {
 			database.paramPositions.add(i);
 		}
 	}
