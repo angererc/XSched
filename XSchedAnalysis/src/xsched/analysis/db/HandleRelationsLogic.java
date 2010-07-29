@@ -162,6 +162,15 @@ class HandleRelationsLogic {
 		addToVariableType(lhs);
 	}
 	
+	void addToNewStatementRel(int variable, String constant) {		
+		Variable lhs = variable(variable);		
+		database.newStatement.add(lhs, database.theImmutableStringObject);		
+		//that's a little redundant here, but if we ever use the actual constant (i.e., we create different objects per string) then we have to do that
+		database.objectType.add(database.theImmutableStringObject, TypeReference.JavaLangString.getName());
+		
+		addToVariableType(lhs);
+	}
+	
 	void addToMethodImplementationRel(IClass klass) {
 		TypeReference type = klass.getReference();		
 		for(IMethod method : klass.getAllMethods()) {

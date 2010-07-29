@@ -10,12 +10,14 @@ import xsched.analysis.bddbddb.Relation;
 import xsched.analysis.bddbddb.TernaryRelation;
 
 import com.ibm.wala.classLoader.IMethod;
+import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeName;
+import com.ibm.wala.types.TypeReference;
 
 public class ExtensionalDatabase {
 
@@ -39,6 +41,9 @@ public class ExtensionalDatabase {
 	public final Domain<Integer> paramPositions = new Domain<Integer>("ParamPosition");
 	
 	public FieldReference arrayElementField = FieldReference.findOrCreate(ClassLoaderReference.Primordial, "gen_array", "element", "Ljava/lang/Object");
+	
+	public SSANewInstruction theImmutableStringObject = new SSANewInstruction(-1, new NewSiteReference(0, TypeReference.JavaLangString)) { };
+	
 	/* **************
 	 * Relations
 	 */
@@ -61,6 +66,9 @@ public class ExtensionalDatabase {
 	public TernaryRelation<SSAInstruction, Variable, FieldReference> primStore =
 		new TernaryRelation<SSAInstruction, Variable, FieldReference>("primStore", bytecodes, variables, fields, "Bytecode0_Variable0_Field0");
 	
+	public BinaryRelation<Variable, Variable> assigns0 =
+		new BinaryRelation<Variable, Variable>("assign0", variables, variables, "Variable0_Variable1");
+	
 	public BinaryRelation<Variable, TypeName> variableType =
 		new BinaryRelation<Variable, TypeName>("variableType", variables, types, "Variable0_Type0");
 	
@@ -69,9 +77,6 @@ public class ExtensionalDatabase {
 	
 	public BinaryRelation<TypeName, TypeName> assignable =
 		new BinaryRelation<TypeName, TypeName>("assignable", types, types, "Type0_Type1");
-	
-	public BinaryRelation<Variable, Variable> assigns0 =
-		new BinaryRelation<Variable, Variable>("assigns0", variables, variables, "Variable0_Variable1");
 	
 	public TernaryRelation<TypeName, Selector, IMethod> methodImplementation =
 		new TernaryRelation<TypeName, Selector, IMethod>("methodImplementation", types, selectors, methods, "Type0_Selector0_Method0");
@@ -86,7 +91,7 @@ public class ExtensionalDatabase {
 		new TernaryRelation<SSAInstruction, Integer, Variable>("actual", bytecodes, paramPositions, variables, "Bytecode0_ParamPosition0_Variable0");
 	
 	public BinaryRelation<SSAInstruction, Variable> callSiteReturns =
-		new BinaryRelation<SSAInstruction, Variable>("callSiteReturns", bytecodes, variables, "Bytecode0_Variable0");
+		new BinaryRelation<SSAInstruction, Variable>("callSiteReturn", bytecodes, variables, "Bytecode0_Variable0");
 	
 	public BinaryRelation<SSAInstruction, IMethod> staticInvokes =
 		new BinaryRelation<SSAInstruction, IMethod>("staticInvoke", bytecodes, methods, "Bytecode0_Method0");

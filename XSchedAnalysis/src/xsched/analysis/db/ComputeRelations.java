@@ -18,6 +18,7 @@ import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.ssa.SSAThrowInstruction;
+import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
 
 class ComputeRelations {
@@ -57,6 +58,16 @@ class ComputeRelations {
 		IR ir = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
 		
 		handler.beginMethod(method, ir);
+		
+		SymbolTable symTab = ir.getSymbolTable();
+		//TODO make sure that we include constant pointers (not sure if we have to handle NULL or just leave it away...)
+		for(int variable = 1; variable <= symTab.getMaxValueNumber(); variable++) {
+			//************
+			//Variables domain
+			if(symTab.isStringConstant(variable)) {
+				handler.addToNewStatementRel(variable, symTab.getStringValue(variable));
+			}			
+		}
 		
 		handler.addToFormalRel();
 		ir.visitAllInstructions(visitor);

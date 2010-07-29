@@ -50,7 +50,8 @@ class ComputeDomains {
 	}
 	
 	private void addDefaultElements() {
-		database.fields.add(database.arrayElementField);		
+		database.fields.add(database.arrayElementField);
+		database.objects.add(database.theImmutableStringObject);
 	}
 	
 	private void processClass(IClass klass) {
