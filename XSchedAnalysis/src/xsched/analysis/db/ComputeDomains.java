@@ -15,6 +15,7 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
@@ -132,7 +133,15 @@ class ComputeDomains {
 			if(instruction instanceof SSANewInstruction) {
 				//***********
 				//Objects domain
-				database.objects.add(((SSANewInstruction)instruction).getNewSite());
+				database.objects.add((SSANewInstruction)instruction);
+			}
+			
+			//make sure we saw all the selectors
+			//shouldn't matter if we con't cheat and ignore classes, but if we do then we have to do that
+			if(instruction instanceof SSAInvokeInstruction) {
+				//***********
+				//selectors domain
+				database.selectors.add(((SSAInvokeInstruction)instruction).getDeclaredTarget().getSelector());
 			}
 		}
 

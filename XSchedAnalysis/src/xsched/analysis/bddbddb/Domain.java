@@ -26,6 +26,10 @@ public class Domain<T> implements Iterable<T> {
 		return val == null ? "null" : val.toString();
 	}
 	
+	public boolean contains(Object o) {
+		return dom.contains(o);
+	}
+	
 	public String getName() {
 		return dom.getName();
 	}

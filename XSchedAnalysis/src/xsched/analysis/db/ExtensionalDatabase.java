@@ -10,8 +10,8 @@ import xsched.analysis.bddbddb.Relation;
 import xsched.analysis.bddbddb.TernaryRelation;
 
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ssa.SSAInstruction;
+import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
@@ -25,7 +25,7 @@ public class ExtensionalDatabase {
 	 * Domains
 	 */
 	public final Domain<SSAInstruction> bytecodes = new Domain<SSAInstruction>("Bytecode");
-	public final Domain<NewSiteReference> objects = new Domain<NewSiteReference>("Object");
+	public final Domain<SSANewInstruction> objects = new Domain<SSANewInstruction>("Object");
 	public final Domain<Variable> variables = new Domain<Variable>("Variable");
 	public final Domain<FieldReference> fields = new Domain<FieldReference>("Field");
 	//TODO we don't use TypeReference because that defines a type as a tuple of class loader and type
@@ -42,8 +42,8 @@ public class ExtensionalDatabase {
 	/* **************
 	 * Relations
 	 */
-	public BinaryRelation<Variable, NewSiteReference> newStatement = 
-		new BinaryRelation<Variable, NewSiteReference>("newStatement", variables, objects, "Variable0_Object0");
+	public BinaryRelation<Variable, SSANewInstruction> newStatement = 
+		new BinaryRelation<Variable, SSANewInstruction>("newStatement", variables, objects, "Variable0_Object0");
 	
 	//(base, field, dest) => dest = base.field
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> load =
@@ -64,8 +64,8 @@ public class ExtensionalDatabase {
 	public BinaryRelation<Variable, TypeName> variableType =
 		new BinaryRelation<Variable, TypeName>("variableType", variables, types, "Variable0_Type0");
 	
-	public BinaryRelation<NewSiteReference, TypeName> objectType =
-		new BinaryRelation<NewSiteReference, TypeName>("objectType", objects, types, "Object0_Type0");
+	public BinaryRelation<SSANewInstruction, TypeName> objectType =
+		new BinaryRelation<SSANewInstruction, TypeName>("objectType", objects, types, "Object0_Type0");
 	
 	public BinaryRelation<TypeName, TypeName> assignable =
 		new BinaryRelation<TypeName, TypeName>("assignable", types, types, "Type0_Type1");

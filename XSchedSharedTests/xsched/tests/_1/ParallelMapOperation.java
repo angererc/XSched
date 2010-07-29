@@ -1,7 +1,8 @@
+package xsched.tests._1;
 import java.util.Vector;
 import xsched.Activation;
 
-public class TestClass {
+public class ParallelMapOperation {
 	Vector<Object> out;
     
     public Object process(Object data) {

@@ -96,6 +96,7 @@ class ComputeRelations {
 			
 		@Override
 		public void visitInvoke(SSAInvokeInstruction instruction) {
+			handler.addToInvokeRel(instruction);
 			handler.addToActualsRel(instruction);
 			handler.addToCallSiteReturnsRel(instruction);
 		}

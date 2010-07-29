@@ -7,7 +7,6 @@ import xsched.analysis.utils.DefUseUtils;
 
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
@@ -155,11 +154,10 @@ class HandleRelationsLogic {
 		}
 	}
 	
-	void addToNewStatementRel(SSANewInstruction instruction) {
-		NewSiteReference object = instruction.getNewSite();
+	void addToNewStatementRel(SSANewInstruction instruction) {		
 		Variable lhs = variable(instruction.getDef());
-		database.newStatement.add(lhs, object);		
-		database.objectType.add(object, object.getDeclaredType().getName());
+		database.newStatement.add(lhs, instruction);		
+		database.objectType.add(instruction, instruction.getNewSite().getDeclaredType().getName());
 		
 		addToVariableType(lhs);
 	}
@@ -233,9 +231,14 @@ class HandleRelationsLogic {
 	void addToInvokeRel(SSAInvokeInstruction instruction) {
 		if(instruction.getCallSite().isFixed()) {
 			IMethod method = classHierarchy.resolveMethod(instruction.getDeclaredTarget());
-			database.staticInvokes.add(instruction, method);
+			if(method == null) {
+				System.err.println("Warning: didn't find method " + instruction.getDeclaredTarget() + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
+			} else {
+				database.staticInvokes.add(instruction, method);
+			}
 		} else {
-			database.methodInvokes.add(instruction, instruction.getDeclaredTarget().getSelector());
+			Selector sel = instruction.getDeclaredTarget().getSelector();
+			database.methodInvokes.add(instruction, sel);			
 		}
 	}
 	
