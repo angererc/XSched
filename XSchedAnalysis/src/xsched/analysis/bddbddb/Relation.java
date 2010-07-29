@@ -32,6 +32,7 @@ public abstract class Relation<Self extends Relation<Self>> {
 		
 		rel.setSign(domNames, domainOrdering);
 		rel.setDoms(doms);
+		
 	}
 	
 	public abstract Collection<String> stringify();

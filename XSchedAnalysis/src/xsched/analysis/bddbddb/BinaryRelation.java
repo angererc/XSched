@@ -3,6 +3,7 @@ package xsched.analysis.bddbddb;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import chord.bddbddb.Rel.RelView;
 import chord.util.tuple.object.Pair;
 
 public class BinaryRelation<A, B> extends Relation<BinaryRelation<A, B>> {
@@ -22,6 +23,12 @@ public class BinaryRelation<A, B> extends Relation<BinaryRelation<A, B>> {
 	
 	public boolean contains(A elemA, B elemB) {
 		return rel.contains(elemA, elemB);
+	}
+	
+	public boolean containsKey(A val) {
+		RelView view = rel.getView();
+		view.select(0, val);
+		return view.size() > 0;
 	}
 	
 	@Override

@@ -83,4 +83,10 @@ public class TestParallelMapOperationPreprocessing extends TestCase {
 		assertTrue("e"+i++, result.contains("<invokespecial < Application, Lxsched/Activation, <init>(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V > 15,1,16,14 @35 exception:17, 3, xsched.tests._1.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v14>"));
 				
 	}
+	
+	public void testEveryVariableHasType() {
+		for(Variable var : database.variables) {
+			assertTrue("missing type for variable: " + var, database.variableType.containsKey(var));
+		}
+	}
 }

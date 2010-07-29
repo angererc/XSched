@@ -13,19 +13,29 @@ public class Variable {
 	
 	@Override
 	public String toString() {
-		return method.getSignature() + ".v" + ssaID; 
+		if(method == null)
+			return "<fake variable>.v" + ssaID;
+		else
+			return method.getSignature() + ".v" + ssaID; 
 	}
 	
 	@Override
 	public int hashCode() {
-		return method.hashCode() + ssaID;
+		//allow for null methods for testing
+		if(method == null)
+			return ssaID;
+		else
+			return method.hashCode() + ssaID;
 	}
 	
 	@Override
 	public boolean equals(Object o) {
 		if(o instanceof Variable) {
 			Variable other = (Variable)o;
-			return other.ssaID == ssaID && other.method.equals(method);
+			if(other.method == null) 
+				return other.ssaID == ssaID && method == null;
+			else
+				return other.ssaID == ssaID && other.method.equals(method);
 		} else {
 			return false;
 		}
