@@ -1,9 +1,6 @@
 package xsched.analysis.db;
 
-import java.io.IOException;
 import java.util.Collection;
-
-import com.ibm.wala.ipa.cha.ClassHierarchyException;
 
 import junit.framework.TestCase;
 
