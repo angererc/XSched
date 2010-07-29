@@ -1,6 +1,8 @@
 package xsched.analysis.bddbddb;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 
 import chord.bddbddb.Dom;
@@ -28,6 +30,14 @@ public class Domain<T> implements Iterable<T> {
 		return dom.getName();
 	}
 	
+	public Collection<String> stringify() {
+		ArrayList<String> result = new ArrayList<String>();
+		for(T elem : dom) {
+			result.add(elem.toString());
+		}
+		return result;
+	}
+	
 	@Override
 	public String toString() {
 		return "Domain " + dom.getName();
@@ -46,7 +56,7 @@ public class Domain<T> implements Iterable<T> {
 	 * 
 	 */
 	public T getOrAdd(T elem) {
-		System.out.println("Domain " + getName() + ": adding " + elem);
+		//System.out.println("Domain " + getName() + ": adding " + elem);
 		dom.getOrAdd(elem);
 		return elem;
 	}
@@ -55,7 +65,7 @@ public class Domain<T> implements Iterable<T> {
 	 * returns true if the elem did not yet exist in the domain
 	 */
 	public boolean add(T elem) {
-		System.out.println("Domain " + getName() + ": adding " + elem);
+		//System.out.println("Domain " + getName() + ": adding " + elem);
 		return dom.add(elem);
 	}
 	

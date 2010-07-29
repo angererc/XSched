@@ -72,6 +72,10 @@ class HandleRelationsLogic {
 			database.assignable.add(superKlass.getReference().getName(), klass.getReference().getName());
 			superKlass = superKlass.getSuperclass();
 		}
+		
+		for(IClass interf : klass.getAllImplementedInterfaces()) {
+			database.assignable.add(interf.getReference().getName(), klass.getReference().getName());
+		}
 	}
 	
 	void addToAssignsRel(SSACheckCastInstruction instruction) {

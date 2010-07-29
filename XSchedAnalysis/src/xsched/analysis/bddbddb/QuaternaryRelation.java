@@ -1,5 +1,10 @@
 package xsched.analysis.bddbddb;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import chord.util.tuple.object.Quad;
+
 public class QuaternaryRelation<A, B, C, D> extends Relation<QuaternaryRelation<A, B, C, D>> {
 	
 	public QuaternaryRelation(String name, Domain<A> domA, Domain<B> domB, Domain<C> domC, Domain<D> domD, String domainOrdering) {
@@ -7,7 +12,7 @@ public class QuaternaryRelation<A, B, C, D> extends Relation<QuaternaryRelation<
 	}
 	
 	public void add(A elemA, B elemB, C elemC, D elemD) {
-		System.out.println(String.format("Relation %s: adding (%s, %s, %s, %s)", getName(), elemA, elemB, elemC, elemD));
+		//System.out.println(String.format("Relation %s: adding (%s, %s, %s, %s)", getName(), elemA, elemB, elemC, elemD));
 		rel.add(elemA, elemB, elemC, elemD);
 	}
 	
@@ -15,6 +20,15 @@ public class QuaternaryRelation<A, B, C, D> extends Relation<QuaternaryRelation<
 	
 	public boolean contains(A elemA, B elemB, C elemC, D elemD) {
 		return rel.contains(elemA, elemB, elemC);
+	}
+	
+	@Override
+	public Collection<String> stringify() {
+		ArrayList<String> result = new ArrayList<String>();
+		for(Quad<Object, Object, Object, Object> tuple : rel.getAry4ValTuples()) {
+			result.add(tuple.toString());
+		}
+		return result;
 	}
 	
 }

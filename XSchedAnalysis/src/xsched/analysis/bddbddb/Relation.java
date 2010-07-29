@@ -1,5 +1,6 @@
 package xsched.analysis.bddbddb;
 
+import java.util.Collection;
 import java.util.HashMap;
 
 import chord.bddbddb.Dom;
@@ -32,6 +33,8 @@ public abstract class Relation<Self extends Relation<Self>> {
 		rel.setSign(domNames, domainOrdering);
 		rel.setDoms(doms);
 	}
+	
+	public abstract Collection<String> stringify();
 	
 	public String getName() {
 		return rel.getName();

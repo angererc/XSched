@@ -16,12 +16,15 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSALoadMetadataInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
+import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.types.TypeReference;
 
 public class DefUseUtils {
 
 	public static Set<TypeReference> definedReferenceTypes(IR ir, DefUse defUse, int variable) {
-		if(ir.getSymbolTable().isParameter(variable)) {
+		SymbolTable symTab = ir.getSymbolTable();
+		
+		if(symTab.isParameter(variable)) {
 			int paramPosition = parameterPosition(ir.getParameterValueNumbers(), variable);
 			TypeReference type = ir.getParameterType(paramPosition);
 			if(type.isReferenceType()) {
@@ -32,6 +35,12 @@ public class DefUseUtils {
 		}
 		if(! definesReferenceType(ir, defUse, variable)) {
 			return Collections.emptySet();
+		}
+		
+		if(symTab.isStringConstant(variable)) {
+			return Collections.singleton(TypeReference.JavaLangString);
+		} else if (symTab.isNullConstant(variable)) {
+			return Collections.singleton(TypeReference.Null);
 		}
 		
 		SSAInstruction instruction = defUse.getDef(variable);
@@ -101,9 +110,14 @@ public class DefUseUtils {
 	}
 	
 	public static boolean definesReferenceType(IR ir, DefUse defUse, int variable) {
-		if(ir.getSymbolTable().isParameter(variable)) {
+		SymbolTable symTab = ir.getSymbolTable();
+		if(symTab.isParameter(variable)) {
 			int paramPosition = parameterPosition(ir.getParameterValueNumbers(), variable);			
 			return ir.getParameterType(paramPosition).isReferenceType();			
+		}
+		
+		if(symTab.isStringConstant(variable) || symTab.isNullConstant(variable)) {
+			return true;
 		}
 		
 		SSAInstruction instruction = defUse.getDef(variable);

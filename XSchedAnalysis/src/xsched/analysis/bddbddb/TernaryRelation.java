@@ -1,5 +1,10 @@
 package xsched.analysis.bddbddb;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
+import chord.util.tuple.object.Trio;
+
 public class TernaryRelation<A, B, C> extends Relation<TernaryRelation<A, B, C>> {
 	
 	public TernaryRelation(String name, Domain<A> domA, Domain<B> domB, Domain<C> domC, String domainOrdering) {
@@ -7,7 +12,7 @@ public class TernaryRelation<A, B, C> extends Relation<TernaryRelation<A, B, C>>
 	}
 	
 	public void add(A elemA, B elemB, C elemC) {
-		System.out.println(String.format("Relation %s: adding (%s, %s, %s)", getName(), elemA, elemB, elemC));
+		//System.out.println(String.format("Relation %s: adding (%s, %s, %s)", getName(), elemA, elemB, elemC));
 		rel.add(elemA, elemB, elemC);
 	}
 	
@@ -17,4 +22,12 @@ public class TernaryRelation<A, B, C> extends Relation<TernaryRelation<A, B, C>>
 		return rel.contains(elemA, elemB, elemC);
 	}
 	
+	@Override
+	public Collection<String> stringify() {
+		ArrayList<String> result = new ArrayList<String>();
+		for(Trio<Object, Object, Object> tuple : rel.getAry3ValTuples()) {
+			result.add(tuple.toString());
+		}
+		return result;
+	}
 }
