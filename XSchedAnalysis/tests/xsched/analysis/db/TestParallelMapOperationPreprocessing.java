@@ -23,7 +23,7 @@ public class TestParallelMapOperationPreprocessing extends TestCase {
 	
 	public void testNewStatementRelation() {
 		
-		Collection<String> result = database.newStatement.stringify();
+		Collection<String> result = database.assignObject.stringify();
 		for(String s : result) System.out.println(s);
 		
 		int i = 0;

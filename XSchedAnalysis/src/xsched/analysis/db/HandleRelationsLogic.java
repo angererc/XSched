@@ -18,6 +18,7 @@ import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSACheckCastInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSALoadMetadataInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
@@ -164,22 +165,35 @@ class HandleRelationsLogic {
 			database.primLoad.add(instruction, rhs, field);
 		}
 	}
-	
-	void addToNewStatementRel(SSANewInstruction instruction) {		
+		
+	void addToAssignObjectRel(SSANewInstruction instruction) {		
 		Variable lhs = variable(instruction.getDef());
 		ObjectCreationSite creationSite = new ObjectCreationSite.SSANewInstructionCreationSite(instruction);
-		database.newStatement.add(lhs, creationSite);		
+		database.assignObject.add(lhs, creationSite);		
 		database.objectType.add(creationSite, instruction.getNewSite().getDeclaredType().getName());
 		
 		addToVariableType(lhs);
 	}
 	
-	void addToNewStatementRel(int variable, String constant) {		
+	void addToAssignObjectRel(int variable, String constant) {		
 		Variable lhs = variable(variable);		
-		database.newStatement.add(lhs, database.theImmutableStringObject);		
-		//that's a little redundant here, but if we ever use the actual constant (i.e., we create different objects per string) then we have to do that
-		database.objectType.add(database.theImmutableStringObject, TypeReference.JavaLangString.getName());
+		database.assignObject.add(lhs, database.theImmutableStringObject);		
 		
+		addToVariableType(lhs);
+	}
+	
+	public void addToAssignObjectRel(SSALoadMetadataInstruction instruction) {
+		Variable lhs = variable(instruction.getDef());
+		Object token = instruction.getToken();
+		Object value;
+		if(token instanceof TypeReference) {
+			value = ((TypeReference)token).getName();
+		} else {
+			throw new RuntimeException("unknown metadata token: " + token);
+		}
+		ObjectCreationSite creationSite = new ObjectCreationSite.SpecialCreationSite(value);
+		database.assignObject.add(lhs, creationSite);
+		database.objectType.add(creationSite, instruction.getType().getName());
 		addToVariableType(lhs);
 	}
 	
@@ -283,4 +297,5 @@ class HandleRelationsLogic {
 		variables = new HashMap<Integer, Variable>();
 		this.method = method;
 	}
+	
 }

@@ -96,4 +96,14 @@ public class TestInheritancePreprocessing extends TestCase {
 		assertTrue("c"+i++, result.contains("<putstatic 2 < Application, Lxsched/analysis/db/testhierarchy/D, myField1, <Application,Ljava/lang/Object> >, TheGlobalObjectRef.v0, < Application, Lxsched/analysis/db/testhierarchy/D, myField1, <Application,Ljava/lang/Object> >, xsched.analysis.db.testhierarchy.D.staticInD()Ljava/lang/Object;.v2>"));
 		assertTrue("c"+i++, result.contains("<putstatic 3 < Application, Lxsched/analysis/db/testhierarchy/D, myField1, <Application,Ljava/lang/Object> >, TheGlobalObjectRef.v0, < Application, Lxsched/analysis/db/testhierarchy/D, myField1, <Application,Ljava/lang/Object> >, xsched.analysis.db.testhierarchy.D.instanceInD()Ljava/lang/Object;.v3>"));
 	}
+	
+	public void testMetadataLoad() {
+		//*********************
+		// test methods
+		int i = 0;
+		Collection<String> result = database.assignObject.stringify();
+		//for(String s : result) System.out.println(s);
+		
+		assertTrue("d"+i++, result.contains("<xsched.analysis.db.testhierarchy.D.classAsObject()V.v3, Lxsched/analysis/db/testhierarchy/IB>"));		
+	}
 }

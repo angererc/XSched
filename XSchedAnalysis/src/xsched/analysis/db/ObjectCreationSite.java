@@ -1,6 +1,7 @@
 package xsched.analysis.db;
 
 import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.types.TypeReference;
 
 public abstract class ObjectCreationSite {
 
@@ -8,6 +9,9 @@ public abstract class ObjectCreationSite {
 		private final Object value;
 		
 		public SpecialCreationSite(Object value) {
+			//don't accept type references because they include the classloader which are hierarchial and we cannot handle that well in our flat domains
+			//use the TypeName instead
+			assert (! (value instanceof TypeReference));
 			this.value = value;
 		}
 		

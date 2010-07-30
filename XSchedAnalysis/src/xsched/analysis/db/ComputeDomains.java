@@ -65,7 +65,10 @@ class ComputeDomains {
 		
 		//********
 		// Types domain
-		database.types.add(klass.getReference().getName());
+		database.types.add(klass.getName());
+		
+		//add classes as objects
+		database.objects.add(new ObjectCreationSite.SpecialCreationSite(klass.getName()));
 		
 		//********
 		// Fields domain

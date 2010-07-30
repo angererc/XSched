@@ -46,18 +46,17 @@ class ComputeRelations {
 	
 	private void addDefaultRelations() {		
 		handler.database.objectType.add(handler.database.theGlobalObject, TypeReference.JavaLangClass.getName());
-		handler.database.newStatement.add(handler.database.theGlobalObjectRef, handler.database.theGlobalObject);
+		handler.database.assignObject.add(handler.database.theGlobalObjectRef, handler.database.theGlobalObject);
 		
-		handler.database.objectType.add(handler.database.theGlobalObject, TypeReference.JavaLangString.getName());
-		handler.database.variableType.add(handler.database.theGlobalObjectRef, TypeReference.JavaLangClass.getName());
+		handler.database.objectType.add(handler.database.theImmutableStringObject, TypeReference.JavaLangString.getName());		
 	}
 
 	private void processClass(IClass klass) {
 		
 		handler.addToAssignableRel(klass);
-		
+		handler.database.objectType.add(new ObjectCreationSite.SpecialCreationSite(klass.getName()), klass.getName());
 		handler.addToMethodImplementationRel(klass);
-		
+				
 		for(IMethod method : klass.getDeclaredMethods()) {
 			if( ! (method.isAbstract() || method.isNative())) {				
 				processCallableMethod(method);
@@ -76,7 +75,7 @@ class ComputeRelations {
 			//************
 			//Variables domain
 			if(symTab.isStringConstant(variable)) {
-				handler.addToNewStatementRel(variable, symTab.getStringValue(variable));
+				handler.addToAssignObjectRel(variable, symTab.getStringValue(variable));
 			}			
 		}
 		
@@ -125,12 +124,12 @@ class ComputeRelations {
 	
 		@Override
 		public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
-			new RuntimeException("no idea how to handle that yet...").printStackTrace();
+			handler.addToAssignObjectRel(instruction);
 		}
 	
 		@Override
 		public void visitNew(SSANewInstruction instruction) {			
-			handler.addToNewStatementRel(instruction);
+			handler.addToAssignObjectRel(instruction);
 		}
 	
 		@Override

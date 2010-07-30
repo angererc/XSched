@@ -50,8 +50,8 @@ public class ExtensionalDatabase {
 	/* **************
 	 * Relations
 	 */
-	public BinaryRelation<Variable, ObjectCreationSite> newStatement = 
-		new BinaryRelation<Variable, ObjectCreationSite>("newStatement", variables, objects, "Variable0_Object0");
+	public BinaryRelation<Variable, ObjectCreationSite> assignObject = 
+		new BinaryRelation<Variable, ObjectCreationSite>("assignObject", variables, objects, "Variable0_Object0");
 	
 	//(base, field, dest) => dest = base.field
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> load =

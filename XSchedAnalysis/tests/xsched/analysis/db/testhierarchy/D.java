@@ -16,6 +16,6 @@ public class D extends A {
 	}
 	
 	public void classAsObject() {
-		D.myField1 = Object.class;
+		D.myField1 = IB.class;
 	}
 }

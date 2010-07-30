@@ -11,7 +11,7 @@
 	.include "ParamPosition.dom"
 	
 ### Relations
-	newStatement	(variable:Variable, object:Object)							input
+	assignObject	(variable:Variable, object:Object)							input
 	store			(bc:Bytecode, base:Variable, field:Field, source:Variable) 	input
 	load			(bc:Bytecode, base:Variable, field:Field, dest:Variable) 	input
 	assign0			(dest:Variable, source:Variable)							input
@@ -39,7 +39,7 @@
 
 	canPointTo(v, obj) :- variableType(v, varType), objectType(obj, objectType), assignable(varType, objType).
 	
-	variablePT(v, obj)	:- newStatement(v, obj).
+	variablePT(v, obj)	:- assignObject(v, obj).
 	variablePT(v1, obj)	:- assign(v1, v2), variablePT(v2, obj), canPointTo(v1, obj).
 	variablePT(v2, obj2):- load(_, v1, f, v2), variablePT(v1, obj1), heapPT(obj1, f, obj2), canPointTo(v2, h2).
 	
