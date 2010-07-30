@@ -1,0 +1,35 @@
+ToDos:
+
+------------
+Model
+	* Add different schedule methods (schedule-now, schedule-after, schedule-inline, maybe 'join')
+------------
+Preprocessor
+	* make exceptions work
+	* classes as objects (and static calls, static fields etc) (accessing a class field can be done with a global node because the fields are enough to distinguish them; we can assign this global object to a "this" in a static method on formals and actuals)
+	* native methods and reflection
+	* handle Activation methods specially
+	* compute "more complex" relations (locks, ...)
+------------
+Wala
+	* Heap Array SSA
+	* Interval Analysis
+	* "containment analysis" for finding bytecodes that are enclosed in a pair of "things" (monitor enter/exit, atomic region, ...)
+------------
+Points2 Analysis
+	* add object sensitivity
+	* add heap array stuff
+------------
+Schedule Analysis
+	* make work with p2 analysis
+	* work on "magic step"
+	* work on flattening
+------------
+Optimizations
+	* add 1 or 2 more optimizations
+	* make compiler aware of optimizations (bytecode rewriting)
+------------
+Evaluation
+	* Find good programs to evaluate
+	* write transformers transforming Intervals, Threads, Fork/Join into Activations
+	* Make it work with transactions and synchronize
