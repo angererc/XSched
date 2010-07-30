@@ -21,10 +21,10 @@ public class TestParallelMapOperationPreprocessing extends TestCase {
 		}
 	}
 	
-	public void testNewStatementRelation() {
+	public void testAssignObjectRelation() {
 		
 		Collection<String> result = database.assignObject.stringify();
-		for(String s : result) System.out.println(s);
+		//for(String s : result) System.out.println(s);
 		
 		int i = 0;
 		assertTrue("a"+i++, result.contains("<xsched.analysis.db.ParallelMapOperation.process(Ljava/lang/Object;)Ljava/lang/Object;.v4, 4 = new <Application,Ljava/lang/Object>@0>"));

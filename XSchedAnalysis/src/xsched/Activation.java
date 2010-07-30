@@ -6,8 +6,13 @@ public class Activation<R> {
 		throw new RuntimeException();
 	}
 	
-	public Activation(Object object, String taskName) {		
+	public static <T> Activation<T> after(Object object, String taskName, Object...params) {
 		throw new RuntimeException();
+	}
+	
+	@SuppressWarnings("unused")
+	private Activation()
+	{
 	}
 	
 	public Activation(Object object, String taskName, Object param) {

@@ -20,6 +20,7 @@ import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.ssa.SSAThrowInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 
 class ComputeRelations {
@@ -44,11 +45,12 @@ class ComputeRelations {
 		}
 	}
 	
-	private void addDefaultRelations() {		
-		handler.database.objectType.add(handler.database.theGlobalObject, TypeReference.JavaLangClass.getName());
-		handler.database.assignObject.add(handler.database.theGlobalObjectRef, handler.database.theGlobalObject);
+	private void addDefaultRelations() {	
+		handler.database.variableType.add(ExtensionalDatabase.theGlobalObjectRef, TypeReference.JavaLangClass.getName());
+		handler.database.objectType.add(ExtensionalDatabase.theGlobalObject, TypeReference.JavaLangClass.getName());
+		handler.database.assignObject.add(ExtensionalDatabase.theGlobalObjectRef, ExtensionalDatabase.theGlobalObject);
 		
-		handler.database.objectType.add(handler.database.theImmutableStringObject, TypeReference.JavaLangString.getName());		
+		handler.database.objectType.add(ExtensionalDatabase.theImmutableStringObject, TypeReference.JavaLangString.getName());		
 	}
 
 	private void processClass(IClass klass) {
@@ -117,9 +119,18 @@ class ComputeRelations {
 			
 		@Override
 		public void visitInvoke(SSAInvokeInstruction instruction) {
-			handler.addToInvokeRel(instruction);
-			handler.addToActualsRel(instruction);
-			handler.addToCallSiteReturnsRel(instruction);
+			
+			MethodReference method = instruction.getDeclaredTarget();
+			
+			if(ActivationInfo.isHBMethod(method)) {
+				handler.addToArrowStatementRel(instruction);
+			} else if (ActivationInfo.isActivationCreationMethod(method)) {
+				handler.addActivationCreation(instruction);
+			} else {
+				handler.addToInvokeRel(instruction);
+				handler.addToActualsRel(instruction);
+				handler.addToCallSiteReturnsRel(instruction);
+			}
 		}
 	
 		@Override

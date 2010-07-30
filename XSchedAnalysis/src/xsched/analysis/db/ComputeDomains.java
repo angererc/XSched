@@ -13,12 +13,15 @@ import com.ibm.wala.ipa.callgraph.impl.Everywhere;
 import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
+import com.ibm.wala.ssa.SSAArrayLoadInstruction;
+import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
+import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
 
 class ComputeDomains {
@@ -51,17 +54,26 @@ class ComputeDomains {
 	}
 	
 	private void addDefaultElements() {
-		database.fields.add(database.arrayElementField);
+		database.fields.add(ExtensionalDatabase.arrayElementField);
 		
 		database.types.add(TypeReference.JavaLangClass.getName());
-		database.objects.add(database.theGlobalObject);
-		database.variables.add(database.theGlobalObjectRef);
+		database.objects.add(ExtensionalDatabase.theGlobalObject);
+		database.variables.add(ExtensionalDatabase.theGlobalObjectRef);
 		
 		database.types.add(TypeReference.JavaLangString.getName());
-		database.objects.add(database.theImmutableStringObject);
+		database.objects.add(ExtensionalDatabase.theImmutableStringObject);
+		
+		database.types.add(ActivationInfo.theActivationTypeName);
+		
+		database.types.add(TypeReference.findOrCreateArrayOf(TypeReference.JavaLangObject).getName());
 	}
 	
-	private void processClass(IClass klass) {
+	private void processClass(IClass klass) {		
+		if(ActivationInfo.isActivationClass(klass)) {
+			return;
+		}
+		assert( ! (klass.getName().toString().contains("Lxsched/Activation")));
+		
 		
 		//********
 		// Types domain
@@ -105,7 +117,11 @@ class ComputeDomains {
 			(inst instanceof SSAGetInstruction) || 
 			(inst instanceof SSAPutInstruction) || 
 			(inst instanceof SSAAbstractInvokeInstruction) ||
-			(inst instanceof SSAPhiInstruction);
+			(inst instanceof SSAPhiInstruction) ||
+			(inst instanceof SSAArrayStoreInstruction) ||
+			(inst instanceof SSAArrayLoadInstruction) ||
+			((inst instanceof SSAInvokeInstruction) && (ActivationInfo.isActivationCreationMethod(((SSAInvokeInstruction)inst).getDeclaredTarget()))) ||
+			((inst instanceof SSAInvokeInstruction) && (ActivationInfo.isHBMethod(((SSAInvokeInstruction)inst).getDeclaredTarget())));
 	}
 	
 	private void processCallableMethod(IMethod method) {
@@ -146,14 +162,19 @@ class ComputeDomains {
 				//Objects domain
 				ObjectCreationSite creationSite = new ObjectCreationSite.SSANewInstructionCreationSite((SSANewInstruction)instruction);
 				database.objects.add(creationSite);
-			}
-			
+				
 			//make sure we saw all the selectors
 			//shouldn't matter if we con't cheat and ignore classes, but if we do then we have to do that
-			if(instruction instanceof SSAInvokeInstruction) {
-				//***********
-				//selectors domain
-				database.selectors.add(((SSAInvokeInstruction)instruction).getDeclaredTarget().getSelector());
+			} else if(instruction instanceof SSAInvokeInstruction) {
+				MethodReference target = ((SSAInvokeInstruction)instruction).getDeclaredTarget();
+				
+				if(ActivationInfo.isActivationCreationMethod(target)) {
+					database.objects.add(new ObjectCreationSite.SpecialCreationSite(instruction));
+				} else {
+					//***********
+					//selectors domain
+					database.selectors.add(target.getSelector());
+				}
 			}
 		}
 

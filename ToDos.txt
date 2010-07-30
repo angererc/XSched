@@ -6,7 +6,6 @@ Model
 ------------
 Preprocessor
 	* make exceptions work
-	* classes as objects (and static calls, static fields etc) (accessing a class field can be done with a global node because the fields are enough to distinguish them; we can assign this global object to a "this" in a static method on formals and actuals)
 	* native methods and reflection
 	* handle Activation methods specially
 	* compute "more complex" relations (locks, ...)

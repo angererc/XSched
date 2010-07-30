@@ -40,12 +40,12 @@ public class ExtensionalDatabase {
 	/* **************
 	 * special domain elements
 	 */
-	public FieldReference arrayElementField = FieldReference.findOrCreate(ClassLoaderReference.Primordial, "gen_array", "element", "Ljava/lang/Object");
+	public static final FieldReference arrayElementField = FieldReference.findOrCreate(ClassLoaderReference.Primordial, "gen_array", "element", "Ljava/lang/Object");
 	
-	public Variable theGlobalObjectRef = new Variable("TheGlobalObjectRef", 0);
+	public static final Variable theGlobalObjectRef = new Variable("TheGlobalObjectRef", 0);
 	
-	public ObjectCreationSite theImmutableStringObject = new ObjectCreationSite.SpecialCreationSite("The Immutable String Object");
-	public ObjectCreationSite theGlobalObject = new ObjectCreationSite.SpecialCreationSite("The Global Object");
+	public static final ObjectCreationSite theImmutableStringObject = new ObjectCreationSite.SpecialCreationSite("The Immutable String Object");
+	public static final ObjectCreationSite theGlobalObject = new ObjectCreationSite.SpecialCreationSite("The Global Object");
 	
 	/* **************
 	 * Relations
@@ -101,6 +101,9 @@ public class ExtensionalDatabase {
 	
 	public BinaryRelation<SSAInstruction, Selector> methodInvokes =
 		new BinaryRelation<SSAInstruction, Selector>("methodInvoke", bytecodes, selectors, "Bytecode0_Selector0");
+	
+	public TernaryRelation<SSAInstruction, Variable, Variable> arrowStatement =
+		new TernaryRelation<SSAInstruction, Variable, Variable>("primStore", bytecodes, variables, variables, "Bytecode0_Variable0_Variable1");
 	
 	/* *******************
 	 * Methods

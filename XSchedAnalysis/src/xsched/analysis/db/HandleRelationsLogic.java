@@ -102,7 +102,7 @@ class HandleRelationsLogic {
 	void addToStoreRel(SSAArrayStoreInstruction instruction) {
 		//base.field = source		
 		Variable lhs = variable(instruction.getArrayRef());
-		FieldReference field = database.arrayElementField;
+		FieldReference field = ExtensionalDatabase.arrayElementField;
 		
 		if(instruction.getElementType().isReferenceType()) {
 			Variable rhs = variable(instruction.getValue());;
@@ -118,7 +118,7 @@ class HandleRelationsLogic {
 		Variable lhs;
 		
 		if(instruction.isStatic()) {
-			lhs = database.theGlobalObjectRef;
+			lhs = ExtensionalDatabase.theGlobalObjectRef;
 		} else {
 			lhs = variable(instruction.getRef());
 		}
@@ -135,7 +135,7 @@ class HandleRelationsLogic {
 	void addToLoadRel(SSAArrayLoadInstruction instruction) {
 		Variable lhs = variable(instruction.getDef());
 		Variable rhs = variable(instruction.getArrayRef());
-		FieldReference field = database.arrayElementField;
+		FieldReference field = ExtensionalDatabase.arrayElementField;
 		
 		if(DefUseUtils.definesReferenceType(ir, defUse, lhs.ssaID)) {
 			//***************
@@ -152,7 +152,7 @@ class HandleRelationsLogic {
 		FieldReference field = instruction.getDeclaredField();
 		Variable rhs;
 			if(instruction.isStatic()) {
-				rhs = database.theGlobalObjectRef;
+				rhs = ExtensionalDatabase.theGlobalObjectRef;
 			} else {
 				rhs = variable(instruction.getRef());
 			}
@@ -177,12 +177,12 @@ class HandleRelationsLogic {
 	
 	void addToAssignObjectRel(int variable, String constant) {		
 		Variable lhs = variable(variable);		
-		database.assignObject.add(lhs, database.theImmutableStringObject);		
+		database.assignObject.add(lhs, ExtensionalDatabase.theImmutableStringObject);		
 		
 		addToVariableType(lhs);
 	}
 	
-	public void addToAssignObjectRel(SSALoadMetadataInstruction instruction) {
+	void addToAssignObjectRel(SSALoadMetadataInstruction instruction) {
 		Variable lhs = variable(instruction.getDef());
 		Object token = instruction.getToken();
 		Object value;
@@ -277,6 +277,49 @@ class HandleRelationsLogic {
 		}
 	}
 	
+	void addActivationCreation(SSAInvokeInstruction instruction) {
+		//a call to an activation creation method is like a new statement
+		//and like a virtual call to the receiver object with the given selector and params
+		
+		//the effect of the new statement:
+		Variable lhs = variable(instruction.getDef());
+		ObjectCreationSite object = new ObjectCreationSite.SpecialCreationSite(instruction);
+		database.assignObject.add(lhs, object);
+		database.objectType.add(object, ActivationInfo.theActivationTypeName);
+		database.variableType.add(lhs, ActivationInfo.theActivationTypeName);
+		
+		//the effect of the virtual call
+		String task = ir.getSymbolTable().getStringValue(instruction.getUse(1));
+		if(task == null)
+			throw new RuntimeException("a task MUST be a string constant naming a selector such as 'something(Ljava/lang/Object;Ljava/lang/String;)V;'");
+		
+		Selector selector = Selector.make(task);
+		database.methodInvokes.add(instruction, selector);
+		
+		Variable receiver = variable(instruction.getUse(0));
+		database.actuals.add(instruction, 0, receiver);
+		
+		for(int i = 2; i < instruction.getNumberOfParameters(); i++) {
+			Variable param = variable(instruction.getUse(i));
+			database.actuals.add(instruction, i-1, param);
+		}
+		
+		Variable exception = variable(instruction.getException());
+		database.callSiteReturns.add(instruction, exception);
+		addToVariableType(exception);
+	}
+	
+	void addToArrowStatementRel(SSAInvokeInstruction instruction) {
+		assert(instruction.getNumberOfUses() == 2);
+		assert(instruction.getNumberOfDefs() == 1); //invoke always returns an exception object
+		Variable lhs = variable(instruction.getUse(0));
+		Variable rhs = variable(instruction.getUse(1));
+		database.arrowStatement.add(instruction, lhs, rhs);
+		
+		Variable exception = variable(instruction.getException());
+		addToVariableType(exception);
+	}
+	
 	/* *******************
 	 * helpers that register the values with the domains
 	 * always wrap values in such methods
@@ -297,5 +340,5 @@ class HandleRelationsLogic {
 		variables = new HashMap<Integer, Variable>();
 		this.method = method;
 	}
-	
+
 }

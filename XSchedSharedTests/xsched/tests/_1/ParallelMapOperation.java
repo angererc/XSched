@@ -16,8 +16,8 @@ public class ParallelMapOperation {
         Activation<Void> lastWrite = Activation.now();
         
         for(Object data : input) {
-            Activation<Object> process = new Activation<Object>(this, "process", data);
-            Activation<Void> write = new Activation<Void>(this, "write", process);
+            Activation<Object> process = Activation.after(this, "process", data);
+            Activation<Void> write = Activation.after(this, "write", process);
     
             lastProcess.hb(process);
             process.hb(write);
