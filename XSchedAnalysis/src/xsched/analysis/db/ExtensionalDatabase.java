@@ -40,9 +40,15 @@ public class ExtensionalDatabase {
 	public final Domain<Selector> selectors = new Domain<Selector>("Selector");
 	public final Domain<Integer> paramPositions = new Domain<Integer>("ParamPosition");
 	
+	/* **************
+	 * special domain elements
+	 */
 	public FieldReference arrayElementField = FieldReference.findOrCreate(ClassLoaderReference.Primordial, "gen_array", "element", "Ljava/lang/Object");
 	
+	public Variable theGlobalObjectRef = new Variable("TheGlobalObjectRef", 0);
+	
 	public SSANewInstruction theImmutableStringObject = new SSANewInstruction(-1, new NewSiteReference(0, TypeReference.JavaLangString)) { };
+	public SSANewInstruction theGlobalObject = new SSANewInstruction(-2, new NewSiteReference(1, TypeReference.findOrCreate(ClassLoaderReference.Primordial, "TheGlobalObject"))) { };
 	
 	/* **************
 	 * Relations

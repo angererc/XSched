@@ -19,6 +19,7 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
+import com.ibm.wala.types.TypeReference;
 
 class ComputeDomains {
 	private final ExtensionalDatabase database;
@@ -51,6 +52,12 @@ class ComputeDomains {
 	
 	private void addDefaultElements() {
 		database.fields.add(database.arrayElementField);
+		
+		database.types.add(TypeReference.JavaLangClass.getName());
+		database.objects.add(database.theGlobalObject);
+		database.variables.add(database.theGlobalObjectRef);
+		
+		database.types.add(TypeReference.JavaLangString.getName());
 		database.objects.add(database.theImmutableStringObject);
 	}
 	

@@ -20,6 +20,7 @@ import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.ssa.SSAThrowInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
+import com.ibm.wala.types.TypeReference;
 
 class ComputeRelations {
 	
@@ -35,10 +36,20 @@ class ComputeRelations {
 		
 		handler = new HandleRelationsLogic(parent);
 		
+		addDefaultRelations();
+		
 		//work on all the classes in the hierarchy
 		for(IClass klass : parent.classHierarchy) {
 			processClass(klass);
 		}
+	}
+	
+	private void addDefaultRelations() {		
+		handler.database.objectType.add(handler.database.theGlobalObject, TypeReference.JavaLangClass.getName());
+		handler.database.newStatement.add(handler.database.theGlobalObjectRef, handler.database.theGlobalObject);
+		
+		handler.database.objectType.add(handler.database.theGlobalObject, TypeReference.JavaLangString.getName());
+		handler.database.variableType.add(handler.database.theGlobalObjectRef, TypeReference.JavaLangClass.getName());
 	}
 
 	private void processClass(IClass klass) {

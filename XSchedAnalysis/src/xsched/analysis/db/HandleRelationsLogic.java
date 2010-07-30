@@ -41,7 +41,7 @@ class HandleRelationsLogic {
 
 	private final AnalysisCache cache;
 	private final AnalysisOptions options;
-	private final ExtensionalDatabase database;
+	final ExtensionalDatabase database;
 	private final ClassHierarchy classHierarchy;
 	
 	private HashMap<Integer, Variable> variables;
@@ -117,7 +117,12 @@ class HandleRelationsLogic {
 		Variable lhs = variable(instruction.getRef());
 		FieldReference field = instruction.getDeclaredField();
 		if(field.getFieldType().isReferenceType()) {
-			Variable rhs = variable(instruction.getVal());
+			Variable rhs;
+			if(instruction.isStatic()) {
+				rhs = database.theGlobalObjectRef;
+			} else {
+				rhs = variable(instruction.getVal());
+			}
 			database.store.add(instruction, lhs, field, rhs);
 		} else {
 			database.primStore.add(instruction, lhs, field);
@@ -142,8 +147,12 @@ class HandleRelationsLogic {
 	void addToLoadRel(SSAGetInstruction instruction) {
 		Variable lhs = variable(instruction.getDef());
 		FieldReference field = instruction.getDeclaredField();
-		Variable rhs = variable(instruction.getRef());
-		
+		Variable rhs;
+			if(instruction.isStatic()) {
+				rhs = database.theGlobalObjectRef;
+			} else {
+				rhs = variable(instruction.getRef());
+			}
 		if(DefUseUtils.definesReferenceType(ir, defUse, lhs.ssaID)) {					
 			//***************
 			// load relation
