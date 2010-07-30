@@ -141,7 +141,8 @@ class ComputeDomains {
 			if(instruction instanceof SSANewInstruction) {
 				//***********
 				//Objects domain
-				database.objects.add((SSANewInstruction)instruction);
+				ObjectCreationSite creationSite = new ObjectCreationSite.SSANewInstructionCreationSite((SSANewInstruction)instruction);
+				database.objects.add(creationSite);
 			}
 			
 			//make sure we saw all the selectors

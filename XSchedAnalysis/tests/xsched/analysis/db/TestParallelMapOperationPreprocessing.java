@@ -2,8 +2,6 @@ package xsched.analysis.db;
 
 import java.util.Collection;
 
-import com.ibm.wala.ssa.SSANewInstruction;
-
 import junit.framework.TestCase;
 
 public class TestParallelMapOperationPreprocessing extends TestCase {
@@ -26,15 +24,15 @@ public class TestParallelMapOperationPreprocessing extends TestCase {
 	public void testNewStatementRelation() {
 		
 		Collection<String> result = database.newStatement.stringify();
-		//for(String s : result) System.out.println(s);
+		for(String s : result) System.out.println(s);
 		
 		int i = 0;
 		assertTrue("a"+i++, result.contains("<xsched.analysis.db.ParallelMapOperation.process(Ljava/lang/Object;)Ljava/lang/Object;.v4, 4 = new <Application,Ljava/lang/Object>@0>"));
 		assertTrue("a"+i++, result.contains("<xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v15, 15 = new <Application,Lxsched/Activation>@26>"));
 		assertTrue("a"+i++, result.contains("<xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v18, 18 = new <Application,Lxsched/Activation>@40>"));
 		
-		assertTrue("a"+i++, result.contains("<xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v16, -1 = new <Primordial,Ljava/lang/String>@0>"));
-		assertTrue("a"+i++, result.contains("<xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v19, -1 = new <Primordial,Ljava/lang/String>@0>"));
+		assertTrue("a"+i++, result.contains("<java.lang.Object.wait(JI)V.v16, The Immutable String Object>"));
+		assertTrue("a"+i++, result.contains("<java.lang.Object.wait(JI)V.v19, The Immutable String Object>"));
 		
 	}
 	
@@ -83,7 +81,6 @@ public class TestParallelMapOperationPreprocessing extends TestCase {
 		assertTrue("e"+i++, result.contains("<invokespecial < Application, Lxsched/Activation, <init>(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V > 15,1,16,14 @35 exception:17, 1, xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v1>"));
 		assertTrue("e"+i++, result.contains("<invokespecial < Application, Lxsched/Activation, <init>(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V > 15,1,16,14 @35 exception:17, 2, xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v16>"));
 		assertTrue("e"+i++, result.contains("<invokespecial < Application, Lxsched/Activation, <init>(Ljava/lang/Object;Ljava/lang/String;Ljava/lang/Object;)V > 15,1,16,14 @35 exception:17, 3, xsched.analysis.db.ParallelMapOperation.writeToOut(Ljava/util/Vector;)V.v14>"));
-				
 	}
 	
 	public void testEveryVariableHasType() {
@@ -93,7 +90,7 @@ public class TestParallelMapOperationPreprocessing extends TestCase {
 	}
 	
 	public void testEveryObjectType() {
-		for(SSANewInstruction obj : database.objects) {
+		for(ObjectCreationSite obj : database.objects) {
 			assertTrue("missing type for object: " + obj, database.objectType.containsKey(obj));
 		}
 	}

@@ -114,15 +114,17 @@ class HandleRelationsLogic {
 	
 	void addToStoreRel(SSAPutInstruction instruction) {
 		//base.field = source
-		Variable lhs = variable(instruction.getRef());
+		Variable lhs;
+		
+		if(instruction.isStatic()) {
+			lhs = database.theGlobalObjectRef;
+		} else {
+			lhs = variable(instruction.getRef());
+		}
+		
 		FieldReference field = instruction.getDeclaredField();
 		if(field.getFieldType().isReferenceType()) {
-			Variable rhs;
-			if(instruction.isStatic()) {
-				rhs = database.theGlobalObjectRef;
-			} else {
-				rhs = variable(instruction.getVal());
-			}
+			Variable rhs = variable(instruction.getVal());;			
 			database.store.add(instruction, lhs, field, rhs);
 		} else {
 			database.primStore.add(instruction, lhs, field);
@@ -165,8 +167,9 @@ class HandleRelationsLogic {
 	
 	void addToNewStatementRel(SSANewInstruction instruction) {		
 		Variable lhs = variable(instruction.getDef());
-		database.newStatement.add(lhs, instruction);		
-		database.objectType.add(instruction, instruction.getNewSite().getDeclaredType().getName());
+		ObjectCreationSite creationSite = new ObjectCreationSite.SSANewInstructionCreationSite(instruction);
+		database.newStatement.add(lhs, creationSite);		
+		database.objectType.add(creationSite, instruction.getNewSite().getDeclaredType().getName());
 		
 		addToVariableType(lhs);
 	}

@@ -10,14 +10,11 @@ import xsched.analysis.bddbddb.Relation;
 import xsched.analysis.bddbddb.TernaryRelation;
 
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.classLoader.NewSiteReference;
 import com.ibm.wala.ssa.SSAInstruction;
-import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.TypeReference;
 
 public class ExtensionalDatabase {
 
@@ -27,7 +24,7 @@ public class ExtensionalDatabase {
 	 * Domains
 	 */
 	public final Domain<SSAInstruction> bytecodes = new Domain<SSAInstruction>("Bytecode");
-	public final Domain<SSANewInstruction> objects = new Domain<SSANewInstruction>("Object");
+	public final Domain<ObjectCreationSite> objects = new Domain<ObjectCreationSite>("Object");
 	public final Domain<Variable> variables = new Domain<Variable>("Variable");
 	public final Domain<FieldReference> fields = new Domain<FieldReference>("Field");
 	//TODO we don't use TypeReference because that defines a type as a tuple of class loader and type
@@ -47,14 +44,14 @@ public class ExtensionalDatabase {
 	
 	public Variable theGlobalObjectRef = new Variable("TheGlobalObjectRef", 0);
 	
-	public SSANewInstruction theImmutableStringObject = new SSANewInstruction(-1, new NewSiteReference(0, TypeReference.JavaLangString)) { };
-	public SSANewInstruction theGlobalObject = new SSANewInstruction(-2, new NewSiteReference(1, TypeReference.findOrCreate(ClassLoaderReference.Primordial, "TheGlobalObject"))) { };
+	public ObjectCreationSite theImmutableStringObject = new ObjectCreationSite.SpecialCreationSite("The Immutable String Object");
+	public ObjectCreationSite theGlobalObject = new ObjectCreationSite.SpecialCreationSite("The Global Object");
 	
 	/* **************
 	 * Relations
 	 */
-	public BinaryRelation<Variable, SSANewInstruction> newStatement = 
-		new BinaryRelation<Variable, SSANewInstruction>("newStatement", variables, objects, "Variable0_Object0");
+	public BinaryRelation<Variable, ObjectCreationSite> newStatement = 
+		new BinaryRelation<Variable, ObjectCreationSite>("newStatement", variables, objects, "Variable0_Object0");
 	
 	//(base, field, dest) => dest = base.field
 	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> load =
@@ -78,8 +75,8 @@ public class ExtensionalDatabase {
 	public BinaryRelation<Variable, TypeName> variableType =
 		new BinaryRelation<Variable, TypeName>("variableType", variables, types, "Variable0_Type0");
 	
-	public BinaryRelation<SSANewInstruction, TypeName> objectType =
-		new BinaryRelation<SSANewInstruction, TypeName>("objectType", objects, types, "Object0_Type0");
+	public BinaryRelation<ObjectCreationSite, TypeName> objectType =
+		new BinaryRelation<ObjectCreationSite, TypeName>("objectType", objects, types, "Object0_Type0");
 	
 	public BinaryRelation<TypeName, TypeName> assignable =
 		new BinaryRelation<TypeName, TypeName>("assignable", types, types, "Type0_Type1");
