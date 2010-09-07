@@ -1,0 +1,69 @@
+# Activation-sensitive and 1-object-sensitive points to analysis
+#
+
+.basedir "dataset"
+
+### Domains
+	.include "Bytecode.dom"
+	.include "Variable.dom"
+	.include "Object.dom"
+	.include "Field.dom"
+	.include "Type.dom"
+	.include "Selector.dom"
+	.include "Method.dom"
+	.include "ParamPosition.dom"
+	
+### Relations
+	new				(m:Method, variable:Variable, object:Object)	input
+	store			(bc:Bytecode, base:Variable, field:Field, source:Variable) 	input
+	load			(bc:Bytecode, base:Variable, field:Field, dest:Variable) 	input
+	assign0			(dest:Variable, source:Variable)							input
+	
+	variableType	(variable:Variable, type:Type)								input
+	objectType		(object:Object, type:Type)									input
+	assignable		(supertype:Type, subtype:Type)								input
+	
+	methodImplementation	(type:Type, name:Selector, target:Method)			input
+	actual			(invokeBC:Bytecode, param:ParamPosition, var:Variable)		input
+	formal			(method:Method, param:ParamPosition, var:Variable)			input
+	methodReturn	(method:Method, var:Variable)								input
+	callSiteReturn	(invokeBC:Bytecode, var:Variable)							input
+	staticInvoke	(invokeBC:Bytecode, target:Method)							input
+	methodInvoke	(method:Method, invokeBC:Bytecode, name:Selector) 			input
+	
+	canPointTo		(variable:Variable, object:Object)
+	
+	variablePT		(actContext1:Object, callContext1:Object, variable:Variable, actContext2:Object, callContext:Object, object:Object)				outputtuples
+	heapPT			(actContext1:Object, callContext1:Object, base:Object, field:Field, actContext2:Object, callContext2:Object, target:Object)		outputtuples
+	invocationEdge	(actContext1:Object, callContext1:Object, invokeBC:Bytecode, target:Method, receiver:Object)									outputtuples
+	
+### Rules
+
+	#type filtering
+	canPointTo(v, obj) :- variableType(v, varType), objectType(obj, objectType), assignable(varType, objType).
+	
+	#new statements
+	#have to do this '=' trick because bddbddb complains otherwise ('Variable repeated multiple times in a single term')
+	variablePT(actContext1, receiver1, v, actContext2, receiver2, obj)	:- new(m, v, obj), invocationEdge(actContext1, _, _, m, receiver1), actContext1=actContext2, receiver1=receiver2.
+	
+	#assignments
+	variablePT(actCtxt1, callCtxt1, v1, actCtxt2, callCtxt2, obj)	:- assign0(v1, v2), variablePT(actCtxt1, callCtxt1, v2, actCtxt2, callCtxt2, obj), canPointTo(v1, obj).
+	
+	#loads
+	variablePT(actCtxt1, callCtxt1, v2, actCtxt2, callCtxt2, obj2):- load(_, v1, f, v2), variablePT(actCtxt1, callCtxt1, v1, someActCtxt, someCallCtxt, obj1), heapPT(someActCtxt, someCallCtxt, obj1, f, actCtxt2, callCtxt2, obj2), canPointTo(v2, h2).
+	
+	#stores
+	heapPT(actCtxt1, callCtxt1, obj1, f, actCtxt2, callCtxt2, obj2):- store(_, v1, f, v2), variablePT(someActCtxt, someCallCtxt, v1, actCtxt1, callCtxt1, obj1), variablePT(someActCtxt, someCallCtxt, v2, actCtxt2, callCtxt2, obj2).
+	
+	#static calls
+	invocationEdge(actCtxt1, callCtxt1, invokeBC, m, receiver) :- staticInvoke(invokeBC, m), actual(invokeBC, 0, v), variablePT(actCtxt1, callCtxt1, v, _, _, receiver).
+	
+	#virtual calls
+	invocationEdge(actCtxt1, callCtxt1, invokeBC, m, receiver) :- methodInvoke(_, invokeBC, n), actual(invokeBC, 0, v), variablePT(actCtxt1, callCtxt1, v, _, _, receiver), objectType(receiver, t), methodImplementation(t, n, m).
+
+	#parameter passing
+	variablePT(actCtxt1, receiver, formalVar, actCtxt2, callCtxt2, paramValue) :- formal(m, z, formalVar), invocationEdge(actCtxt1, callCtxt1, invokeBC, m, receiver), actual(invokeBC, z, actualVar), variablePT(actCtxt1, callCtxt1, actualVar, actCtxt2, callCtxt2, paramValue).
+							
+	#returns and exceptions
+	variablePT(actCtxt1, callCtxt1, v, actCtxt2, callCtxt2, obj) :- invocationEdge(actCtxt1, callCtxt1, invokeBC, m, receiver), callSiteReturn(invokeBC, v), methodReturn(m, retVar), variablePT(actCtxt1, receiver, retVar, actCtxt2, callCtxt2, obj), canPointTo(v, obj).
+	
