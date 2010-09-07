@@ -17,7 +17,7 @@
 	new				(m:Method, variable:Variable, object:Object)	input
 	store			(bc:Bytecode, base:Variable, field:Field, source:Variable) 	input
 	load			(bc:Bytecode, base:Variable, field:Field, dest:Variable) 	input
-	assign0			(dest:Variable, source:Variable)							input
+	phi				(dest:Variable, source:Variable)							input
 	
 	variableType	(variable:Variable, type:Type)								input
 	objectType		(object:Object, type:Type)									input
@@ -31,6 +31,13 @@
 	staticInvoke	(invokeBC:Bytecode, target:Method)							input
 	methodInvoke	(method:Method, invokeBC:Bytecode, name:Selector) 			input
 	
+	# 
+	now				(bc:Bytecode, variable:Variable)							input
+	schedule		(variable:Variable, activation:Object) 						input
+	inlinedActivationScope	(method:Method, bc:Bytecode, activation:Object)		input #in Method, bc is executed in new activation
+	methodActivationScope	(method:Method, bc:Bytecode)						input #bc is executed within 'now'
+
+	executionContext	(bc:Bytecode, now:Object, this:Object)	
 	canPointTo		(variable:Variable, object:Object)
 	
 	variablePT		(actContext1:Object, callContext1:Object, variable:Variable, actContext2:Object, callContext:Object, object:Object)				outputtuples
@@ -42,12 +49,19 @@
 	#type filtering
 	canPointTo(v, obj) :- variableType(v, varType), objectType(obj, objectType), assignable(varType, objType).
 	
+	#activation scope
+	executionContext(bc, now, this) :- invocationEdge(_, _, _, m, this), inlinedActivationScope(m, bc, now)
+	executionContext(bc, now, this) :- invocationEdge(now, _, _, m, this), nowActivationScope(m, bc).
+	
+	#now statement
+	variablePT(now, this, v, _, _, alsoNow) :- now(bc, v), executionContext(bc, now, this), now=alsoNow.
+	
 	#new statements
 	#have to do this '=' trick because bddbddb complains otherwise ('Variable repeated multiple times in a single term')
 	variablePT(actContext1, receiver1, v, actContext2, receiver2, obj)	:- new(m, v, obj), invocationEdge(actContext1, _, _, m, receiver1), actContext1=actContext2, receiver1=receiver2.
 	
 	#assignments
-	variablePT(actCtxt1, callCtxt1, v1, actCtxt2, callCtxt2, obj)	:- assign0(v1, v2), variablePT(actCtxt1, callCtxt1, v2, actCtxt2, callCtxt2, obj), canPointTo(v1, obj).
+	variablePT(actCtxt1, callCtxt1, v1, actCtxt2, callCtxt2, obj)	:- phi(v1, v2), variablePT(actCtxt1, callCtxt1, v2, actCtxt2, callCtxt2, obj), canPointTo(v1, obj).
 	
 	#loads
 	variablePT(actCtxt1, callCtxt1, v2, actCtxt2, callCtxt2, obj2):- load(_, v1, f, v2), variablePT(actCtxt1, callCtxt1, v1, someActCtxt, someCallCtxt, obj1), heapPT(someActCtxt, someCallCtxt, obj1, f, actCtxt2, callCtxt2, obj2), canPointTo(v2, h2).
