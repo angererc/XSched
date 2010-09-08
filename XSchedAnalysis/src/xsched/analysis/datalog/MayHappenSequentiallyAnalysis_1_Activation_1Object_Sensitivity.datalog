@@ -1,0 +1,82 @@
+.basedir "dataset"
+
+### Domains
+	BC	29		bytecode.map
+	V	29 		variable.map
+	H	11 		heap.map
+	F	3		field.map
+	N	3		name.map
+	M	3		method.map
+	
+### Relations
+
+	#statements     		                                                            
+	new						(bc:BC, variable:Variable)								input
+	@schedule				(bc:BC, dest:Variable)									input
+	inlined					(bc:BC)													input	
+	now						(bc:BC, variable:Variable)								input
+	@store					(bc:BC, base:Variable, field:Field, source:Variable) 	input
+	@load					(bc:BC, base:Variable, field:Field, dest:Variable) 		input
+	phi						(bc:BC, dest:Variable, source:Variable)					input
+	
+	@arrow					(bc:BC, lhs:Variable, rhs:Variable)						input
+	
+	@inlinedActivationScope	(method:Method, schedBC:BC, bc:BC)						input
+	
+	@executionContext		(methodNowCtxt:BC, methodNow:BC, \
+							 thisCtxt:BC, this:BC, \
+							 bc:BC, \
+							 bcNowCtxt:BC, bcNow:BC)								input
+	
+	variablePT				(nowCtxt:BC, now:BC, \
+							 thisCtxt:BC, this:BC, \
+							 variable:Variable, \
+							 actContext:BC, object:BC)								input
+														
+	invocationEdge			(now:BC, this:BC, invokeBC:BC, \
+							 receiver:BC, target:Method)							input
+	
+	read (act:BC, this:BC, readBC:BC, actCtxt:BC, object:BC, field:Field) output
+
+	# in {now, this}, arrowBC created an edge between {lhsCtxt,lhsObj} and {rhsCtxt,rhsObj}
+	happensBefore(now:BC, this:BC, arrowBC:BC, lhsCtxt:BC, lhsObj:BC, rhsCtxt:BC, rhsObj:BC) output
+		
+### Rules
+
+	read(nowCtxt, now, thisCtxt, this, readBC, objCtxt, obj, field) :- \
+							load(readBC, v, field, _), \
+							executionContext(methodNowCtxt, methodNow, thisCtxt, this, readBC, nowCtxt, now), \
+							variablePT(methodNowCtxt, methodNow, thisCtxt, this, v, objCtxt, obj).
+	
+	write(nowCtxt, now, thisCtxt, this, readBC, objCtxt, obj, field) :- \
+							store(readBC, v, field, _), \
+							executionContext(MethodNowCtxt, methodNow, thisCtxt, this, readBC, nowCtxt, now), \
+							variablePT(methodNowCtxt, methodNow, thisCtxt, this, v, objCtxt, obj).
+	
+	readWrite(nowCtxt, now, thisCtxt, this, accessBC, objCtxt, obj, field) :- \
+							read(nowCtxt, now, thisCtxt, this, accessBC, objCtxt, obj, field).
+	readWrite(nowCtxt, now, thisCtxt, this, accessBC, objCtxt, obj, field) :- \
+							write(nowCtxt, now, thisCtxt, this, accessBC, objCtxt, obj, field).
+	
+	#happens-before relationships
+	
+	#explicit arrow statements
+	happensBefore(methodNowCtxt, methodNow, thisCtxt, this, arrowBC, lhsCtxt, lhsObj, rhsCtxt, rhsObj) :- \
+							arrow(arrowBC, lhsVar, rhsVar), \
+							executionContext(methodNowCtxt, methodNow, thisCtxt, this, arrowBC, _, _), \
+							variablePT(methodNowCtxt, methodNow, thisCtxt, this, lhsVar, lhsCtxt, lhsObj), \
+							variablePT(methodNowCtxt, methodNow, thisCtxt, this, rhsVar, rhsCtxt, rhsObj).
+	
+	#implicit arrow statements
+	
+	#add now->sched arrows
+	happensBefore(methodNowCtxt, methodNow, thisCtxt, this, schedBC, bcNowCtxt, bcNow, alsoMethodNow, schedBC) :- \
+							schedule(schedBC, _), \
+							executionContext(methodNowCtxt, methodNow, thisCtxt, this, schedBC, bcNowCtxt, bcNow), \
+							methodNow=alsoMethodNow.
+							
+	#add implicit_now->sched arrows
+	happensBefore(methodNowCtxt, methodNow, thisCtxt, this, schedBC, bcNowCtxt, bcNow, alsoMethodNow, schedBC) :- \
+							inlinedActivationScope(_, schedBC, _), \
+							executionContext(methodNowCtxt, methodNow, thisCtxt, this, schedBC, bcNowCtxt, bcNow), \
+							methodNow=alsoMethodNow.
