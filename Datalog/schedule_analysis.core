@@ -1,0 +1,55 @@
+# -----------------------------------
+# -----------------------------------
+## Extensional Database
+
+schedules0(x:T0, scope:S0, var:A1, t:T1)
+actual0(x:T0, var:A0, p:N0, val:A2)
+arrow0(x:T0, lhs:A1, rhs:A2)
+arrow_p0(x:T0, lhs:A1, p:N0)
+subscope0(x:T0, super:S0, sub:S1)
+
+##
+
+#task method x may directly or indirectly schedule task method a
+grandchildren(x:T0, a:T1)
+grandchildren(x, a) :- schedules0(x, _, _, a).
+grandchildren(x, b) :- grandchildren(x, a), schedules0(a, _, _, b).
+
+#grandchildren of x plus x itself
+family(x:T0, a:T1)
+family(x, a) :- a=x.
+family(x, a) :- grandchildren(x, a).
+
+#flatten the subscope tree relation
+subscope(x:T0, super:S0, sub:S1)
+subscope(x, super, sub) :- subscope0(x, super, sub).
+subscope(x, super, sub2) :- subscope(x, super, sub), subscope0(x, sub, sub2).
+
+#creation of var1 implies that var2 has been executed (i.e., var2 is in same or a super scope than var1)
+implies(x:T0, var1:A0, var2:A1)
+implies(x, var1, var2) :- schedules0(x, scope, var1, _), schedules0(x, scope, var2, _), var1 != var2.
+implies(x, var1, var2) :- schedules0(x, super, var2, _), schedules0(x, sub, var1, _), subscope(x, super, sub).
+
+#transitive arrows
+arrowTrans(x:T0, lhs:A1, rhs:A2)
+arrowTrans(x, lhs, rhs) :- arrow0(x, lhs, rhs).
+arrowTrans(x, lhs, rhs) :- arrowTrans(x, lhs, inter), arrow0(x, inter, rhs), implies(x, rhs, inter).
+
+##
+unordered(a:T1, b:T2)
+
+unordered(a, b) :- unordered(b, a).
+
+#no arrow: a and b unordered AND children of a and children of b
+unordered(aFamily, bFamily) :- \
+		schedules0(x, _, aSched, a), schedules0(x, _, bSched, b), \
+		implies(x, bSched, aSched), \
+		!arrowTrans(x, aSched, bSched), \
+		!arrowTrans(x, bSched, aSched), \
+		family(a, aFamily), family(b, bFamily).
+
+#a->b and no param passing, then a's children are unordered with b's family
+unordered(aChild, bFamily) :- \
+		schedules0(x, _, aSched, a), schedules0(x, _, bSched, b), \
+		arrowTrans(x, aSched, bSched), \
+		grandchildren(a, aChild), family(b, bFamily).
