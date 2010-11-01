@@ -23,6 +23,14 @@ class ThreadPool {
 	
 	private KeepAliveThread keepAliveThread;
 	
+	public void waitTillDone() {
+		try {
+			keepAliveThread.join();
+			
+		} catch (InterruptedException e) {
+		}
+	}
+	
 	/** 
 	 * Starts a keep alive thread that prevents the JVM from
 	 * exiting. This is invoked when new work is submitted to

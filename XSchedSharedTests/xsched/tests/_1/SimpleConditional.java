@@ -23,9 +23,9 @@ public class SimpleConditional {
 		
 		Activation<Boolean> a;
 		if(Math.random() > 0.5)
-			a = Activation.after(this, "firstTask");
+			a = Activation.schedule(this, "firstTask");
 		else
-			a = Activation.after(this, "secondTask");
+			a = Activation.schedule(this, "secondTask");
 		
 		System.out.println(a);
 	}

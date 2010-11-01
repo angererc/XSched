@@ -29,6 +29,14 @@ public class Activation<R> implements ThreadPool.WorkItem {
 		if(Debug.ENABLED)
 			Debug.newActivation(activation);		
 	}
+	
+	public static <T> Activation<T> schedule(Object object, String taskName, Object...params) {
+		return new Activation<T>(object, taskName, params);
+	}
+	
+	public static Activation<?> now() {
+		return NOW.get();
+	}
 		
 	/** retain count; once retain count drops to 0 the activation can start */
 	private static final int EXECUTING = -42; //flag to indicate that this activation has been executed
@@ -36,23 +44,8 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	private int retainCount = 1;
 	private ArrayList<Activation<?>> successors = new ArrayList<Activation<?>>(); //synchronized with this
 	
-	public Activation(Object object, String taskName) {
-		init(object, taskName);
-		scheduleActivationAfterNow(this);
-	}
-	
-	public Activation(Object object, String taskName, Object param) {
-		init(object, taskName, param);
-		scheduleActivationAfterNow(this);
-	}
-	
-	public Activation(Object object, String taskName, Object param1, Object param2) {
-		init(object, taskName, param1, param2);
-		scheduleActivationAfterNow(this);
-	}
-	
-	public Activation(Object object, String taskName, Object param1, Object param2, Object param3) {
-		init(object, taskName, param1, param2, param3);
+	private Activation(Object object, String taskName, Object... params) {
+		init(object, taskName, params);
 		scheduleActivationAfterNow(this);
 	}
 	
@@ -164,12 +157,15 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	//this is only for the runtime, a normal program should never call this.
 	//only called once in the beginning of a program
 	//the analysis does not see this method because it has to happen "before"
-	void kickOffMain() {
+	//this method waits until the POOL is empty
+	
+	public static void kickOffMain(Activation<?> main) {
 		assert(NOW.get() == null);
-		NOW.set(this);
+		NOW.set(main);
 		kickedOff = true;
 		//kick it off
-		this.release();
+		main.release();
+		POOL.waitTillDone();
 	}
 	
 	@SuppressWarnings("unchecked")

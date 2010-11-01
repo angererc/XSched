@@ -12,12 +12,12 @@ public class ParallelMapOperation {
         out.add(processActivation.result()); 
     }    
     public void writeToOut(Vector<Object> input) {
-        Activation<Object> lastProcess = Activation.now();
-        Activation<Void> lastWrite = Activation.now();
+        Activation<?> lastProcess = Activation.now();
+        Activation<?> lastWrite = Activation.now();
         
         for(Object data : input) {
-            Activation<Object> process = Activation.after(this, "process", data);
-            Activation<Void> write = Activation.after(this, "write", process);
+            Activation<Object> process = Activation.schedule(this, "process", data);
+            Activation<Void> write = Activation.schedule(this, "write", process);
     
             lastProcess.hb(process);
             process.hb(write);

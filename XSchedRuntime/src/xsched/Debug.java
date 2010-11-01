@@ -9,7 +9,7 @@ import xsched.ThreadPool.Worker;
 
 class Debug {
 	
-	public static final boolean ENABLED = true;
+	public static final boolean ENABLED = false;
 	public static final boolean DUMP_IMMEDIATELY = true;
 
 	public static final boolean ENABLED_WAIT_COUNTS = true;	 /** Debug statements related to wait counts. */

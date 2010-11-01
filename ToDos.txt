@@ -1,5 +1,35 @@
-ToDos:
+Thoughts:
+*************************
 
+an optional activation cannot be used for transitive edges (e.g., a->b? and b?->c doesn't allow me to say a->c). To be super-precise: if c and b are scheduled together, it would allow me to say that: a->b? and b?->c? where b=>c)
+
+Optimization Question:
+*************************
+
+
+	
+ToDos:
+*************************
+
+ * Starting with task annotations: write schedule analysis in datalog
+ * Port benchmarks to use activations
+ * run benchmarks with schedule analysis
+ ----
+ * add p2 analysis
+ * add escape analysis
+ * add "generic optimization question"
+ * run benchmarks
+ ----
+ * add optimizations (synchronize, STM, guards, dataraces)
+ * run benchmarks
+ ----
+ * starting with annotations on methods: infer task annotations
+ * infer method annotations
+ ----
+ * write preprocessors for tasks, fork/join, intervals
+
+More Random ToDos:
+*************************
 ------------
 Model
 	* Add different schedule methods (schedule-now, schedule-after, schedule-inline, maybe 'join')
@@ -11,24 +41,27 @@ Preprocessor
 	* compute "more complex" relations (locks, ...)
 ------------
 Wala
-	* Heap Array SSA
-	* Interval Analysis
 	* "containment analysis" for finding bytecodes that are enclosed in a pair of "things" (monitor enter/exit, atomic region, ...)
 ------------
 Points2 Analysis
-	* add object sensitivity
-	* add heap array stuff
+	[*] add object sensitivity
 ------------
 Schedule Analysis
-	* make work with p2 analysis
-	* work on "magic step"
-	* work on flattening
+
 ------------
 Optimizations
 	* add 1 or 2 more optimizations
+        * scheduling with MPI (non shared memory): a1 on proc 1, a2 on proc 2, then a1 might read obj2 produces by a2 => a2 has to 
+	  pass obj2 to proc1. This optimization can use the may-happen sequentially analysis
+	* Getting rid of runtime assertions in intervals (that have to check whether a->b) and lock-guards.
 	* make compiler aware of optimizations (bytecode rewriting)
+	* Barrier matching for programs with textually unaligned barriers?
+	* how many % of Vector objects wouldn't have to be actual vectors? or in some contexts they don't have to be synchronized
+		* JVM has a flag on objects that makes synchronized a no-op and analysis tells it when to use those
 ------------
 Evaluation
 	* Find good programs to evaluate
-	* write transformers transforming Intervals, Threads, Fork/Join into Activations
-	* Make it work with transactions and synchronize
+
+Ideas for Future Work:
+*************************
+ * Heap Array SSA

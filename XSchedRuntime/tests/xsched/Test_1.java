@@ -9,8 +9,8 @@ public class Test_1 {
 	@Test
 	public void activateMain() {
 		SimpleTriangle st = new SimpleTriangle();
-		Activation<Void> main = new Activation<Void>(st, "main");
-		main.kickOffMain();
+		Activation<Void> main = Activation.schedule(st, "main");
+		Activation.kickOffMain(main);
 		
 		
 //		synchronized(this) {
