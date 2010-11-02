@@ -1,2 +1,4 @@
+rbddinfo
+*.tuples
 bin/
 .DS_Store

@@ -1,14 +1,21 @@
 .basedir "test_out"
 
 ## Domains
-T 10 tasks.map
+T 27 tasks.map
 A 10 activations.map
 S 10 scopes.map
 N 5
 
 .include "../schedule_analysis.core"
 
-#
+#dummies to fill the empty database
+formal0("<dummy>", 0, 0).
+actual0("<dummy>", 0, 0, 0).
+
+#****************************
+#test scopes and transitivity
+#****************************
+
 subscope0("X", "top", "s1").
 subscope0("X", "top", "s1").
 subscope0("X", "s1", "s2").
@@ -36,13 +43,13 @@ error3(12) :- subscope("X", "s4", "top").
 error3(13) :- subscope("X", "s2", "s1").
 error3(14) :- subscope("X", "s3", "s1").
 
-##
+## test simple transitivity in same scope
 schedules0("X", "top", "a1", "A").
 schedules0("X", "top", "a2", "A").
 schedules0("X", "top", "a3", "A").
 arrow0("X", "a1", "a2").
 arrow0("X", "a2", "a3").
-error3(15) :- !arrowTrans("X", "a1", "a3").
+error3(15) :- !orderedBefore("X", "a1", "a3").
 
 #don't allow transitive edges via nodes that are in sub-scopes
 schedules0("X", "top", "a4", "A").
@@ -50,9 +57,9 @@ schedules0("X", "s1", "a5", "A").
 schedules0("X", "top", "a6", "A").
 arrow0("X", "a4", "a5").
 arrow0("X", "a5", "a6").
-error3(16) :- !arrowTrans("X", "a4", "a5").
-error3(17) :- !arrowTrans("X", "a5", "a6").
-error3(18) :- arrowTrans("X", "a4", "a6").
+error3(16) :- !orderedBefore("X", "a4", "a5").
+error3(17) :- !orderedBefore("X", "a5", "a6").
+error3(18) :- orderedBefore("X", "a4", "a6").
 
 #do allow transitive edges into sub-scopes
 schedules0("X", "top", "a7", "A").
@@ -60,4 +67,4 @@ schedules0("X", "s1", "a8", "A").
 schedules0("X", "s3", "a9", "A").
 arrow0("X", "a7", "a8").
 arrow0("X", "a8", "a9").
-error3(19) :- !arrowTrans("X", "a7", "a9").
+error3(19) :- !orderedBefore("X", "a7", "a9").

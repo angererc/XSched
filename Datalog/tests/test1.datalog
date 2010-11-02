@@ -1,30 +1,34 @@
 .basedir "test_out"
 
 ## Domains
-T 10 tasks.map
+T 27 tasks.map
 A 10 activations.map
 S 10 scopes.map
 N 5
 
 .include "../schedule_analysis.core"
 
-#
+#@X: a1:A, a2:B
+#@A: a1:C
 schedules0("X", "top", "a1", "A").
 schedules0("X", "top", "a2", "B").
 schedules0("A", "top", "a1", "C").
 schedules0("B", "top", "a1", "D").
-arrow0("Z", "a1", "a2").
 
-subscope0("X", "top", "s1").
+#dummies to fill the empty database
+arrow0("<dummy>", 0, 0).
+formal0("<dummy>", 0, 0).
+actual0("<dummy>", 0, 0, 0).
+subscope0("<dummy>", 0, 0).
 
 #assertions
 ERR 256
 error1(num:ERR) outputtuples
 
-error1(0) :- !grandchildren("X", "A").
-error1(1) :- !grandchildren("X", "B").
-error1(2) :- !grandchildren("X", "C").
-error1(3) :- !grandchildren("X", "D").
+error1(0) :- !children("X", "A").
+error1(1) :- !children("X", "B").
+error1(2) :- !children("X", "C").
+error1(3) :- !children("X", "D").
 
 error1(4) :- !family("X", "X").
 error1(5) :- !family("A", "A").
@@ -36,9 +40,9 @@ error1(10) :- !family("X", "B").
 error1(11) :- !family("X", "C").
 error1(12) :- !family("X", "D").
 
-error1(13) :- !unordered("A", "B").
-error1(14) :- !unordered("A", "D").
-error1(15) :- unordered("A", "C").
-error1(16) :- !unordered("B", "A").
-error1(17) :- !unordered("B", "C").
-error1(18) :- unordered("B", "D").
+error1(13) :- !parallel("A", "B").
+error1(14) :- !parallel("A", "D").
+error1(15) :- parallel("A", "C").
+error1(16) :- !parallel("B", "A").
+error1(17) :- !parallel("B", "C").
+error1(18) :- parallel("B", "D").

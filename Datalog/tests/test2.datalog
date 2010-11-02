@@ -1,14 +1,17 @@
 .basedir "test_out"
 
 ## Domains
-T 10 tasks.map
+T 27 tasks.map
 A 10 activations.map
 S 10 scopes.map
 N 5
 
 .include "../schedule_analysis.core"
 
-#
+#a lying "F" shape
+#@X: a1:A->a2:B->a3:E
+#@A: a1:C
+#@B: a1:D
 schedules0("X", "top", "a1", "A").
 schedules0("X", "top", "a2", "B").
 schedules0("X", "top", "a3", "E").
@@ -17,20 +20,23 @@ schedules0("B", "top", "a1", "D").
 arrow0("X", "a1", "a2").
 arrow0("X", "a2", "a3").
 
-subscope0("X", "top", "s1").
+#dummies to fill the empty database
+formal0("<dummy>", 0, 0).
+actual0("<dummy>", 0, 0, 0).
+subscope0("<dummy>", 0, 0).
 
 #assertions
 ERR 256
 error2(num:ERR) outputtuples
 
-error2(0) :- unordered("A", "B").
-error2(1) :- unordered("A", "D").
-error2(2) :- unordered("A", "E").
-error2(3) :- unordered("B", "E").
-error2(4) :- !unordered("C", "B").
-error2(5) :- !unordered("C", "D").
-error2(6) :- !unordered("E", "D").
+error2(0) :- parallel("A", "B").
+error2(1) :- parallel("A", "D").
+error2(2) :- parallel("A", "E").
+error2(3) :- parallel("B", "E").
+error2(4) :- !parallel("C", "B").
+error2(5) :- !parallel("C", "D").
+error2(6) :- !parallel("E", "D").
 #also check that our unordered relation is bidirectional
-error2(7) :- !unordered("B", "C").
-error2(8) :- !unordered("D", "C").
+error2(7) :- !parallel("B", "C").
+error2(8) :- !parallel("D", "C").
 

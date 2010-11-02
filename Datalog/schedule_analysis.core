@@ -4,21 +4,26 @@
 
 schedules0(x:T0, scope:S0, var:A1, t:T1)
 actual0(x:T0, var:A0, p:N0, val:A2)
+formal0(x:T0, p:N0, var:A0)
 arrow0(x:T0, lhs:A1, rhs:A2)
-arrow_p0(x:T0, lhs:A1, p:N0)
 subscope0(x:T0, super:S0, sub:S1)
 
 ##
+usedAsParam(x:T0, a:A0, b:A1)
+usedAsParam(x, a, b) :- actual0(x, a, _, b).
 
-#task method x may directly or indirectly schedule task method a
-grandchildren(x:T0, a:T1)
-grandchildren(x, a) :- schedules0(x, _, _, a).
-grandchildren(x, b) :- grandchildren(x, a), schedules0(a, _, _, b).
+notUsedAsParam(x:T0, a:A0, b:A1)
+notUsedAsParam(x, a, b) :- !usedAsParam(x, a, b).
 
-#grandchildren of x plus x itself
-family(x:T0, a:T1)
-family(x, a) :- a=x.
-family(x, a) :- grandchildren(x, a).
+
+#task method x may directly or indirectly schedule task y
+children(x:T0, y:T1)
+children(x, y) :- schedules0(x, _, _, y).
+children(x, z) :- children(x, y), schedules0(y, _, _, z).
+
+family(x:T0, t:T1)
+family(x, y) :- x=y.
+family(x, y) :- children(x, y).
 
 #flatten the subscope tree relation
 subscope(x:T0, super:S0, sub:S1)
@@ -27,29 +32,177 @@ subscope(x, super, sub2) :- subscope(x, super, sub), subscope0(x, sub, sub2).
 
 #creation of var1 implies that var2 has been executed (i.e., var2 is in same or a super scope than var1)
 implies(x:T0, var1:A0, var2:A1)
-implies(x, var1, var2) :- schedules0(x, scope, var1, _), schedules0(x, scope, var2, _), var1 != var2.
-implies(x, var1, var2) :- schedules0(x, super, var2, _), schedules0(x, sub, var1, _), subscope(x, super, sub).
+implies(x, aSched, bSched) :- schedules0(x, scope, aSched, _), schedules0(x, scope, bSched, _), aSched != bSched.
+implies(x, aSched, bSched) :- schedules0(x, super, bSched, _), schedules0(x, sub, aSched, _), subscope(x, super, sub).
+implies(x, aSched, bSched) :- formal0(x, _, aSched), formal0(x, _, bSched), aSched!=bSched.
+implies(x, aSched, bSched) :- schedules0(x, _, aSched, _), formal0(x, _, bSched).
+implies(x, aSched, bSched) :- formal0(x, _, aSched), schedules0(x, "top", bSched, _).
+
+notExclusive(x:T0, aSched:A0, bSched:A1)
+notExclusive(x, aSched, bSched) :- implies(x, aSched, bSched).
+notExclusive(x, aSched, bSched) :- implies(x, bSched, aSched).
 
 #transitive arrows
-arrowTrans(x:T0, lhs:A1, rhs:A2)
-arrowTrans(x, lhs, rhs) :- arrow0(x, lhs, rhs).
-arrowTrans(x, lhs, rhs) :- arrowTrans(x, lhs, inter), arrow0(x, inter, rhs), implies(x, rhs, inter).
+orderedBefore(x:T0, lhs:A1, rhs:A2)
+orderedBefore(x, lhs, rhs) :- arrow0(x, lhs, rhs).
+orderedBefore(x, lhs, rhs) :- orderedBefore(x, lhs, inter), arrow0(x, inter, rhs), implies(x, rhs, inter).
 
+unordered(x:T0, aSched:A1, bSched:A2)
+unordered(x, aSched, bSched) :- \
+	!orderedBefore(x, aSched, bSched), \
+	!orderedBefore(x, bSched, aSched).
+	
+orderedAfter(x:T0, aSched:A1, bSched:A2)
+orderedAfter(x, aSched, bSched) :- \
+	orderedBefore(x, bSched, aSched).
+
+#the following unorderedWithXY rules implement the lookup table:
+#               | unordered with P          |  unordered with P's children
+# ––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––
+# a -> <0>      | children(A)               |  children(A)
+# <0> -> a      | children(A)               |  A + children(A)
+# a || <0>      | A + children(A)           |  A + children(A)
+# a(<0>) -> <0> | unorderedWithP(A, q)      |  unorderedWithPsChildren(A, q)
+# <0> -> a(<0>) | unorderedWithP(A, q)      |  A + unorderedWithPsChildren(A, q)
+# a(<0>) || <0> | A + unorderedWithP(A, q)  |  A + unorderedWithPsChildren(A, q)
+
+unorderedWithP(x:T0, p:N0, a:T1)
+#no param passing between param and activation: add children of activation
+unorderedWithP(x, p, aChildren) :- \
+		formal0(x, p, pVar), \
+		schedules0(x, _, aSched, a), \
+		notUsedAsParam(x, aSched, pVar), \
+		children(a, aChildren).
+#param passing between param and activation: add unorderedWithP
+unorderedWithP(x, p, aChildren) :- \
+		formal0(x, p, pVar), \
+		schedules0(x, _, aSched, a), \
+		actual0(x, aSched, q, pVar), \
+		unorderedWithP(a, q, aChildren).
+#no arrow between A and param: add A
+unorderedWithP(x, p, a) :- \
+		formal0(x, p, pVar), \
+		schedules0(x, _, aSched, a), \
+		unordered(x, aSched, pVar).
+		
+unorderedWithPsChildren(x:T0, p:N0, a:T1)
+#no param passing: children
+unorderedWithPsChildren(x, p, aChildren) :- \
+		formal0(x, p, pVar), \
+		schedules0(x, _, aSched, a), \
+		notUsedAsParam(x, aSched, pVar), \
+		children(a, aChildren).
+#param passing: unorderedWithPsChildren
+unorderedWithPsChildren(x, p, aChildren) :- \
+		formal0(x, p, pVar), \
+		schedules0(x, _, aSched, a), \
+		actual0(x, aSched, q, pVar), \
+		unorderedWithPsChildren(a, q, aChildren).
+#param is not on left hand side: add A
+unorderedWithPsChildren(x, p, a) :- \
+		formal0(x, p, pVar), \
+		schedules0(x, _, aSched, a), \
+		!orderedBefore(x, pVar, aSched).		
+		
 ##
-unordered(a:T1, b:T2)
 
-unordered(a, b) :- unordered(b, a).
+# the "unordered" rule implements this table:
+# (note, that a(b) AND b(a) is weird but if it's used then it will (correctly, hopefully) result in the
+# conclusion that all the children of a and b are parallel)
+#          no param passing                  | a(b)
+# a -> b   children(a) || family(b)          | unorderedWithP(a) || family(b) 
+#                                              and unorderedWithPsChildren(a) || children(b)
+# b -> a   children(b) || family(a)          | children(b) || family(a)
+# a || b   family(a) || family(b)            | A + unorderedWithP(a) + unorderedWithPsChildren(a) || family(B)
+# c and a, c->b, b used as param			 | children(c) || unorderedWithPsChildren(a, b as param)
 
-#no arrow: a and b unordered AND children of a and children of b
-unordered(aFamily, bFamily) :- \
-		schedules0(x, _, aSched, a), schedules0(x, _, bSched, b), \
-		implies(x, bSched, aSched), \
-		!arrowTrans(x, aSched, bSched), \
-		!arrowTrans(x, bSched, aSched), \
-		family(a, aFamily), family(b, bFamily).
+#unorderedFamily is a really bad name because it doesn't compute a family! 
+#it's just a helper for the table above
+unorderedFamily(x:T0, p:N, a:T1)
+unorderedFamily(x, p, a) :- x=a.
+unorderedFamily(x, p, a) :- unorderedWithP(x, p, a).
+unorderedFamily(x, p, a) :- unorderedWithPsChildren(x, p, a).
 
-#a->b and no param passing, then a's children are unordered with b's family
-unordered(aChild, bFamily) :- \
-		schedules0(x, _, aSched, a), schedules0(x, _, bSched, b), \
-		arrowTrans(x, aSched, bSched), \
-		grandchildren(a, aChild), family(b, bFamily).
+parallel(a:T1, b:T2)
+
+#make sure we are bidirectional
+parallel(a, b) :- parallel(b, a).
+
+#no arrow and no param passing
+parallel(aFamily, bFamily) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	notExclusive(x, bSched, aSched), \
+	notUsedAsParam(x, aSched, bSched), \
+	unordered(x, aSched, bSched), \
+	family(a, aFamily), \
+	family(b, bFamily).
+	
+#arrow but no param passing
+parallel(aChild, bFamily) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	notUsedAsParam(x, aSched, bSched), \
+	orderedBefore(x, aSched, bSched), \
+	children(a, aChild), \
+	family(b, bFamily).
+
+#param passing a(b) and arrow a->b
+parallel(aChild, bFamily) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	actual0(x, aSched, p, bSched), \
+	orderedBefore(x, aSched, bSched), \
+	unorderedWithP(a, p, aChild), \
+	family(b, bFamily).
+	
+#param passing a(b) and arrow a->b part 2
+parallel(aChild, bChild) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	actual0(x, aSched, p, bSched), \
+	orderedBefore(x, aSched, bSched), \
+	unorderedWithPsChildren(a, p, aChild), \
+	children(b, bChild).
+	
+#param passing a(b) and b->a
+parallel(bChild, aFamily) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	actual0(x, aSched, p, bSched), \
+	orderedAfter(x, aSched, bSched), \
+	children(b, bChild), \
+	family(a, aFamily).
+	
+#param passing a(b) but no arrow
+parallel(aChild, bFamily) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	actual0(x, aSched, p, bSched), \
+	unordered(x, aSched, bSched), \
+	unorderedFamily(a, p, aChild), \
+	family(b, bFamily).
+	
+# CREATE A RELATION
+# childrenParallelToFrom(x, s1, s2)
+# which returns children(s1) if s2 is not a param to s1
+# etc.
+
+#node happens-before passed parameter
+#NOTE: doesn't work yet because the other rules still trigger
+#i have to do something like : notUsedAsParam if not related to any param, orderedBeforeParam, orderedAfterParam, isParam (=actual0)
+
+#problem right now: the param passing also has to be done for the unorderedWithPXY relations.
+#maybe I can factor that out somehow
+# if a is param p in x(p): ...
+# if a->*p for x(p): children(a) || unorderedWithP'sChildren(x, p)
+# if p->*a for x(p): unorderedWithP() + unorderedWithPsChildren() || family(a)
+parallel(bChild, aChild) :- \
+	schedules0(x, _, aSched, a), \
+	schedules0(x, _, bSched, b), \
+	schedules0(x, _, pSched, b), \
+	actual0(x, aSched, p, pSched), \
+	orderedBefore(x, bSched, pSched), \
+	children(b, bChild), \
+	unorderedWithPsChildren(a, p, aChild).
+	
