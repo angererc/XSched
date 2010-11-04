@@ -26,6 +26,7 @@ import static jgfmt.section3.montecarlo.AppDemo.JGFavgExpectedReturnRateMC;
 import java.util.Vector;
 
 import xsched.Activation;
+import xsched.Task;
 
 /**
  * Code, a test-harness for invoking and driving the Applications Demonstrator
@@ -161,6 +162,13 @@ public class AppDemoActivations extends Universal implements AppDemoInterface {
 			this.i = i;
 		}
 		
+		@Task(
+				activations= "A:B:Singleton:xsched.AnnotationTest.someTask(), " +
+							 "B:C*A*0:FwdChain:xsched.AnnotationTest.someTask(), " +
+							 "C:1:Unordered:xsched.AnnotationTest.someTask()",
+				implications="A, A=>B, B<=>C",				
+				schedule = "A->B, B->C, B->1"
+			)
 		public void run() {
 			final PriceStock ps = new PriceStock();
 			ps.setInitAllTasks(AppDemoActivations.initAllTasks);

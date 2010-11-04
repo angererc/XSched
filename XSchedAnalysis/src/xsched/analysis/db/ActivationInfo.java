@@ -8,6 +8,7 @@ import com.ibm.wala.types.TypeReference;
 
 public class ActivationInfo {
 	public static final TypeName theActivationTypeName = TypeName.string2TypeName("Lxsched/Activation");
+	public static final TypeName theTaskAnnotationTypeName = TypeName.string2TypeName("Lxsched/Task");
 	public static final Selector theScheduleSelector = Selector.make("schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation;");
 	public static final Selector theNowSelector = Selector.make("now()Lxsched/Activation;");
 	public static final Selector theHBSelector = Selector.make("hb(Lxsched/Activation;)V;");

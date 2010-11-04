@@ -1,7 +1,9 @@
 package xsched.analysis.db;
 
+import java.util.Collection;
 import java.util.Set;
 
+import xsched.analysis.utils.AnnotationsUtil;
 import xsched.analysis.utils.DefUseUtils;
 
 import com.ibm.wala.classLoader.IClass;
@@ -23,6 +25,7 @@ import com.ibm.wala.ssa.SSAInstruction.Visitor;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
+import com.ibm.wala.types.annotations.Annotation;
 
 class ComputeDomains {
 	private final ExtensionalDatabase database;
@@ -82,6 +85,7 @@ class ComputeDomains {
 		assert( ! (klass.getName().toString().contains("Lxsched/Activation")));
 		
 		System.out.println("computing domain for class " + klass.getReference());
+		
 		//********
 		// Types domain
 		database.types.add(klass.getName());
@@ -136,6 +140,11 @@ class ComputeDomains {
 		//************
 		// Methods domain
 		database.methods.add(method);
+		
+		Annotation annotation = AnnotationsUtil.getAnnotation(method, ActivationInfo.theTaskAnnotationTypeName);
+		if(annotation != null) {
+			System.err.println(annotation);
+		}
 		
 		if(method.isNative()) {
 			return;

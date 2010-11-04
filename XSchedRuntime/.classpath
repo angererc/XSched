@@ -9,6 +9,7 @@
 	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/philo"/>
 	<classpathentry excluding="tspfiles/" kind="src" path="shared_tests/Benchmarks/Erco/tsp"/>
 	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/hedc"/>
+	<classpathentry kind="src" path="shared"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
