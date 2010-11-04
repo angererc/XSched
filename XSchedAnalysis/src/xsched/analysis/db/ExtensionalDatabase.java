@@ -53,6 +53,11 @@ public class ExtensionalDatabase {
 	/*
 	 * statements
 	 */
+	
+	//we use this relation for sanity checking. if our preprocessor has actually processed the class, it adds it here. 
+	public UnaryRelation<TypeName> visitedTypes = 
+		new UnaryRelation<TypeName>("visitedType", types, "Type0");
+		
 	public TernaryRelation<IMethod, Integer, Obj> newStatements = 
 		new TernaryRelation<IMethod, Integer, Obj>("new", methods, variables, objects, "Method0_Variable0_Object0");
 	

@@ -69,6 +69,8 @@ class ComputeRelations {
 		// add super classes to Assignable relation
 		IClass superKlass = klass;
 		
+		database.visitedTypes.add(klass.getName());
+		
 		while(superKlass != null) {
 			database.assignable.add(superKlass.getReference().getName(), klass.getReference().getName());
 			superKlass = superKlass.getSuperclass();
@@ -293,7 +295,7 @@ class ComputeRelations {
 				//only used by static and special methods, but put it here for DRY reasons
 				IMethod target = null;
 				if(callSite.isFixed()) {
-					classHierarchy.resolveMethod(targetRef);				
+					target = classHierarchy.resolveMethod(targetRef);				
 					if(target == null) {
 						System.err.println("Warning: couldn't resolve method " + targetRef + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
 						return;

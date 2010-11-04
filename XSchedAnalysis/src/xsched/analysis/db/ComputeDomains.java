@@ -5,7 +5,6 @@ import java.util.Set;
 import xsched.analysis.utils.DefUseUtils;
 
 import com.ibm.wala.classLoader.IClass;
-import com.ibm.wala.classLoader.IClassLoader;
 import com.ibm.wala.classLoader.IField;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -119,8 +118,8 @@ class ComputeDomains {
 			
 			//*******
 			// MethodReference domain
-			if(klass.getClassLoader().getReference().equals(ClassLoaderReference.Application))
-				System.out.println("\t... adding method " + method.getSelector());
+			//if(klass.getClassLoader().getReference().equals(ClassLoaderReference.Application))
+				//System.out.println("\t... adding method " + method.getSelector());
 			
 			database.selectors.add(method.getSelector());
 			

@@ -2,7 +2,6 @@ package xsched.analysis.db;
 
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.classLoader.ProgramCounter;
-import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.TypeReference;
 
 /**
