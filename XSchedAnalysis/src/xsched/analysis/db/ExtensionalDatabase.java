@@ -33,7 +33,23 @@ public class ExtensionalDatabase {
 	//one possibility (the more correct one) would be to flatten the types by adding a type for each class loader
 	//(e.g., <Application, Ljava/lang/Object> and <Primordial, Ljava/lang/Object>)
 	//or we just use the name and don't handle all this class loader craziness correctly.
-	public final Domain<TypeName> types = new Domain<TypeName>("Type");  
+	public final Domain<TypeName> types = new Domain<TypeName>("Type") {
+		//that's a little hacky and a little elegant to do that here... not sure
+		@Override public boolean add(TypeName type) { 			
+			assert(!type.isPrimitiveType()) : "don't accept primitive types";
+			if(type.isArrayType()) {
+				TypeName elementName = type.getInnermostElementType();
+				if(! elementName.isPrimitiveType()) {					
+					super.add(elementName);
+					return super.add(type);
+				} else {
+					return super.add(type);
+				}
+			} else {
+				return super.add(type); 
+			}
+		}
+	};  
 	public final Domain<IMethod> methods = new Domain<IMethod>("Method");
 	public final Domain<Selector> selectors = new Domain<Selector>("Selector");
 	public final Domain<Integer> paramPositions = new Domain<Integer>("ParamPosition");
@@ -50,14 +66,28 @@ public class ExtensionalDatabase {
 	 */
 	public UnaryRelation<IMethod> roots = new UnaryRelation<IMethod>("roots", methods, "Method0");
 	
+	/* **************
+	 * Sanity checks: we use the followign relations for sanity checking
+	 */ 
+	public UnaryRelation<TypeName> visitedTypes = 
+		new UnaryRelation<TypeName>("_visitedType", types, "Type0");
+	
+	public UnaryRelation<IMethod> visitedMethods = 
+		new UnaryRelation<IMethod>("_visitedMethod", methods, "Method0");
+	
+	public UnaryRelation<TypeName> primitiveArrayTypes = 
+		new UnaryRelation<TypeName>("_primitiveArrayType", types, "Type0");
+	
+	public BinaryRelation<TypeName, TypeName> objectArrayTypes = 
+		new BinaryRelation<TypeName, TypeName>("_objectArrayType", types, types, "Type0_Type1");
+		
+	public TernaryRelation<IMethod, TypeName, Selector> ignoredStaticInvokes = 
+		new TernaryRelation<IMethod, TypeName, Selector>("_ignoredStaticInvoke", methods, types, selectors, "Method0_Type0_Selector0");
+	
 	/*
 	 * statements
 	 */
-	
-	//we use this relation for sanity checking. if our preprocessor has actually processed the class, it adds it here. 
-	public UnaryRelation<TypeName> visitedTypes = 
-		new UnaryRelation<TypeName>("visitedType", types, "Type0");
-		
+			
 	public TernaryRelation<IMethod, Integer, Obj> newStatements = 
 		new TernaryRelation<IMethod, Integer, Obj>("new", methods, variables, objects, "Method0_Variable0_Object0");
 	

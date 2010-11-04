@@ -11,14 +11,11 @@
 .include "ParamPosition.dom"
 
 #adapted from the p2 analysis of whaley
-.bddvarorder Selector0_Field0_BC0_Method1_Method0_Variable1_Variable0_Type0_ParamPosition0_Type1_Object0_Object1
+#.bddvarorder Selector0_Field0_BC0_Method1_Method0_Variable1_Variable0_Type0_ParamPosition0_Type1_Object0_Object1
 	
 .include "./points_to_analysis.relations"
 .include "./points_to_analysis.rules"
 
+.include "./points_to_analysis.sanitycheck"
+
 roots("< Application, Ljgfmt/section3/JGFMonteCarloBenchSizeA, main([Ljava/lang/String;)V >").
-
-visitedType(t:Type) input
-
-_WarningUnresolvedType(t:Type) outputtuples
-_WarningUnresolvedType(t) :- !visitedType(t).

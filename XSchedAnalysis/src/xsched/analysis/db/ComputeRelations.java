@@ -29,9 +29,11 @@ import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.ssa.SSAThrowInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
+import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.Selector;
+import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.TypeReference;
 
 class ComputeRelations {
@@ -55,16 +57,28 @@ class ComputeRelations {
 		for(IClass klass : parent.classHierarchy) {
 			processClass(klass);
 		}
+		
+		//for sanity checking, filter out all the array types
+		for(TypeName type : database.types) {
+			if(type.isArrayType()) {
+				TypeName elementType = type.getInnermostElementType();
+				if(elementType.isPrimitiveType()) {
+					database.primitiveArrayTypes.add(type);
+				} else {
+					assert(!elementType.isArrayType());
+					database.objectArrayTypes.add(type, elementType);
+				}				
+			}
+		}
 	}
 	
 	private void addDefaultRelations() {	
-		database.objectTypes.add(ExtensionalDatabase.theImmutableObject, TypeReference.JavaLangObject.getName());		
+		database.objectTypes.add(ExtensionalDatabase.theImmutableObject, TypeReference.JavaLangObject.getName());	
+		database.visitedTypes.add(TypeReference.findOrCreate(ClassLoaderReference.Application, "Lxsched/Activation").getName());
 	}
 
-	private void processClass(IClass klass) {
-		System.out.println("-------------------------------------------------------");
+	private void processClass(IClass klass) {		
 		System.out.println("computing relations for class " + klass.getReference());
-		System.out.println("-------------------------------------------------------");
 		//**************
 		// add super classes to Assignable relation
 		IClass superKlass = klass;
@@ -96,9 +110,12 @@ class ComputeRelations {
 		// work on declared methods
 				
 		for(IMethod method : klass.getDeclaredMethods()) {
-			if( ! (method.isAbstract() || method.isNative())) {	
+			if(method.isNative()) {
+				NativeMethodHandler.processMethod(database, method);
+			} else if( ! method.isAbstract()) {	
+				database.visitedMethods.add(method);
 				new MethodVisitor(method).processMethod();
-			}
+			} 
 		}
 	}
 	
@@ -296,8 +313,9 @@ class ComputeRelations {
 				IMethod target = null;
 				if(callSite.isFixed()) {
 					target = classHierarchy.resolveMethod(targetRef);				
-					if(target == null) {
-						System.err.println("Warning: couldn't resolve method " + targetRef + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
+					if(target == null) {		
+						//System.err.println("adding " + targetRef.getSelector() + " to ignored Static invokes");						
+						database.ignoredStaticInvokes.add(method, targetRef.getDeclaringClass().getName(), targetRef.getSelector());						
 						return;
 					}
 				}

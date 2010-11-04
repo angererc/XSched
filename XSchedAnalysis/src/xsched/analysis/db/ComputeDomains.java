@@ -20,7 +20,6 @@ import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
-import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
 import com.ibm.wala.types.TypeReference;
@@ -71,12 +70,6 @@ class ComputeDomains {
 	}
 	
 	private void addDefaultElements() {
-		//TODO not sure why i need to add all of those here... java.lang.Object for example. Re-examine this!
-		database.types.add(TypeReference.JavaLangClass.getName());
-		database.types.add(TypeReference.JavaLangString.getName());
-		database.types.add(ActivationInfo.theActivationTypeName);
-		database.types.add(TypeReference.findOrCreateArrayOf(TypeReference.JavaLangObject).getName());
-		
 		database.objects.add(ExtensionalDatabase.theImmutableObject);
 		database.fields.add(ExtensionalDatabase.arrayElementField);
 				
@@ -182,14 +175,16 @@ class ComputeDomains {
 		private void addToVariableTypes(int variable) {
 			Set<TypeReference> types = DefUseUtils.definedReferenceTypes(ir, defUse, variable);
 			for(TypeReference ref : types) {
-				database.types.add(ref.getName());
+				if(ref.isReferenceType()) {
+					database.types.add(ref.getName());
+				}
 			}
 		}
 		
 		@Override
 		public void visitGet(SSAGetInstruction instruction) {	
 			FieldReference field = instruction.getDeclaredField();
-			database.fields.add(field);
+			database.fields.add(field);			
 			addToVariableTypes(instruction.getDef());
 		}
 		
@@ -240,6 +235,8 @@ class ComputeDomains {
 					database.types.add(typeRef.getName());					
 				}
 			}
+			
+			database.types.add(target.getDeclaringClass().getName());
 		}
 		
 		@Override
