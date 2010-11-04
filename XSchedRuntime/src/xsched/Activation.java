@@ -60,6 +60,7 @@ public class Activation<R> implements ThreadPool.WorkItem {
 			//however, it seems to be a non standard thing to translate a java method into a string like that
 			//therefore we simply search for the first method with the given name. Therefore, overloading
 			//is currently not possible. Fix that.
+			/**NOTE: Search for toJvmName and jaassist for a method that might solve that **/
             if (taskName.startsWith(method.getName() + "(")) {
             	if(method.getParameterTypes().length == params.length) {
             		if(this.method != null) 

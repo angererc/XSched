@@ -34,7 +34,7 @@
 	variablePT(nowCtxt, now, thisCtxt, this, m, v, alsoThis, obj)	:- 	\
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							new(m, v, obj), \
-							this=alsoThis.
+							this=alsoThis. split
 	
 	#**********************
 	#schedule statement
@@ -42,7 +42,7 @@
 	variablePT(nowCtxt, now, thisCtxt, this, m, v, alsoNow, obj) :- \
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							schedule(m, _, v, obj, _), \	
-							now=alsoNow.						
+							now=alsoNow. split				
 	
 	#**********************
 	#now statement
@@ -51,7 +51,7 @@
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							now(m, v), \
 							nowCtxt=alsoNowCtxt, \
-							now=alsoNow.
+							now=alsoNow. split
 	
 	#**********************
 	#constants
@@ -59,7 +59,7 @@
 	#two options: we could use "this" or "now" as the context for the new object
 	variablePT(nowCtxt, now, thisCtxt, this, m, v, 0, obj)	:- 	\
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
-							constant(m, v, obj).
+							constant(m, v, obj). split
 							
 	#**********************
 	#assignments; 
@@ -68,7 +68,7 @@
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							assign(m, v1, v2), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, v2, objCtxt, obj), \
-							canPointTo(m, v1, obj).	
+							canPointTo(m, v1, obj).	split
 	
 	#**********************
 	#loads; 
@@ -78,7 +78,7 @@
 							load(m, v2, v1, f), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, v1, baseCtxt, base), \
 							heapPT(baseCtxt, base, f, targetCtxt, target), \
-							canPointTo(m, v2, target).
+							canPointTo(m, v2, target). split
 							
 	#**********************
 	#static loads; 
@@ -87,7 +87,7 @@
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							staticLoad(m, v, f), \
 							heapPT(0, 0, f, targetCtxt, target), \
-							canPointTo(m, v, target).
+							canPointTo(m, v, target). split
 	
 	#**********************
 	#stores; 
@@ -96,7 +96,7 @@
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							store(m, v1, f, v2), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, v1, baseCtxt, base), \
-							variablePT(nowCtxt, now, thisCtxt, this, m, v2, targetCtxt, target).
+							variablePT(nowCtxt, now, thisCtxt, this, m, v2, targetCtxt, target). split
 	
 	#**********************
 	#static stores; 
@@ -104,7 +104,7 @@
 	heapPT(0, 0, f, targetCtxt, target):- \
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
 							staticStore(m, f, v), \
-							variablePT(nowCtxt, now, thisCtxt, this, m, v, targetCtxt, target).
+							variablePT(nowCtxt, now, thisCtxt, this, m, v, targetCtxt, target). split
 							
 	#**********************
 	#static calls
@@ -116,12 +116,12 @@
 							actual(m, invokeBC, 0, recVar), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis), \
 							nowCtxt=alsoNowCtxt, \
-							now=alsoNow.
+							now=alsoNow. split
 	
 	#statically bound class methods (don't use actual variable but the global object)
 	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, 0, 0, 0, 0, calledM) :- \
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
-							staticClassInvoke(m, invokeBC, calledM).
+							staticClassInvoke(m, invokeBC, calledM). split
 																													
 	#**********************
 	#virtual calls
@@ -134,7 +134,7 @@
 							objectType(calledThis, t), \
 							member(t, selector, calledM), \
 							nowCtxt=alsoNowCtxt, \
-							now=alsoNow.
+							now=alsoNow. split
 							
 	#**********************
 	#schedule statements
@@ -146,7 +146,7 @@
 							actual(m, invokeBC, 0, recVar), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis), \
 							objectType(calledThis, t), \
-							member(t, selector, calledM).
+							member(t, selector, calledM). split
 
 	#**********************
 	#parameter passing
@@ -155,7 +155,7 @@
 							invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM), \
 							formal(calledM, z, formalVar), \
 							actual(m, invokeBC, z, actualVar), \
-							variablePT(nowCtxt, no, thisCtxt, this, m, actualVar, objCtxt, obj).
+							variablePT(nowCtxt, no, thisCtxt, this, m, actualVar, objCtxt, obj). split
 						
 	#**********************	
 	#returns
@@ -165,7 +165,7 @@
 							callSiteReturn(callerM, invokeBC, callerRetVar), \
 							methodReturn(calledM, retVar), \
 							variablePT(calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM, retVar, objCtxt, obj), \
-							canPointTo(m, callerRetVar, obj).
+							canPointTo(m, callerRetVar, obj). split
 							
 	#**********************	
 	#exceptions
@@ -175,5 +175,5 @@
 							catch(m, caughtExcVar), \
 							methodThrow(throwingM, thrownExcVar), \
 							variablePT(_, _, _, _, throwingM, thrownExcVar, excCtxt, excObj), \
-							canPointTo(m, caughtExcVar, obj).
+							canPointTo(m, caughtExcVar, obj). split
 	

@@ -1,5 +1,5 @@
 ### Relations
-	roots					(method:Method)											input
+	roots					(method:Method)											
 	                		                                                            
 	#statements     		                                                            
 	new						(m:Method, dest:Variable, obj:Object)					input
