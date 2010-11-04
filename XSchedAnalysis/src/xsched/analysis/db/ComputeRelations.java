@@ -285,47 +285,52 @@ class ComputeRelations {
 				database.nowStatements.add(method, lhs);
 			} else {
 				
-				//add the invoke statements
-				if(callSite.isFixed()) {					
-					if(method == null) {
-						System.err.println("Warning: didn't find method " + instruction.getDeclaredTarget() + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
-						return;
-					}
-					IMethod target = classHierarchy.resolveMethod(targetRef);
+				if(method == null) {
+					System.err.println("Warning: didn't find method " + instruction.getDeclaredTarget() + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
+					return;
+				}
+				
+				//only used by static and special methods, but put it here for DRY reasons
+				IMethod target = null;
+				if(callSite.isFixed()) {
+					classHierarchy.resolveMethod(targetRef);				
 					if(target == null) {
 						System.err.println("Warning: couldn't resolve method " + targetRef + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
 						return;
 					}
-				
-					if(callSite.isStatic()) {					
-						database.staticClassInvokes.add(method, currentBCIndex, target);						
-					} else if (callSite.isSpecial()) {
-						database.staticInstanceInvokes.add(method, currentBCIndex, target);
-					}
-					
-					//the other parameters
-					System.err.println("Make sure that formals and actuals are aligned for static and instance methods!!!");
-					for(int i = 1; i < instruction.getNumberOfParameters(); i++) {
-						if(targetRef.getParameterType(i-1).isReferenceType()) { 
-							int param = instruction.getUse(i);
-							database.actuals.add(method, currentBCIndex, i-1, param);
-						}
-					}
-				} else {										
-					database.virtualInvokes.add(method, currentBCIndex, targetRef.getSelector());
-					//add the actuals
-					//a virtual call, so 0 is the this pointer				
-					int param = instruction.getUse(0);
-					database.actuals.add(method, currentBCIndex, 0, param);
-					//the other parameters
-					for(int i = 1; i < instruction.getNumberOfParameters(); i++) {
-						if(targetRef.getParameterType(i - 1).isReferenceType()) { //the method.getParameterType() doesn't contain "this"
-							param = instruction.getUse(i);
-							database.actuals.add(method, currentBCIndex, i, param);
-						}
-					}
 				}
 				
+				//Note: getNumberOfParameters() contains "this" for non-static calls
+				
+				//add the invoke statements
+				if(callSite.isStatic()) {
+					database.staticClassInvokes.add(method, currentBCIndex, target);
+				} else if (callSite.isSpecial()) {
+					database.staticInstanceInvokes.add(method, currentBCIndex, target);				
+				} else {
+					assert callSite.isDispatch();
+					database.virtualInvokes.add(method, currentBCIndex, targetRef.getSelector());					
+				}
+				
+				//add the actuals
+				//a static call has no this pointer, so the params start at index 0
+				//special and virtual calls have a this pointer and the method params start at index 1
+				//method.getParameterType does the right thing but not MethodReference; but we cannot access the method here because
+				//we are in a virtual call
+				//the other parameters
+				//be careful: instruction.getNumberOfParameters() is not equal to method.getNumberOfParameters!!!
+				for(int i = 0; i < instruction.getNumberOfParameters(); i++) {
+					TypeReference paramType = callSite.isStatic()?
+													targetRef.getParameterType(i)
+													: i==0?
+															targetRef.getDeclaringClass()
+															: targetRef.getParameterType(i-1);
+					if(paramType.isReferenceType()) {
+						int param = instruction.getUse(i);
+						//System.err.println("setting actual " + i + " of method " + callSite + " to " + param + " (" + paramType + ")");
+						database.actuals.add(method, currentBCIndex, i, param);
+					}						
+				}
 				
 				//add the call site return				
 				for(int i = 0; i < instruction.getNumberOfReturnValues(); i++) {

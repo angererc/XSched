@@ -107,11 +107,11 @@ public class DefUseUtils {
 			//find default value of phi and return that type
 			HashSet<TypeReference> typeRefs = new HashSet<TypeReference>();
 			collectPhiDefs(ir, defUse, new HashSet<SSAPhiInstruction>(), (SSAPhiInstruction)instruction, typeRefs);			
-			System.out.println("defuse utils: found typeRefs " + typeRefs + " for phi " + instruction);
+			//System.out.println("defuse utils: found typeRefs " + typeRefs + " for phi " + instruction);
 			return typeRefs;
 		//everything else should have been caught by the definesReferenceType method
 		} else {
-			System.out.println("defuse utils: instruction does not define a reference type " + instruction);
+			//System.out.println("defuse utils: instruction does not define a reference type " + instruction);
 			return Collections.emptySet();
 		}
 	}
