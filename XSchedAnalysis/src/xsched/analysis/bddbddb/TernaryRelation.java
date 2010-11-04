@@ -7,7 +7,7 @@ import chord.util.tuple.object.Trio;
 
 public class TernaryRelation<A, B, C> extends Relation<TernaryRelation<A, B, C>> {
 	
-	public TernaryRelation(String name, Domain<A> domA, Domain<B> domB, Domain<C> domC, String domainOrdering) {
+	public TernaryRelation(String name, Domain<? super A> domA, Domain<? super B> domB, Domain<? super C> domC, String domainOrdering) {
 		super(name, domainOrdering, domA, domB, domC);
 	}
 	

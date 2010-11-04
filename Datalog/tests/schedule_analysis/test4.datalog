@@ -6,7 +6,8 @@ A 10 activations.map
 S 10 scopes.map
 N 5
 
-.include "../schedule_analysis.core"
+.include "../../schedule_analysis.relations"
+.include "../../schedule_analysis.rules"
 
 #dummies to fill the empty database
 subscope0("<dummy>", 0, 0).

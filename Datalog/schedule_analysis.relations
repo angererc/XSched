@@ -1,0 +1,5 @@
+schedules0(x:T0, scope:S0, var:A1, t:T1)
+actual0(x:T0, var:A0, p:N0, val:A2)
+formal0(x:T0, p:N0, var:A0)
+arrow0(x:T0, lhs:A1, rhs:A2)
+subscope0(x:T0, super:S0, sub:S1)

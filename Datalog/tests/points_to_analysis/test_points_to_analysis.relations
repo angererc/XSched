@@ -1,0 +1,65 @@
+### Relations
+	roots					(method:Method)											
+	                		                                                            
+	#statements     		                                                            
+	new						(m:Method, dest:Variable, obj:Object)			
+	schedule				(m:Method, bc:BC, dest:Variable, obj:Object, name:Selector)			
+	now						(m:Method, variable:Variable)					
+	constant				(m:Method, variable:Variable, object:Object)		
+	load					(m:Method, variable:Variable, base:Variable, field:Field)	
+#	primLoad				(m:Method, base:Variable, field:Field)			
+	staticLoad				(m:Method, dest:Variable, field:Field) 			
+#	staticPrimLoad			(m:Method, field:Field) 							
+	store					(m:Method, base:Variable, field:Field, source:Variable) 		
+#	primStore				(m:Method, base:Variable, field:Field) 			
+	staticStore				(m:Method, field:Field, source:Variable) 			
+#	staticPrimStore			(m:Method, field:Field) 								
+	assign					(m:Method, dest:Variable, source:Variable)		
+	methodReturn			(m:Method, var:Variable)								
+	methodThrow				(m:Method, var:Variable)								
+	 		                                                            
+	#types          		                                                            
+	variableType			(method:Method, variable:Variable, type:Type)			
+	objectType				(object:Object, type:Type)					
+	#NOTE: assignable must be a flattened hierarchy already, including same-type 			
+	assignable				(supertype:Type, subtype:Type)							
+	member					(type:Type, name:Selector, target:Method)				
+		                                                                                   
+	#control flow                                                                       
+	actual					(method:Method, invokeBC:BC, param:ParamPosition, var:Variable)		
+	formal					(method:Method, param:ParamPosition, var:Variable)		
+				                                                                                    
+	#call sites                                                                         
+	staticClassInvoke		(m:Method, invokeBC:BC, target:Method)					
+	staticInstanceInvoke	(m:Method, invokeBC:BC, target:Method)					
+	virtualInvoke			(m:Method, invokeBC:BC, name:Selector) 					
+	callSiteReturn			(m:Method, invokeBC:BC, var:Variable)					
+	#we catch all exceptions by type that can be assigned to var; that's hopefully precise enough for what we want to do
+	catch					(m:Method, var:Variable)
+	
+	
+	canPointTo				(method:Method, variable:Variable, object:Object)
+	
+	variablePT				(nowCtxt:Object, now:Object, \
+							 thisCtxt:Object, this:Object, \
+							 method:Method, variable:Variable, \
+							 actContext:Object, object:Object)						outputtuples
+							
+	heapPT					(baseCtxt:Object, base:Object, \
+							 field:Field, \
+							 targetCtxt:Object, target:Object)						
+	
+	#method m on thisCtxt.this is executed in nowCtxt.now;
+	#the execution context is just a projection of the invocationEdge relation to simplify some things
+	executionContext		(nowCtxt:Object, now:Object, \
+							 thisCtxt:Object, this:Object, \
+							 m:Method)												printsize
+
+	#in method callerMethod of callerThisCtxt.callerThis executed in callerNowCtxt.callerNow, 
+	#bytecode invokeBC is a call to 
+	#method receiverCtxt.receiver.target executed in receiverNowCtxt,receiverNow
+	invocationEdge			(callerNowCtxt:Object, callerNow:Object, \
+							 callerThisCtxt:Object, callerThis:Object, \
+							 callerMethod:Method, invokeBC:BC, \
+							 calledNowCtxt:Object, calledNow:Object, \
+							 caledThisCtxt:Object, calledThis:Object, calledMethod:Method)	

@@ -48,7 +48,7 @@ public class Tester {
 		msi_ = MetaSearchImpl.getUniqueInstance();
 		randomDate_ = new RandomDate(TES_START_, TES_END_);
 		
-		Activation<Void> main = Activation.schedule(new Driver(), "begin");
+		Activation<Void> main = Activation.schedule(new Driver(), "begin()V;");
 		Activation.kickOffMain(main);
 		
 		Messages.debug(0, "Tester::main - running ... metasearch terminates after all testers processed their queries.");
@@ -69,11 +69,11 @@ public class Tester {
 
 	public static class Driver {
 		public void begin() {
-			Activation<Void> later = Activation.schedule(this, "end");
+			Activation<Void> later = Activation.schedule(this, "end()V;");
 			for (int i=TES_THREADS_-1; i >= 0; i--) {
 				try {
 					Messages.debug(0, "Tester::main - creating tester thread %1.", String.valueOf(i));				
-					Activation<Void> next = Activation.schedule(new Tester("thread" + i + ".log", TES_PAUSE_, TES_ITERATIONS_), "run", later);
+					Activation<Void> next = Activation.schedule(new Tester("thread" + i + ".log", TES_PAUSE_, TES_ITERATIONS_), "run(Lxsched/Activation;)V;", later);
 					next.hb(later);
 					later = next;
 				} catch (Exception e) {
@@ -89,7 +89,7 @@ public class Tester {
 		
 	public void run(Activation<Void> later) {
 		Messages.debug(0, "Tester::run start");
-		Activation<Void> iteration = Activation.schedule(this, "iteration", later);
+		Activation<Void> iteration = Activation.schedule(this, "iteration(Lxsched/Activation;)V;", later);
 		iteration.hb(later);
 	}
 		
@@ -113,9 +113,9 @@ public class Tester {
 				parameters.put("DATETIME", randomDate_.nextString());
 				MetaSearchRequest m = new MetaSearchRequest(null, msi_, parameters);
 
-				Activation<Void> go = Activation.schedule(m, "go");
-				Activation<Void> writeResult = Activation.schedule(this, "writeResult", m);
-				Activation<Void> nextIteration = Activation.schedule(this, "iteration", later);
+				Activation<Void> go = Activation.schedule(m, "go()V;");
+				Activation<Void> writeResult = Activation.schedule(this, "writeResult(Lerco/activations/hedc/MetaSearchRequest;)V;", m);
+				Activation<Void> nextIteration = Activation.schedule(this, "iteration(Lxsched/Activation;)V;", later);
 				
 				go.hb(writeResult);
 				writeResult.hb(nextIteration);

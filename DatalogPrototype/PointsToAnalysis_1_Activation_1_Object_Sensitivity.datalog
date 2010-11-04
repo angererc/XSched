@@ -1,0 +1,75 @@
+# Activation-sensitive and 1-object-sensitive points to analysis
+#
+
+.basedir "dataset"
+
+### Domains
+	Bytecode	29		bytecode.map
+	Variable	29 		variable.map
+	Object	11 		heap.map
+	Field	3		field.map
+	Type	5		types.map
+	Selector	3		name.map
+	Method	3		method.map
+	ParamPosition	3
+	
+### Relations
+	new				(m:Method, variable:Variable, object:Object)	input
+	store			(bc:Bytecode, base:Variable, field:Field, source:Variable) 	input
+	load			(bc:Bytecode, base:Variable, field:Field, dest:Variable) 	input
+	assign0			(dest:Variable, source:Variable)							input
+	
+	variableType	(variable:Variable, type:Type)								input
+	objectType		(object:Object, type:Type)									input
+	assignable		(supertype:Type, subtype:Type)								input
+	
+	methodImplementation	(type:Type, name:Selector, target:Method)			input
+	actual			(invokeBC:Bytecode, param:ParamPosition, var:Variable)		input
+	formal			(method:Method, param:ParamPosition, var:Variable)			input
+	methodReturn	(method:Method, var:Variable)								input
+	callSiteReturn	(invokeBC:Bytecode, var:Variable)							input
+	staticInvoke	(invokeBC:Bytecode, target:Method)							input
+	methodInvoke	(method:Method, invokeBC:Bytecode, name:Selector) 			input
+	
+	canPointTo		(variable:Variable, object:Object)
+	
+	variablePT		(actContext1:Object, callContext1:Object, variable:Variable, actContext2:Object, callContext:Object, object:Object)				outputtuples
+	heapPT			(actContext1:Object, callContext1:Object, base:Object, field:Field, actContext2:Object, callContext2:Object, target:Object)		outputtuples
+	# (in context {act1,call1}, invoke bc has target method of receiver {act2,call2})
+	invocationEdge	(actContext1:Object, callContext1:Object, invokeBC:Bytecode, target:Method, actContext2:Object, callContext2:Object, receiver:Object)	outputtuples
+	
+### Rules
+
+#type filtering
+canPointTo(v, obj) :- variableType(v, varType), objectType(obj, objectType), assignable(varType, objType).
+
+#activation scope
+executionContext(methodNow, this, bc, bcNow) :- invocationEdge(methodNow, _, _, m, this), inlinedActivationScope(m, bc, bcNow).
+executionContext(methodNow, this, bc, bcNow) :- invocationEdge(methodNow, _, _, m, this), methodActivationScope(m, bc), methodNow=bcNow.
+
+#now statement
+variablePT(methodNow, this, v, _, bcNow) :- now(bc, v), executionContext(methodNow, this, bc, bcNow).
+
+#new statements
+variablePT(methodNow, this, v, bcNow, obj)	:- new(bc, v, obj), executionContext(methodNow, this, bc, bcNow).
+
+#phi-node assignments; could remove executionContext-clause?
+variablePT(methodNow, this, v1, actCtxt, obj)	:- phi(bc, v1, v2), executionContext(methodNow, this, bc, _), variablePT(methodNow, this, v2, actCtxt, obj), canPointTo(v1, obj).
+
+#loads; could remove executionContext-clause?
+variablePT(now, this, v2, actCtxt, obj2):- load(bc, v1, f, v2), executionContext(methodNow, this, bc, _), variablePT(methodNow, this, v1, someActCtxt, obj1), heapPT(someActCtxt, obj1, f, actCtxt, obj2), canPointTo(v2, obj2).
+
+#stores; could remove executionContext-clause?
+heapPT(actCtxt1, obj1, f, actCtxt2, obj2):- store(bc, v1, f, v2), executionContext(methodNow, this, bc, _), variablePT(methodNow, this, v1, actCtxt1, obj1), variablePT(methodNow, this, v2, actCtxt2, obj2).
+
+#static calls
+invocationEdge(bcNow, caller, invokeBC, m, receiver) :- staticInvoke(invokeBC, m), executionContext(methodNow, this, invokeBC, bcNow), actual(invokeBC, 0, recVar), variablePT(methodNow, this, recVar, _, receiver).
+
+#virtual calls
+invocationEdge(bcNow, this, invokeBC, m, receiver) :- methodInvoke(_, invokeBC, selector), executionContext(methodNow, this, invokeBC, bcNow), actual(invokeBC, 0, recVar), variablePT(methodNow, this, recVar, _, receiver), objectType(receiver, t), methodImplementation(t, selector, m).
+
+#parameter passing
+variablePT(bcNow, receiver, formalVar, actCtxt, paramValue) :- formal(m, z, formalVar), executionContext(methodNow, this, invokeBC, bcNow), invocationEdge(bcNow, this, invokeBC, m, receiver),  actual(invokeBC, z, actualVar), variablePT(methodNow, this, actualVar, actCtxt, paramValue).
+						
+#returns and exceptions
+variablePT(now, caller, callerRetVar, actCtxt, obj) :- callSiteReturn(invokeBC, callerRetVar), executionContext(methodNow, this, invokeBC, bcNow), invocationEdge(bcNow, this, invokeBC, m, receiver),  methodReturn(m, retVar), variablePT(bcNow, receiver, retVar, actCtxt, obj), canPointTo(callerRetVar, obj).

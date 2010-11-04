@@ -6,7 +6,8 @@ A 10 activations.map
 S 10 scopes.map
 N 5
 
-.include "../schedule_analysis.core"
+.include "../../schedule_analysis.relations"
+.include "../../schedule_analysis.rules"
 
 #a lying "F" shape
 #@X: a1:A->a2:B->a3:E

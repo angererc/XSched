@@ -1,16 +1,25 @@
 package xsched.analysis.db;
 
+import java.util.Iterator;
+import java.util.Set;
+
+import xsched.analysis.utils.DefUseUtils;
+
+import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IClass;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.impl.Everywhere;
+import com.ibm.wala.ipa.cha.ClassHierarchy;
+import com.ibm.wala.ssa.DefUse;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAArrayLoadInstruction;
 import com.ibm.wala.ssa.SSAArrayStoreInstruction;
 import com.ibm.wala.ssa.SSACheckCastInstruction;
 import com.ibm.wala.ssa.SSAGetCaughtExceptionInstruction;
 import com.ibm.wala.ssa.SSAGetInstruction;
+import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSALoadMetadataInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
@@ -20,7 +29,9 @@ import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.ssa.SSAThrowInstruction;
 import com.ibm.wala.ssa.SymbolTable;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
+import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.MethodReference;
+import com.ibm.wala.types.Selector;
 import com.ibm.wala.types.TypeReference;
 
 class ComputeRelations {
@@ -28,14 +39,15 @@ class ComputeRelations {
 	private final AnalysisCache cache;
 	private final AnalysisOptions options; 
 	
-	private final HandleRelationsLogic handler;
-	private final MethodVisitor visitor = new MethodVisitor();
+	private final ExtensionalDatabase database;
+	private final ClassHierarchy classHierarchy;
 	
 	ComputeRelations(FillExtensionalDatabase parent) {		
 		this.cache = parent.cache;
 		this.options = parent.options;
 		
-		handler = new HandleRelationsLogic(parent);
+		database = parent.database;
+		classHierarchy = parent.classHierarchy;
 		
 		addDefaultRelations();
 		
@@ -46,46 +58,107 @@ class ComputeRelations {
 	}
 	
 	private void addDefaultRelations() {	
-		handler.database.variableType.add(ExtensionalDatabase.theGlobalObjectRef, TypeReference.JavaLangClass.getName());
-		handler.database.objectType.add(ExtensionalDatabase.theGlobalObject, TypeReference.JavaLangClass.getName());
-		handler.database.assignObject.add(ExtensionalDatabase.theGlobalObjectRef, ExtensionalDatabase.theGlobalObject);
-		
-		handler.database.objectType.add(ExtensionalDatabase.theImmutableStringObject, TypeReference.JavaLangString.getName());		
+		database.objectTypes.add(ExtensionalDatabase.theImmutableObject, TypeReference.JavaLangObject.getName());		
 	}
 
 	private void processClass(IClass klass) {
+		System.out.println("-------------------------------------------------------");
+		System.out.println("computing relations for class " + klass.getReference());
+		System.out.println("-------------------------------------------------------");
+		//**************
+		// add super classes to Assignable relation
+		IClass superKlass = klass;
 		
-		handler.addToAssignableRel(klass);
-		handler.database.objectType.add(new ObjectCreationSite.SpecialCreationSite(klass.getName()), klass.getName());
-		handler.addToMethodImplementationRel(klass);
+		while(superKlass != null) {
+			database.assignable.add(superKlass.getReference().getName(), klass.getReference().getName());
+			superKlass = superKlass.getSuperclass();
+		}
+		
+		assert(database.assignable.contains(klass.getReference().getName(), klass.getReference().getName()));
+		
+		for(IClass interf : klass.getAllImplementedInterfaces()) {
+			database.assignable.add(interf.getReference().getName(), klass.getReference().getName());
+		}
+		
+		//**************
+		// add all klass members to members relation
+		TypeReference type = klass.getReference();		
+		for(IMethod method : klass.getAllMethods()) {
+			Selector selector = method.getSelector();			
+			if( ! method.isAbstract()) {
+				database.members.add(type.getName(), selector, method);
+			}
+		}
+		
+		//***************
+		// work on declared methods
 				
 		for(IMethod method : klass.getDeclaredMethods()) {
-			if( ! (method.isAbstract() || method.isNative())) {				
-				processCallableMethod(method);
+			if( ! (method.isAbstract() || method.isNative())) {	
+				new MethodVisitor(method).processMethod();
 			}
 		}
 	}
 	
-	private void processCallableMethod(IMethod method) {
-		IR ir = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
+	private class MethodVisitor extends Visitor {
 		
-		handler.beginMethod(method, ir);
+		private final IMethod method;
+		private final IR ir;
+		private final DefUse defUse;
+		private int currentBCIndex;
 		
-		SymbolTable symTab = ir.getSymbolTable();
-		//TODO make sure that we include constant pointers (not sure if we have to handle NULL or just leave it away...)
-		for(int variable = 1; variable <= symTab.getMaxValueNumber(); variable++) {
-			//************
-			//Variables domain
-			if(symTab.isStringConstant(variable)) {
-				handler.addToAssignObjectRel(variable, symTab.getStringValue(variable));
-			}			
+		private MethodVisitor(IMethod method) {
+			this.method = method;
+			
+			ir = cache.getSSACache().findOrCreateIR(method, Everywhere.EVERYWHERE, options.getSSAOptions());
+			defUse = cache.getSSACache().findOrCreateDU(method, Everywhere.EVERYWHERE, options.getSSAOptions());
 		}
 		
-		handler.addToFormalRel();
-		ir.visitAllInstructions(visitor);
-	}
-	
-	private class MethodVisitor extends Visitor {
+		private void addToVariableTypes(int variable) {
+			Set<TypeReference> types = DefUseUtils.definedReferenceTypes(ir, defUse, variable);
+			for(TypeReference type : types) {
+				if(type.isReferenceType()) {
+					database.variableTypes.add(ir.getMethod(), variable, type.getName());
+				}
+			}
+		}
+		
+		public void processMethod() {
+			
+			/**
+			 * add constants from the symbol table
+			 */
+			SymbolTable symTab = ir.getSymbolTable();
+			for(int variable = 1; variable <= symTab.getMaxValueNumber(); variable++) {
+				if(symTab.isStringConstant(variable) || symTab.isConstant(variable)) {				
+					database.constants.add(method, variable, ExtensionalDatabase.theImmutableObject);
+					addToVariableTypes(variable);				
+				}
+			}
+			
+			/**
+			 * add method formals variables
+			 */
+			//TODO we only handle formals for java methods here, not formals for native methods!
+			//formals will contain "this" for position 0 for instance methods
+			int[] params = ir.getParameterValueNumbers();
+			for(int i = 0; i < params.length; i++) {
+				if(ir.getParameterType(i).isReferenceType()) {
+					database.formals.add(method, i, params[i]);
+					addToVariableTypes(params[i]);
+				}
+			}
+			
+			/**
+			 * visit all instructions
+			 */
+			currentBCIndex = 0;
+			for(Iterator<SSAInstruction> it = ir.iterateAllInstructions(); it.hasNext(); ) {
+				it.next().visit(this);
+				currentBCIndex++;
+			}			
+						
+		}
 		
 		/* *******************
 		 * the visitor implementation that
@@ -94,73 +167,245 @@ class ComputeRelations {
 		
 		@Override
 		public void visitArrayLoad(SSAArrayLoadInstruction instruction) {
-			handler.addToLoadRel(instruction);
+			int lhs = instruction.getDef();
+			int rhs = instruction.getArrayRef();
+			FieldReference field = ExtensionalDatabase.arrayElementField;
+			
+			if(DefUseUtils.definesReferenceType(ir, defUse, lhs)) {
+				//***************
+				// load relation
+				database.loadStatements.add(method, lhs, rhs, field);
+				addToVariableTypes(lhs);
+			} else {
+				database.primLoadStatements.add(method, rhs, field);
+			}
 		}
 	
 		@Override
 		public void visitArrayStore(SSAArrayStoreInstruction instruction) {
-			handler.addToStoreRel(instruction);
+			int lhs = instruction.getArrayRef();
+			FieldReference field = ExtensionalDatabase.arrayElementField;
+			
+			if(instruction.getElementType().isReferenceType()) {
+				int rhs = instruction.getValue();
+				database.storeStatements.add(method, lhs, field, rhs);
+			} else {
+				database.primStoreStatements.add(method, lhs, field);
+			}
 		}
 	
 		@Override
 		public void visitCheckCast(SSACheckCastInstruction instruction) {
-			handler.addToAssignsRel(instruction);
+			if(DefUseUtils.definesReferenceType(ir, defUse, instruction)) {
+				int lhs = instruction.getResult();
+				int rhs = instruction.getVal();
+				database.assignStatements.add(method, lhs, rhs);
+				addToVariableTypes(lhs);
+			}
 		}
 	
 		@Override
 		public void visitGet(SSAGetInstruction instruction) {	
-			handler.addToLoadRel(instruction);		
+			int lhs = instruction.getDef();
+			FieldReference field = instruction.getDeclaredField();
+			
+			if(DefUseUtils.definesReferenceType(ir, defUse, lhs)) {
+				//we assign to reference type
+				if(instruction.isStatic()) {			
+					database.staticLoadStatements.add(method, lhs, field);					
+				} else {
+					int rhs = instruction.getRef();
+					database.loadStatements.add(method, lhs, rhs, field);
+					
+				}
+				addToVariableTypes(lhs);
+			} else {
+				//we assign to primitive type; ignore the assignment but recore the access
+				if(instruction.isStatic()) {
+					database.staticPrimLoadStatements.add(method, field);
+				} else {
+					int rhs = instruction.getRef();
+					database.primLoadStatements.add(method, rhs, field);					
+				}				
+			}		
 		}
 	
 		@Override
 		public void visitGetCaughtException(SSAGetCaughtExceptionInstruction instruction) {
-			new RuntimeException("no idea how to handle that yet...").printStackTrace();
+			int variable = instruction.getException();
+			database.catchStatements.add(method, variable);
+			addToVariableTypes(variable);
 		}
 			
 		@Override
 		public void visitInvoke(SSAInvokeInstruction instruction) {
+		
+			CallSiteReference callSite = instruction.getCallSite();
+			final MethodReference targetRef = callSite.getDeclaredTarget();
 			
-			MethodReference method = instruction.getDeclaredTarget();
+			if(ActivationInfo.isHBMethod(targetRef)) {
+				assert(instruction.getNumberOfUses() == 2);
+				assert(instruction.getNumberOfDefs() == 1); //invoke always returns an exception object
+				int lhs = instruction.getUse(0);
+				int rhs = instruction.getUse(1);
+				database.arrowStatements.add(method, lhs, rhs);				
+			} else if (ActivationInfo.isScheduleMethod(targetRef)) {
+				//a call to an activation creation method is like a new statement
+				//and like a virtual call to the receiver object with the given selector and params
+				
+				//the effect of the new statement:
+				int lhs = instruction.getDef();
+				Obj newActivation = new Obj.NewObject(method, instruction.getCallSite());
+				database.objectTypes.add(newActivation, ActivationInfo.theActivationTypeName);
+				database.variableTypes.add(method, lhs, ActivationInfo.theActivationTypeName);
+				
+				//the effect of the virtual call
+				String task = ir.getSymbolTable().getStringValue(instruction.getUse(1));
+				if(task == null)
+					throw new RuntimeException("a task MUST be a string constant naming a selector such as 'something(Ljava/lang/Object;Ljava/lang/String;)V;'");
+				
+				Selector selector = Selector.make(task);
+				
+				//add to the schedule statement
+				database.scheduleStatements.add(method, currentBCIndex, lhs, newActivation, selector);
+								
+				int receiver = instruction.getUse(0);
+				database.actuals.add(method, currentBCIndex, 0, receiver);
+				
+				//at i=1 is the task name; params to the activation start at index 2
+				for(int i = 2; i < instruction.getNumberOfParameters(); i++) {
+					int param = instruction.getUse(i);
+					database.actuals.add(method, currentBCIndex, i-1, param);
+				}
 			
-			if(ActivationInfo.isHBMethod(method)) {
-				handler.addToArrowStatementRel(instruction);
-			} else if (ActivationInfo.isActivationCreationMethod(method)) {
-				handler.addActivationCreation(instruction);
+			} else if (ActivationInfo.isNowMethod(targetRef)) {
+				int lhs = instruction.getDef();
+				//not sure why i don't use addVariableTypes() here... probably should...
+				database.variableTypes.add(method, lhs, ActivationInfo.theActivationTypeName);
+				database.nowStatements.add(method, lhs);
 			} else {
-				handler.addToInvokeRel(instruction);
-				handler.addToActualsRel(instruction);
-				handler.addToCallSiteReturnsRel(instruction);
+				
+				//add the invoke statements
+				if(callSite.isFixed()) {					
+					if(method == null) {
+						System.err.println("Warning: didn't find method " + instruction.getDeclaredTarget() + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
+						return;
+					}
+					IMethod target = classHierarchy.resolveMethod(targetRef);
+					if(target == null) {
+						System.err.println("Warning: couldn't resolve method " + targetRef + ". Probably the Cheater ignores the receiver class. Ignoring invoke statement!");
+						return;
+					}
+				
+					if(callSite.isStatic()) {					
+						database.staticClassInvokes.add(method, currentBCIndex, target);						
+					} else if (callSite.isSpecial()) {
+						database.staticInstanceInvokes.add(method, currentBCIndex, target);
+					}
+					
+					//the other parameters
+					System.err.println("Make sure that formals and actuals are aligned for static and instance methods!!!");
+					for(int i = 1; i < instruction.getNumberOfParameters(); i++) {
+						if(targetRef.getParameterType(i-1).isReferenceType()) { 
+							int param = instruction.getUse(i);
+							database.actuals.add(method, currentBCIndex, i-1, param);
+						}
+					}
+				} else {										
+					database.virtualInvokes.add(method, currentBCIndex, targetRef.getSelector());
+					//add the actuals
+					//a virtual call, so 0 is the this pointer				
+					int param = instruction.getUse(0);
+					database.actuals.add(method, currentBCIndex, 0, param);
+					//the other parameters
+					for(int i = 1; i < instruction.getNumberOfParameters(); i++) {
+						if(targetRef.getParameterType(i - 1).isReferenceType()) { //the method.getParameterType() doesn't contain "this"
+							param = instruction.getUse(i);
+							database.actuals.add(method, currentBCIndex, i, param);
+						}
+					}
+				}
+				
+				
+				//add the call site return				
+				for(int i = 0; i < instruction.getNumberOfReturnValues(); i++) {
+					if(instruction.getDeclaredResultType().isReferenceType()) {
+						int ret = instruction.getReturnValue(i);
+						database.callSiteReturns.add(method, currentBCIndex, ret);
+						addToVariableTypes(ret);
+					}
+				}
+				
 			}
 		}
 	
 		@Override
 		public void visitLoadMetadata(SSALoadMetadataInstruction instruction) {
-			handler.addToAssignObjectRel(instruction);
+			int lhs = instruction.getDef();
+			
+			assert (instruction.getToken() instanceof TypeReference);
+			
+			database.constants.add(method, lhs, ExtensionalDatabase.theImmutableObject);
+			addToVariableTypes(lhs);			
 		}
 	
 		@Override
 		public void visitNew(SSANewInstruction instruction) {			
-			handler.addToAssignObjectRel(instruction);
+			int lhs = instruction.getDef();
+			Obj obj = new Obj.NewObject(method, instruction.getNewSite());
+			
+			database.newStatements.add(method, lhs, obj);
+			database.objectTypes.add(obj, instruction.getNewSite().getDeclaredType().getName());
+			addToVariableTypes(lhs);			
 		}
 	
 		@Override
 		public void visitPhi(SSAPhiInstruction instruction) {
-			handler.addToAssignsRel(instruction);
+			if(DefUseUtils.definesReferenceType(ir, defUse, instruction)) {
+				int lhs = instruction.getDef();
+				for(int i = 0; i < instruction.getNumberOfUses(); i++) {
+					int rhs = instruction.getUse(i);
+					database.assignStatements.add(method, lhs, rhs);					
+				}
+				
+				addToVariableTypes(lhs);
+			}
 		}
 		
 		@Override
 		public void visitPut(SSAPutInstruction instruction) {
-			handler.addToStoreRel(instruction);			
+			//base.field = source
+			
+			FieldReference field = instruction.getDeclaredField();
+			if(field.getFieldType().isReferenceType()) {				
+				int rhs = instruction.getVal();			
+				if(instruction.isStatic()) {
+					database.staticStoreStatements.add(method, field, rhs);
+				} else {
+					int lhs = instruction.getRef();
+					database.storeStatements.add(method, lhs, field, rhs);
+				}				
+			} else {
+				if(instruction.isStatic()) {
+					database.staticPrimStoreStatements.add(method, field);
+				} else {
+					int lhs = instruction.getRef();
+					database.primStoreStatements.add(method, lhs, field);
+				}				
+			}			
 		}
 	
 		@Override
 		public void visitReturn(SSAReturnInstruction instruction) {
-			handler.addToMethodReturnRel(instruction);
+			if(! instruction.returnsVoid() && ! instruction.returnsPrimitiveType()) {		
+				int result = instruction.getResult();
+				database.methodReturns.add(method, result);
+			}
 		}
 	
 		@Override
 		public void visitThrow(SSAThrowInstruction instruction) {
-			new RuntimeException("no idea how to handle that yet...").printStackTrace();
+			database.methodThrows.add(method, instruction.getException());			
 		}
 	}
 }

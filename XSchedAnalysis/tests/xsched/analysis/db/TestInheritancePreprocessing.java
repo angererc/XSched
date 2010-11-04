@@ -55,7 +55,7 @@ public class TestInheritancePreprocessing extends TestCase {
 		//*********************
 		// test methods
 		int i = 0;
-		Collection<String> result = database.methodImplementation.stringify();
+		Collection<String> result = database.methods.stringify();
 		
 		assertTrue("b"+i++, result.contains("<Lxsched/analysis/db/testhierarchy/B, overriddenInC()V, < Application, Lxsched/analysis/db/testhierarchy/B, overriddenInC()V >>"));
 		assertTrue("b"+i++, result.contains("<Lxsched/analysis/db/testhierarchy/B, implementedInB()V, < Application, Lxsched/analysis/db/testhierarchy/B, implementedInB()V >>"));
@@ -76,7 +76,7 @@ public class TestInheritancePreprocessing extends TestCase {
 		//*********************
 		// test methods
 		int i = 0;
-		Collection<String> result = database.load.stringify();
+		Collection<String> result = database.loadStatements.stringify();
 		//for(String s : result) System.out.println(s);
 		
 		assertTrue("c"+i++, result.contains("<2 = getstatic < Application, Lxsched/analysis/db/testhierarchy/D, myField2, <Application,Ljava/lang/Object> >, TheGlobalObjectRef.v0, < Application, Lxsched/analysis/db/testhierarchy/D, myField2, <Application,Ljava/lang/Object> >, xsched.analysis.db.testhierarchy.D.staticInD()Ljava/lang/Object;.v2>"));
@@ -90,7 +90,7 @@ public class TestInheritancePreprocessing extends TestCase {
 		//*********************
 		// test methods
 		int i = 0;
-		Collection<String> result = database.store.stringify();
+		Collection<String> result = database.storeStatements.stringify();
 		//for(String s : result) System.out.println(s);
 		
 		assertTrue("c"+i++, result.contains("<putstatic 2 < Application, Lxsched/analysis/db/testhierarchy/D, myField1, <Application,Ljava/lang/Object> >, TheGlobalObjectRef.v0, < Application, Lxsched/analysis/db/testhierarchy/D, myField1, <Application,Ljava/lang/Object> >, xsched.analysis.db.testhierarchy.D.staticInD()Ljava/lang/Object;.v2>"));
@@ -101,7 +101,7 @@ public class TestInheritancePreprocessing extends TestCase {
 		//*********************
 		// test methods
 		int i = 0;
-		Collection<String> result = database.assignObject.stringify();
+		Collection<String> result = database.assignStatements.stringify();
 		//for(String s : result) System.out.println(s);
 		
 		assertTrue("d"+i++, result.contains("<xsched.analysis.db.testhierarchy.D.classAsObject()V.v3, Lxsched/analysis/db/testhierarchy/IB>"));		

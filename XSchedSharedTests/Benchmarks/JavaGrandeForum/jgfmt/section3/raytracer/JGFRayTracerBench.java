@@ -47,25 +47,25 @@ public class JGFRayTracerBench extends RayTracer implements JGFSection3 {
 	}
 	
 	public void start() {
-		Activation<Void> barrier1 = Activation.schedule(this, "barrier", "1");
-		Activation<Void> barrier2 = Activation.schedule(this, "barrier", "2");		
-		Activation<Void> barrier3 = Activation.schedule(this, "barrier", "3");
-		Activation<Void> barrier4 = Activation.schedule(this, "barrier", "4");
+		Activation<Void> barrier1 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "1");
+		Activation<Void> barrier2 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "2");		
+		Activation<Void> barrier3 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "3");
+		Activation<Void> barrier4 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "4");
 		
 		for (int i = 0; i < nthreads; i++) {
 			ActivationsRayTracerRunner runner = new ActivationsRayTracerRunner(i, width, height);
-			Activation<Void> p1 = Activation.schedule(runner, "phase1");
+			Activation<Void> p1 = Activation.schedule(runner, "phase1()V;");
 			p1.hb(barrier1);
 			
-			Activation<Void> p2 = Activation.schedule(runner, "phase2");
+			Activation<Void> p2 = Activation.schedule(runner, "phase2()V;");
 			barrier1.hb(p2);
 			p2.hb(barrier2);
 			
-			Activation<Void> p3 = Activation.schedule(runner, "phase3");
+			Activation<Void> p3 = Activation.schedule(runner, "phase3()V;");
 			barrier2.hb(p3);
 			p3.hb(barrier3);
 			
-			Activation<Void> p4 = Activation.schedule(runner, "phase4");
+			Activation<Void> p4 = Activation.schedule(runner, "phase4()V;");
 			barrier3.hb(p4);
 			p4.hb(barrier4);
 		}
@@ -79,7 +79,7 @@ public class JGFRayTracerBench extends RayTracer implements JGFSection3 {
 
 		if(nthreads == -1) {
 			nthreads = 2;
-			Activation<Void> start = Activation.schedule(this, "start"); 
+			Activation<Void> start = Activation.schedule(this, "start()V;"); 
 			Activation.kickOffMain(start);			
 		} else {		
 			Runnable thobjects[] = new Runnable[nthreads];

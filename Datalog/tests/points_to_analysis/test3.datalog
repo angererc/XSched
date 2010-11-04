@@ -1,0 +1,60 @@
+.basedir "test_out"
+
+## Domains
+BC 255
+Variable 26 variables.map
+Object 35 objects.map
+Field 10 fields.map
+Type 27 types.map
+Selector 3 selectors.map
+Method 78 methods.map
+ParamPosition 255
+	
+.include "./test_points_to_analysis.relations"
+.include "./dummies.relations"
+.include "../../points_to_analysis.rules"
+
+roots("A.m1()").
+
+# basic scheduling statement with param passing
+# X<:Y
+# A.m1() { B b = new B(); Y y = constant 1; Activation c = schedule(1) b.m2(y); }
+# B.m2(X x) {  }
+
+assignable("A", "A").
+assignable("B", "B").
+assignable("Activation", "Activation").
+assignable("X", "X").
+assignable("X", "Y").
+assignable("Y", "Y").
+
+variableType("A.m1()", "b", "B").
+variableType("A.m1()", "y", "Y").
+variableType("A.m1()", "c", "Activation").
+variableType("B.m2", "x", "X").
+
+objectType("new B()", "B").
+objectType("schedule(1)", "Activation").
+objectType("constant 1", "Y").
+
+member("B", "m2()", "B.m2()").
+formal("B.m2()", 1, "x").
+
+new("A.m1()", "b", "new B()").
+constant("A.m1()", "y", "constant 1").
+schedule("A.m1()", 1, "c", "schedule(1)", "m2()").
+actual("A.m1()", 1, 0, "b").
+actual("A.m1()", 1, 1, "y").
+
+roots("A.m1()").
+
+#assertions
+ERR 256
+error3(num:ERR) outputtuples
+
+error3(0) :- !executionContext(0, 0, 0, 0, "A.m1()").
+error3(1) :- !executionContext(0, "schedule(1)", 0, "new B()", "B.m2()").
+error3(2) :- !invocationEdge(0, 0, 0, 0, "A.m1()", 1, 0, "schedule(1)", 0, "new B()", "B.m2()").
+error3(3) :- !variablePT(0, 0, 0, 0, "A.m1()", "c", 0, "schedule(1)").
+error3(4) :- !variablePT(0, 0, 0, 0, "A.m1()", "y", 0, "constant 1").
+error3(5) :- !variablePT(0, "schedule(1)", 0, "new B()", "B.m2()", "x", 0, "constant 1").

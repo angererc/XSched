@@ -52,9 +52,15 @@ public class Activation<R> implements ThreadPool.WorkItem {
 	private void init(Object object, String taskName, Object... params) {
 		this.object = object;
 		this.params = params;
-		
+				
 		for (Method method : object.getClass().getMethods()) {
-            if (taskName.equals(method.getName())) {
+			//TODO the "typesafe" way is to name a task by its full signature, e.g., foo(Ljava/lang/String)V;
+			//so that's what we expect you to use in an Activation.schedule.
+			//also, the WALA framework used during the analysis kinda expects such a full name
+			//however, it seems to be a non standard thing to translate a java method into a string like that
+			//therefore we simply search for the first method with the given name. Therefore, overloading
+			//is currently not possible. Fix that.
+            if (taskName.startsWith(method.getName() + "(")) {
             	if(method.getParameterTypes().length == params.length) {
             		if(this.method != null) 
             			throw new Error("ambiguous tasks with name " + taskName + " and " + params.length + " params in " + object.getClass());

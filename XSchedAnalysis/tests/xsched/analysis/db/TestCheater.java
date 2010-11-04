@@ -7,7 +7,7 @@ import com.ibm.wala.types.TypeReference;
 public class TestCheater extends Cheater {
 	@Override
 	public String exclusionsFile() {
-		return  "xsched/analysis/db/J2SEExclusions.txt";
+		return  "xsched/analysis/db/Exclusions.txt";
 	}
 	
 	@Override

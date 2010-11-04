@@ -2,29 +2,20 @@ package xsched;
 
 public class Activation<R> {
 
-	public static <T> Activation<T> now() {
+	public static Activation<?> now() {
 		throw new RuntimeException();
 	}
 	
-	public static <T> Activation<T> after(Object object, String taskName, Object...params) {
+	public static <T> Activation<T> schedule(Object object, String taskName, Object...params) {
 		throw new RuntimeException();
 	}
 	
-	@SuppressWarnings("unused")
+	public static void kickOffMain(Activation<?> main) {
+		throw new RuntimeException();
+	}
+	
 	private Activation()
 	{
-	}
-	
-	public Activation(Object object, String taskName, Object param) {
-		throw new RuntimeException();
-	}
-	
-	public Activation(Object object, String taskName, Object param1, Object param2) {
-		throw new RuntimeException();
-	}
-	
-	public Activation(Object object, String taskName, Object param1, Object param2, Object param3) {
-		throw new RuntimeException();
 	}
 	
 	public Object object() {	

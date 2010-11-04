@@ -7,7 +7,7 @@ import chord.util.tuple.object.Quad;
 
 public class QuaternaryRelation<A, B, C, D> extends Relation<QuaternaryRelation<A, B, C, D>> {
 	
-	public QuaternaryRelation(String name, Domain<A> domA, Domain<B> domB, Domain<C> domC, Domain<D> domD, String domainOrdering) {
+	public QuaternaryRelation(String name, Domain<? super A> domA, Domain<? super B> domB, Domain<? super C> domC, Domain<? super D> domD, String domainOrdering) {
 		super(name, domainOrdering, domA, domB, domC, domD);
 	}
 	

@@ -55,7 +55,7 @@ public class TspSolver {
 				
 				config.enqueue(newTour);
 				
-				Activation.schedule(new TspSolver(config), "run");				
+				Activation.schedule(new TspSolver(config), "run()V;");				
 			}
 		}
 	}

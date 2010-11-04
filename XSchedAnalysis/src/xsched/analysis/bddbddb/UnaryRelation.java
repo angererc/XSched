@@ -5,7 +5,7 @@ import java.util.Collection;
 
 public class UnaryRelation<A> extends Relation<UnaryRelation<A>> {
 	
-	public UnaryRelation(String name, Domain<A> domA,String domainOrdering) {
+	public UnaryRelation(String name, Domain<? super A> domA,String domainOrdering) {
 		super(name, domainOrdering, domA);		
 	}
 	

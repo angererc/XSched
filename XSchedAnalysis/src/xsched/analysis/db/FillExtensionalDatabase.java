@@ -30,14 +30,17 @@ public class FillExtensionalDatabase {
 		 // build a type hierarchy
 	    System.out.print("building class hierarchy...");
 	    classHierarchy = ClassHierarchy.make(scope);
-	    System.out.println("done");
+	    System.out.println("done. Got " + classHierarchy.getNumberOfClasses() + " classes");
 		    
 	    ReferenceCleanser.registerClassHierarchy(classHierarchy);
 	    ReferenceCleanser.registerCache(cache);
-	    
+	    	    
 	    //first, start the domain computation
 	    new ComputeDomains(this);
 	    
+	    System.out.println("***************************************************");
+	    System.out.println("finished computing domains, computing relations now");
+	    System.out.println("***************************************************");
 	    database.domainsAreComplete();
 	    
 	    //next compute the relations

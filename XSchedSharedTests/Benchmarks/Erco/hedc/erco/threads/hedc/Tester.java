@@ -50,7 +50,7 @@ public class Tester {
 	for (int i=0; i < TES_THREADS_; ++i) {
 	    try {
 		Messages.debug(0, "Tester::main - creating tester thread %1.", String.valueOf(i));
-		Activation<Void> main = Activation.schedule(new Tester("thread" + i + ".log", TES_PAUSE_, TES_ITERATIONS_), "run");
+		Activation<Void> main = Activation.schedule(new Tester("thread" + i + ".log", TES_PAUSE_, TES_ITERATIONS_), "run()V;");
 		Activation.kickOffMain(main);		
 	    } catch (Exception e) {
 		Messages.check(false);

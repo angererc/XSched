@@ -16,8 +16,8 @@ public class ParallelMapOperation {
         Activation<?> lastWrite = Activation.now();
         
         for(Object data : input) {
-            Activation<Object> process = Activation.schedule(this, "process", data);
-            Activation<Void> write = Activation.schedule(this, "write", process);
+            Activation<Object> process = Activation.schedule(this, "process(Ljava/lang/Object;)Ljava/lang/Object;", data);
+            Activation<Void> write = Activation.schedule(this, "write(Lxsched/Activation;)V;", process);
     
             lastProcess.hb(process);
             process.hb(write);

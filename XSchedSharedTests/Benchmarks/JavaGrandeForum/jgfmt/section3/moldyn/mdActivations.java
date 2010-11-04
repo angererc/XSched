@@ -72,23 +72,23 @@ public class mdActivations extends mdBase {
 
 		/* spawn threads */
 
-		Activation<Void> barrier1 = Activation.schedule(this, "barrier", "1");
-		Activation<Void> barrier2 = Activation.schedule(this, "barrier", "2");		
-		Activation<Void> barrier3 = Activation.schedule(this, "barrier", "3");
-		Activation<Void> barrier4 = Activation.schedule(this, "barrier", "4");
+		Activation<Void> barrier1 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "1");
+		Activation<Void> barrier2 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "2");		
+		Activation<Void> barrier3 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "3");
+		Activation<Void> barrier4 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "4");
 		
 		mdRunner[] runner = new mdRunner[JGFMolDynBench.nthreads];
 		for (int i=0; i<JGFMolDynBench.nthreads; i++) {
 			runner[i] = new mdRunner(i, mm, sh_force, sh_force2);
 			
-			Activation<Void> p1 = Activation.schedule(runner[i], "phase1");
+			Activation<Void> p1 = Activation.schedule(runner[i], "phase1()V;");
 			p1.hb(barrier1);
 			
-			Activation<Void> p2 = Activation.schedule(runner[i], "phase2");
+			Activation<Void> p2 = Activation.schedule(runner[i], "phase2()V;");
 			barrier1.hb(p2);
 			p2.hb(barrier2);
 			
-			Activation<Void> p4 = Activation.schedule(runner[i], "phase4");
+			Activation<Void> p4 = Activation.schedule(runner[i], "phase4()V;");
 			barrier3.hb(p4);
 			p4.hb(barrier4);
 			
@@ -96,45 +96,45 @@ public class mdActivations extends mdBase {
 		
 		Activation<Void> lastRound = barrier2;
 		for (int move = 0; move < movemx; move++) {
-			Activation<Void> barrier31 = Activation.schedule(this, "barrier", "31, iteration " + move);
-			Activation<Void> barrier32 = Activation.schedule(this, "barrier", "32, iteration " + move);
-			Activation<Void> barrier33 = Activation.schedule(this, "barrier", "33, iteration " + move);
-			Activation<Void> barrier34 = Activation.schedule(this, "barrier", "34, iteration " + move);
-			Activation<Void> barrier35 = Activation.schedule(this, "barrier", "35, iteration " + move);
-			Activation<Void> barrier36 = Activation.schedule(this, "barrier", "36, iteration " + move);
+			Activation<Void> barrier31 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "31, iteration " + move);
+			Activation<Void> barrier32 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "32, iteration " + move);
+			Activation<Void> barrier33 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "33, iteration " + move);
+			Activation<Void> barrier34 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "34, iteration " + move);
+			Activation<Void> barrier35 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "35, iteration " + move);
+			Activation<Void> barrier36 = Activation.schedule(this, "barrier(Ljava/lang/String;)V;", "36, iteration " + move);
 			
 			for (int i=0; i<JGFMolDynBench.nthreads; i++) {
-				Activation<Void> p31 = Activation.schedule(runner[i], "phase31");
+				Activation<Void> p31 = Activation.schedule(runner[i], "phase31()V;");
 				lastRound.hb(p31);
 				p31.hb(barrier31);
 			}
 			
 			for (int i=0; i<JGFMolDynBench.nthreads; i++) {
-				Activation<Void> p32 = Activation.schedule(runner[i], "phase32");
+				Activation<Void> p32 = Activation.schedule(runner[i], "phase32()V;");
 				barrier31.hb(p32);
 				p32.hb(barrier32);
 			}
 			
 			for (int i=0; i<JGFMolDynBench.nthreads; i++) {
-				Activation<Void> p33 = Activation.schedule(runner[i], "phase33");
+				Activation<Void> p33 = Activation.schedule(runner[i], "phase33()V;");
 				barrier32.hb(p33);
 				p33.hb(barrier33);
 			}
 			
 			for (int i=0; i<JGFMolDynBench.nthreads; i++) {
-				Activation<Void> p34 = Activation.schedule(runner[i], "phase34");
+				Activation<Void> p34 = Activation.schedule(runner[i], "phase34()V;");
 				barrier33.hb(p34);
 				p34.hb(barrier34);
 			}
 			
 			for (int i=0; i<JGFMolDynBench.nthreads; i++) {
-				Activation<Void> p35 = Activation.schedule(runner[i], "phase35");
+				Activation<Void> p35 = Activation.schedule(runner[i], "phase35()V;");
 				barrier34.hb(p35);
 				p35.hb(barrier35);
 			}
 			
 			for (int i=0; i<JGFMolDynBench.nthreads; i++) {
-				Activation<Void> p36 = Activation.schedule(runner[i], "phase36", move);
+				Activation<Void> p36 = Activation.schedule(runner[i], "phase36(I)V;", move);
 				barrier35.hb(p36);
 				p36.hb(barrier36);
 				barrier36.hb(barrier3);

@@ -40,7 +40,7 @@ public class Tsp {
 		TourElement first = new TourElement(config.startNode);
 		config.enqueue(first);
 		
-		Activation<Void> main = Activation.schedule(new TspSolver(config), "run");
+		Activation<Void> main = Activation.schedule(new TspSolver(config), "run()V;");
 		Activation.kickOffMain(main);
 				
 		// Sanity checks:

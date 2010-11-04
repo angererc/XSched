@@ -1,0 +1,57 @@
+newNow				(method:Method, bc:BC, activationObj:Object)							input
+
+staticClassInvoke		(method:Method, invokeBC:BC, target:Method)							input
+staticInstanceInvoke	(method:Method, invokeBC:BC, target:Method)							input
+virtualInvoke			(method:Method, invokeBC:BC, name:Selector) 						input
+
+entry(m:Method, bc:BC)
+flows(m:Method, bc1:BC, bc2:BC)
+isCall(bc:BC)
+
+methodActivationScope	(method:Method, bc:BC)									input
+inlinedActivationScope	(method:Method, activation:Object, bc:BC)				input
+returnActivationScope	(method:Method, bc:BC, callBC:BC)						input
+
+
+sectionStart(method:Method, type:SectionType, bc:BC, id:Variable) input
+sectionEnd(method:Method, type:SectionType, bc:BC, id:Variable) input
+controlFlows(m:Method, bc1:BC, bc2:BC) input
+
+sectionContent(method:Method, type:SectionType, head:BC, id:Variable, bc:BC) input
+
+#
+
+isCall(m, bc) :- staticClassInvoke(m, bc, _).
+isCall(m, bc) :- staticInstanceInvoke(m, bc, _).
+isCall(m, bc) :- virtualInvoke(m, bc, _).
+
+inlinedActivationScope(m, head, actObj, bc) :- \
+			newNow(m, head, actObj), \
+			sectionContent(m, "inlined", head, bc).
+
+
+methodActivationScope(m, bc) :- \
+			entry(m, bc).
+methodActivationScope(m, succ) :- \
+			methodActivationScope(m, pred), \
+			flows(m, pred, succ), \
+			! isCall(pred),
+			! inlinedActivationScope(m, _, bc).
+
+returnActivationScope(m, succ, callBC) :-
+			methodActivationScope(m, callBC), 
+			flows(m, callBC, succ),
+			!inlinedActivationScope(m, _, _, succ).
+returnActivationScope(m, succ, callBC) :-
+			sectionContent(m, "inlined", head, callBC),
+			isCall(m, callBC),
+			flows(m, callBC, succ),
+			sectionContent(m, "inlined", head, succ).
+returnActivationScope(m, succ, callBC) :- 
+			sectionContent(m, "inlined", head, callBC),
+			returnActivationScope(m, pred, callBC),
+			flows(m, pred, succ),
+			! isCall(m, pred),
+			sectionContent(m, "inlined", head, succ).
+			
+			

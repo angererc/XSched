@@ -60,26 +60,26 @@ public class Lift {
 	}
 
 	public void begin() {
-		Activation.schedule(this, "nextRound");
+		Activation.schedule(this, "nextRound()V;");
 	}
 	
 	// Body of the thread. If the elevator is idle, it checks for calls
 	// every tenth of a second. If it is moving, it takes 1 second to
 	// move between floors.
 	public void nextRound() {		
-		Activation<Void> nextRound = Activation.schedule(this, "nextRound");
+		Activation<Void> nextRound = Activation.schedule(this, "nextRound()V;");
 		if (travelDir == IDLE) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 			}
-			Activation.schedule(this, "doIdle").hb(nextRound);
+			Activation.schedule(this, "doIdle()V;").hb(nextRound);
 		} else {
 			try {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 			}
-			Activation.schedule(this, "doMoving").hb(nextRound);
+			Activation.schedule(this, "doMoving()V;").hb(nextRound);
 		}		
 	}
 

@@ -111,6 +111,7 @@ public class DefUseUtils {
 	
 	public static boolean definesReferenceType(IR ir, DefUse defUse, int variable) {
 		SymbolTable symTab = ir.getSymbolTable();
+		
 		if(symTab.isParameter(variable)) {
 			int paramPosition = parameterPosition(ir.getParameterValueNumbers(), variable);			
 			return ir.getParameterType(paramPosition).isReferenceType();			
@@ -121,17 +122,28 @@ public class DefUseUtils {
 		}
 		
 		SSAInstruction instruction = defUse.getDef(variable);
+		if(instruction == null) {
+			//TODO System.err.println("No definition of " + variable + " found in " + ir.getMethod() + ". Not sure if that's OK...");
+			return false;
+		}
 		
 		if(instruction instanceof SSAInvokeInstruction) {
 			return
 				((SSAInvokeInstruction)instruction).getException() == variable || 
 				((SSAInvokeInstruction)instruction).getDeclaredResultType().isReferenceType();
 		} else {
-			return definesReferenceType(ir, defUse, instruction);
+			if(instruction instanceof SSAPhiInstruction) {
+				//it happens that one 17=phi(23, 16) and another 23=phi(17, 3). This results in an infinite loop. To prevent this, we return false here.
+				System.err.println("Warning: in DefUseUtils, ignoring phi instruction " + instruction + " to prevent infinite loop. Not sure if that's correct");
+				return false;
+			} else {
+				return definesReferenceType(ir, defUse, instruction);
+			}
 		}
 	}
 	
 	public static boolean definesReferenceType(IR ir, DefUse defUse, SSAInstruction instruction) {
+		
 		//instructions that always define a reference type
 		if(				
 				instruction instanceof SSAGetCaughtExceptionInstruction ||
@@ -166,7 +178,7 @@ public class DefUseUtils {
 			
 		//phi defines an object if at least one of its elements defines one
 		} else if (instruction instanceof SSAPhiInstruction) {
-			SSAPhiInstruction phi = (SSAPhiInstruction)instruction;
+			SSAPhiInstruction phi = (SSAPhiInstruction)instruction;			
 			for(int i = 0; i < phi.getNumberOfUses(); i++) {
 				if(definesReferenceType(ir, defUse, phi.getUse(i))) {
 					return true;

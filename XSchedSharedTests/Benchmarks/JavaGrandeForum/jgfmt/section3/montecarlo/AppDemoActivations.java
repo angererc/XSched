@@ -174,9 +174,9 @@ public class AppDemoActivations extends Universal implements AppDemoInterface {
 	public void runThread() {
 		results = new Vector<Object>(nRunsMC);
 		
-		Activation<Void> later = Activation.schedule(this, "done");
+		Activation<Void> later = Activation.schedule(this, "done()V;");
 		for (int i=0; i < nRunsMC; i++) {
-			Activation<Void> task = Activation.schedule(new MontecarloTask(i), "run");
+			Activation<Void> task = Activation.schedule(new MontecarloTask(i), "run()V;");
 			task.hb(later);
 		}
 				

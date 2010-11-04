@@ -21,9 +21,9 @@ public class SimpleTriangle {
 	
 	public void main() {
 		
-		Activation<Boolean> a = Activation.schedule(this, "firstTask", "some parameter");
-		Activation<String> b = Activation.schedule(this, "secondTask");
-		Activation<Void> x = Activation.schedule(this, "finalTask", a, b);
+		Activation<Boolean> a = Activation.schedule(this, "firstTask(Ljava/lang/String;)B;", "some parameter");
+		Activation<String> b = Activation.schedule(this, "secondTask()Ljava/lang/String;");
+		Activation<Void> x = Activation.schedule(this, "finalTask()V;", a, b);
 		
 		a.hb(x);
 		b.hb(x);

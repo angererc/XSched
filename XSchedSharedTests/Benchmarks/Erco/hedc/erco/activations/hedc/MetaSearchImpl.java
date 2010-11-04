@@ -53,7 +53,7 @@ public class MetaSearchImpl implements MetaSearch {
     public Activation<Long> search(Hashtable h, Writer wrt, MetaSearchRequest r) throws IOException {
     	Activation<List> results = search(h, r);
     	System.out.println("scheduling search_2");
-    	Activation<Long> search_2 = Activation.schedule(this, "search_2", results, wrt);
+    	Activation<Long> search_2 = Activation.schedule(this, "search_2(Ljava/util/List;Ljava.io.Writer;)J;", results, wrt);
     	results.hb(search_2);
     	return search_2;
     }
@@ -82,7 +82,7 @@ public class MetaSearchImpl implements MetaSearch {
 	    Messages.error(TFA01_, dateString);
 	
 	System.out.println("scheduling search_3");
-	Activation<List> later = Activation.schedule(this, "search_3", h);
+	Activation<List> later = Activation.schedule(this, "search_3(Ljava/util/Hashtable;)Ljava/util/List;", h);
 	if (date != null) {
 	    Thread t = Thread.currentThread();
 	    taskList = taskFac_.makeTasks(h, date, r);
@@ -90,7 +90,7 @@ public class MetaSearchImpl implements MetaSearch {
 	    r.registerInterrupt(t, taskList.size());
 	    for (Iterator e = taskList.iterator(); e.hasNext(); ) {
 	    	System.out.println("scheduling another task");
-	    	Activation<Void> task = Activation.schedule(e.next(), "run");
+	    	Activation<Void> task = Activation.schedule(e.next(), "run()V;");
 	    }
 	}
 	return later;

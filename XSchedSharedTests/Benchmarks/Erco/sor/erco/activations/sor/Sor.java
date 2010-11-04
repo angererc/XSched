@@ -78,7 +78,7 @@ public class Sor {
 		long a = new Date().getTime();
 
 		if (!nop) {
-			Activation<Void> main = Activation.schedule(new Sor(), "begin");
+			Activation<Void> main = Activation.schedule(new Sor(), "begin()V;");
 			Activation.kickOffMain(main);
 			
 		}
@@ -103,7 +103,7 @@ public class Sor {
 	}
 
 	public void begin() {
-		Activation<Void> later = Activation.schedule(this, "end");
+		Activation<Void> later = Activation.schedule(this, "end()V;");
 		
 		for (int proc_id = 0; proc_id < nprocs; proc_id++) {
 			int first_row = (M * proc_id) / nprocs + 1;
@@ -115,7 +115,7 @@ public class Sor {
 				t[proc_id] = new sor_first_row_even(first_row, last_row);
 		}
 		
-		Activation<Void> iteration = Activation.schedule(this, "iteration", later);
+		Activation<Void> iteration = Activation.schedule(this, "iteration(Lxsched/Activation;)V;", later);
 		iteration.hb(later);
 	}
 	
@@ -124,17 +124,17 @@ public class Sor {
 		i++;
 		//System.out.println("Setting up next iteration " + i);
 		if(i < Sor.iterations) {
-			Activation<Void> nextIteration = Activation.schedule(this, "iteration", later);
-			Activation<Void> barrier1 = Activation.schedule(this, "barrier1");
-			Activation<Void> barrier2 = Activation.schedule(this, "barrier2");
+			Activation<Void> nextIteration = Activation.schedule(this, "iteration(Lxsched/Activation;)V;", later);
+			Activation<Void> barrier1 = Activation.schedule(this, "barrier1()V;");
+			Activation<Void> barrier2 = Activation.schedule(this, "barrier2()V;");
 			
 			barrier1.hb(barrier2);
 			barrier2.hb(nextIteration);			
 			nextIteration.hb(later);
 			
 			for (int proc_id = 0; proc_id < nprocs; proc_id++) {
-				Activation<Void> p1 = Activation.schedule(t[proc_id], "phase1");
-				Activation<Void> p2 = Activation.schedule(t[proc_id], "phase2");
+				Activation<Void> p1 = Activation.schedule(t[proc_id], "phase1()V;");
+				Activation<Void> p2 = Activation.schedule(t[proc_id], "phase2()V;");
 				p1.hb(barrier1);
 				barrier1.hb(p2);
 				p2.hb(barrier2);

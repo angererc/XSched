@@ -1,6 +1,8 @@
 package erco.activations.philo;
 import java.util.*;
 
+import xsched.Activation;
+
 class Table {
     boolean forks[];
     int eatctr;
@@ -35,7 +37,7 @@ class Table {
     }
 }
 
-class Philo extends Thread {
+public class Philo {
     static final int NUM_PHIL = 2;
     int id;
     Table t;
@@ -58,7 +60,7 @@ class Philo extends Thread {
 		long l = (int)(Math.random() * 500) + 20;
 		System.gc();
 		System.out.println(id + " eating (" + l + ")"); // eat
-		sleep(l);
+		Thread.sleep(l);
 		System.out.println(id + " that was good"); // eat
 		t.putForks(id);
 	    }
@@ -67,14 +69,20 @@ class Philo extends Thread {
 	}
     }
 
-    public static void main(String args[]) {
-	v.addElement(new Object());
-	Table tab = new Table();
-	Philo p;
-	for (int i=0; i < NUM_PHIL; ++i) {
-	    p = new Philo(i, tab);
-	    p.start();
-	}
+    public static class Driver {
+    	public static void begin() {
+        	v.addElement(new Object());
+        	Table tab = new Table();
+        	Philo p;
+        	for (int i=0; i < NUM_PHIL; ++i) {
+        	    p = new Philo(i, tab);
+        	    Activation.schedule(p, "run()V;");
+        	}
+        }
+    }
+    public static void main(String args[]) {    	
+		Activation<Void> main = Activation.schedule(new Driver(), "begin()V;");
+		Activation.kickOffMain(main);
     }
 }
 

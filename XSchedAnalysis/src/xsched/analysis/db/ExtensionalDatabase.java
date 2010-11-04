@@ -1,4 +1,4 @@
-	package xsched.analysis.db;
+package xsched.analysis.db;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -6,11 +6,12 @@ import java.util.ArrayList;
 import xsched.analysis.bddbddb.BinaryRelation;
 import xsched.analysis.bddbddb.Domain;
 import xsched.analysis.bddbddb.QuaternaryRelation;
+import xsched.analysis.bddbddb.QuinaryRelation;
 import xsched.analysis.bddbddb.Relation;
 import xsched.analysis.bddbddb.TernaryRelation;
+import xsched.analysis.bddbddb.UnaryRelation;
 
 import com.ibm.wala.classLoader.IMethod;
-import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.types.FieldReference;
 import com.ibm.wala.types.Selector;
@@ -23,9 +24,9 @@ public class ExtensionalDatabase {
 	/* **************
 	 * Domains
 	 */
-	public final Domain<SSAInstruction> bytecodes = new Domain<SSAInstruction>("Bytecode");
-	public final Domain<ObjectCreationSite> objects = new Domain<ObjectCreationSite>("Object");
-	public final Domain<Variable> variables = new Domain<Variable>("Variable");
+	public final Domain<Obj> objects = new Domain<Obj>("Object");
+	public final Domain<Integer> bytecodes = new Domain<Integer>("BC");
+	public final Domain<Integer> variables = new Domain<Integer>("Variable");
 	public final Domain<FieldReference> fields = new Domain<FieldReference>("Field");
 	//TODO we don't use TypeReference because that defines a type as a tuple of class loader and type
 	//but class loaders are hierarchical which we cannot handle in this flat type domain.
@@ -42,68 +43,113 @@ public class ExtensionalDatabase {
 	 */
 	public static final FieldReference arrayElementField = FieldReference.findOrCreate(ClassLoaderReference.Primordial, "gen_array", "element", "Ljava/lang/Object");
 	
-	public static final Variable theGlobalObjectRef = new Variable("TheGlobalObjectRef", 0);
-	
-	public static final ObjectCreationSite theImmutableStringObject = new ObjectCreationSite.SpecialCreationSite("The Immutable String Object");
-	public static final ObjectCreationSite theGlobalObject = new ObjectCreationSite.SpecialCreationSite("The Global Object");
+	public static final Obj theImmutableObject = new Obj.SpecialObject("an Immutable Object");
 	
 	/* **************
 	 * Relations
 	 */
-	public BinaryRelation<Variable, ObjectCreationSite> assignObject = 
-		new BinaryRelation<Variable, ObjectCreationSite>("assignObject", variables, objects, "Variable0_Object0");
+	public UnaryRelation<IMethod> roots = new UnaryRelation<IMethod>("roots", methods, "Method0");
+	
+	/*
+	 * statements
+	 */
+	public TernaryRelation<IMethod, Integer, Obj> newStatements = 
+		new TernaryRelation<IMethod, Integer, Obj>("new", methods, variables, objects, "Method0_Variable0_Object0");
+	
+	public QuinaryRelation<IMethod, Integer, Integer, Obj, Selector> scheduleStatements = 
+		new QuinaryRelation<IMethod, Integer, Integer, Obj, Selector>("schedule", methods, bytecodes, variables, objects, selectors, "Method0_BC0_Variable0_Object0_Selector0");
+		
+	public BinaryRelation<IMethod, Integer> nowStatements = 
+		new BinaryRelation<IMethod, Integer>("now", methods, variables, "Method0_Variable0");
+		
+	public TernaryRelation<IMethod, Integer, Obj> constants = 
+		new TernaryRelation<IMethod, Integer, Obj>("constant", methods, variables, objects, "Method0_Variable0_Object0");
 	
 	//(base, field, dest) => dest = base.field
-	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> load =
-		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("load", bytecodes, variables, fields, variables, "Bytecode0_Variable0_Field0_Variable1");
+	public QuaternaryRelation<IMethod, Integer, Integer, FieldReference> loadStatements =
+		new QuaternaryRelation<IMethod, Integer, Integer, FieldReference>("load", methods, variables, variables, fields, "Method0_Variable0_Variable1_Field0");
 	
 	//load of a primitive field; we still want to know about the access but we don't want to know the value
-	public TernaryRelation<SSAInstruction, Variable, FieldReference> primLoad =
-		new TernaryRelation<SSAInstruction, Variable, FieldReference>("primLoad", bytecodes, variables, fields, "Bytecode0_Variable0_Field0");
+	public TernaryRelation<IMethod, Integer, FieldReference> primLoadStatements =
+		new TernaryRelation<IMethod, Integer, FieldReference>("primLoad", methods, variables, fields, "Method0_Variable0_Field0");
+	
+	//(base, field, dest) => dest = base.field
+	public TernaryRelation<IMethod, Integer, FieldReference> staticLoadStatements =
+		new TernaryRelation<IMethod, Integer, FieldReference>("staticLoad", methods, variables, fields, "Method0_Variable0_Field0");
+		
+	public BinaryRelation<IMethod, FieldReference> staticPrimLoadStatements =
+		new BinaryRelation<IMethod, FieldReference>("staticPrimLoad", methods, fields, "Method0_Field0");
 	
 	//(base, field, source) => base.field = source
-	public QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable> store =
-		new QuaternaryRelation<SSAInstruction, Variable, FieldReference, Variable>("store", bytecodes, variables, fields, variables, "Bytecode0_Variable0_Field0_Variable1");
+	public QuaternaryRelation<IMethod, Integer, FieldReference, Integer> storeStatements =
+		new QuaternaryRelation<IMethod, Integer, FieldReference, Integer>("store", methods, variables, fields, variables, "Method0_Variable0_Field0_Variable1");
 	
 	//(base, field, source) => base.field = source
-	public TernaryRelation<SSAInstruction, Variable, FieldReference> primStore =
-		new TernaryRelation<SSAInstruction, Variable, FieldReference>("primStore", bytecodes, variables, fields, "Bytecode0_Variable0_Field0");
+	public TernaryRelation<IMethod, Integer, FieldReference> primStoreStatements =
+		new TernaryRelation<IMethod, Integer, FieldReference>("primStore", methods, variables, fields, "Method0_Variable0_Field0");
 	
-	public BinaryRelation<Variable, Variable> assigns0 =
-		new BinaryRelation<Variable, Variable>("assign0", variables, variables, "Variable0_Variable1");
+	public TernaryRelation<IMethod, FieldReference, Integer> staticStoreStatements =
+		new TernaryRelation<IMethod, FieldReference, Integer>("staticStore", methods, fields, variables, "Method0_Field0_Variable0");
+		
+	//(base, field, source) => base.field = source
+	public BinaryRelation<IMethod, FieldReference> staticPrimStoreStatements =
+		new BinaryRelation<IMethod, FieldReference>("staticPrimStore", methods, fields, "Method0_Field0");
 	
-	public BinaryRelation<Variable, TypeName> variableType =
-		new BinaryRelation<Variable, TypeName>("variableType", variables, types, "Variable0_Type0");
+	public TernaryRelation<IMethod, Integer, Integer> assignStatements =
+		new TernaryRelation<IMethod, Integer, Integer>("assign", methods, variables, variables, "Method0_Variable0_Variable1");
 	
-	public BinaryRelation<ObjectCreationSite, TypeName> objectType =
-		new BinaryRelation<ObjectCreationSite, TypeName>("objectType", objects, types, "Object0_Type0");
+	public TernaryRelation<IMethod, Integer, Integer> arrowStatements =
+		new TernaryRelation<IMethod, Integer, Integer>("arrow", methods, variables, variables, "Method0_Variable0_Variable1");
+	
+	public BinaryRelation<IMethod, Integer> methodReturns =
+		new BinaryRelation<IMethod, Integer>("methodReturn", methods, variables, "Method0_Variable0");
+	
+	public BinaryRelation<IMethod, Integer> methodThrows =
+		new BinaryRelation<IMethod, Integer>("methodThrow", methods, variables, "Method0_Variable0");
+	
+	/*
+	 * Types
+	 */
+	public TernaryRelation<IMethod, Integer, TypeName> variableTypes =
+		new TernaryRelation<IMethod, Integer, TypeName>("variableType", methods, variables, types, "Method0_Variable0_Type0");
+	
+	public BinaryRelation<Obj, TypeName> objectTypes =
+		new BinaryRelation<Obj, TypeName>("objectType", objects, types, "Object0_Type0");
 	
 	public BinaryRelation<TypeName, TypeName> assignable =
 		new BinaryRelation<TypeName, TypeName>("assignable", types, types, "Type0_Type1");
 	
-	public TernaryRelation<TypeName, Selector, IMethod> methodImplementation =
-		new TernaryRelation<TypeName, Selector, IMethod>("methodImplementation", types, selectors, methods, "Type0_Selector0_Method0");
+	public TernaryRelation<TypeName, Selector, IMethod> members =
+		new TernaryRelation<TypeName, Selector, IMethod>("member", types, selectors, methods, "Type0_Selector0_Method0");
 	
-	public TernaryRelation<IMethod, Integer, Variable> formals =
-		new TernaryRelation<IMethod, Integer, Variable>("formal", methods, paramPositions, variables, "Method0_ParamPosition0_Variable0");
+	/*
+	 * control flow
+	 */
 	
-	public BinaryRelation<IMethod, Variable> methodReturns =
-		new BinaryRelation<IMethod, Variable>("methodReturn", methods, variables, "Method0_Variable0");
+	public QuaternaryRelation<IMethod, Integer, Integer, Integer> actuals =
+		new QuaternaryRelation<IMethod, Integer, Integer, Integer>("actual", methods, bytecodes, paramPositions, variables, "Method0_BC0_ParamPosition0_Variable0");
 	
-	public TernaryRelation<SSAInstruction, Integer, Variable> actuals =
-		new TernaryRelation<SSAInstruction, Integer, Variable>("actual", bytecodes, paramPositions, variables, "Bytecode0_ParamPosition0_Variable0");
+	public TernaryRelation<IMethod, Integer, Integer> formals =
+		new TernaryRelation<IMethod, Integer, Integer>("formal", methods, paramPositions, variables, "Method0_ParamPosition0_Variable0");
+		
+	/*
+	 * Call Sites 
+	 */
 	
-	public BinaryRelation<SSAInstruction, Variable> callSiteReturns =
-		new BinaryRelation<SSAInstruction, Variable>("callSiteReturn", bytecodes, variables, "Bytecode0_Variable0");
+	public TernaryRelation<IMethod, Integer, IMethod> staticClassInvokes =
+		new TernaryRelation<IMethod, Integer, IMethod>("staticClassInvoke", methods, bytecodes, methods, "Method0_BC0_Method1");
 	
-	public BinaryRelation<SSAInstruction, IMethod> staticInvokes =
-		new BinaryRelation<SSAInstruction, IMethod>("staticInvoke", bytecodes, methods, "Bytecode0_Method0");
+	public TernaryRelation<IMethod, Integer, IMethod> staticInstanceInvokes =
+		new TernaryRelation<IMethod, Integer, IMethod>("staticInstanceInvoke", methods, bytecodes, methods, "Method0_BC0_Method1");
 	
-	public BinaryRelation<SSAInstruction, Selector> methodInvokes =
-		new BinaryRelation<SSAInstruction, Selector>("methodInvoke", bytecodes, selectors, "Bytecode0_Selector0");
+	public TernaryRelation<IMethod, Integer, Selector> virtualInvokes =
+		new TernaryRelation<IMethod, Integer, Selector>("virtualInvoke", methods, bytecodes, selectors, "Method0_BC0_Selector0");
 	
-	public TernaryRelation<SSAInstruction, Variable, Variable> arrowStatement =
-		new TernaryRelation<SSAInstruction, Variable, Variable>("primStore", bytecodes, variables, variables, "Bytecode0_Variable0_Variable1");
+	public TernaryRelation<IMethod, Integer, Integer> callSiteReturns =
+		new TernaryRelation<IMethod, Integer, Integer>("callSiteReturn", methods, bytecodes, variables, "Method0_BC0_Variable0");
+	
+	public BinaryRelation<IMethod, Integer> catchStatements =
+		new BinaryRelation<IMethod, Integer>("callSiteCatch", methods, variables, "Method0_Variable0");
 	
 	/* *******************
 	 * Methods

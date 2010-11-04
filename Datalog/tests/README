@@ -1,0 +1,3 @@
+to run the tests (with BUDDY support), go into the XSched/lib directory and run
+
+java -jar bddbddb-full.jar ../Datalog/tests/schedule_analysis/test1.datalog

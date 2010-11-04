@@ -13,7 +13,6 @@
 	#statements     		                                                            
 	new						(bc:BC, variable:Variable)								input
 	@schedule				(bc:BC, dest:Variable)									input
-	inlined					(bc:BC)													input	
 	now						(bc:BC, variable:Variable)								input
 	@store					(bc:BC, base:Variable, field:Field, source:Variable) 	input
 	@load					(bc:BC, base:Variable, field:Field, dest:Variable) 		input
@@ -42,6 +41,8 @@
 	happensBefore(now:BC, this:BC, arrowBC:BC, lhsCtxt:BC, lhsObj:BC, rhsCtxt:BC, rhsObj:BC) output
 		
 ### Rules
+
+FIXME: we also have to use primLoad(bc, v, field) and primStore(...) to find accesses to primitive data!
 
 	read(nowCtxt, now, thisCtxt, this, readBC, objCtxt, obj, field) :- \
 							load(readBC, v, field, _), \

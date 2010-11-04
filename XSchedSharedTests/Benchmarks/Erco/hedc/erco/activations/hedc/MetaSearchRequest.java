@@ -42,11 +42,11 @@ public class MetaSearchRequest {
     public void go() throws Exception {
 	if (wrt_ != null) {
 	    Activation<Long> result = msi_.search(params_, wrt_, this);
-	    Activation<Void> writeBack = Activation.schedule(this, "go_2", result);
+	    Activation<Void> writeBack = Activation.schedule(this, "go_2(Lxsched/Activation;)V;", result);
 	    result.hb(writeBack);
 	} else { 
 	    Activation<List> result = msi_.search(params_, this);
-	    Activation<Void> writeBack = Activation.schedule(this, "go_3", result);
+	    Activation<Void> writeBack = Activation.schedule(this, "go_3(Lxsched/Activation;)V;", result);
 	    result.hb(writeBack);
 	}
     }

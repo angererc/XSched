@@ -8,7 +8,7 @@ import chord.util.tuple.object.Pair;
 
 public class BinaryRelation<A, B> extends Relation<BinaryRelation<A, B>> {
 	
-	public BinaryRelation(String name, Domain<A> domA, Domain<B> domB, String domainOrdering) {
+	public BinaryRelation(String name, Domain<? super A> domA, Domain<? super B> domB, String domainOrdering) {
 		super(name, domainOrdering, domA, domB);		
 	}
 	

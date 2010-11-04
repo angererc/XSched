@@ -40,7 +40,7 @@ public class CallAppDemo {
 		input[0] = 1000;
 		input[1] = datasizes[size];
 
-		String dirName = "shared_tests/jgfmt/section3/Data";
+		String dirName = "shared_tests/Benchmarks/JavaGrandeForum/jgfmt/section3/Data";
 		String filename = "hitData";
 		
 		if (JGFMonteCarloBench.nthreads != -1) {
@@ -56,7 +56,7 @@ public class CallAppDemo {
 		if (JGFMonteCarloBench.nthreads != -1) {
 			ap.runThread();
 		} else {
-			Activation<Void> runThread = Activation.schedule(ap, "runThread"); 
+			Activation<Void> runThread = Activation.schedule(ap, "runThread()V;"); 
 			Activation.kickOffMain(runThread);
 		}		
 	}

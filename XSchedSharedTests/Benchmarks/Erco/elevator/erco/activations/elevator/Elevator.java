@@ -94,10 +94,10 @@ public class Elevator {
 		// Create the elevators
 		for (int i = 0; i < numLifts; i++) {
 			Lift lift = new Lift(numFloors, controls);
-			Activation.schedule(lift, "begin");
+			Activation.schedule(lift, "begin()V;");
 		}
 		
-		Activation.schedule(this, "doButtonPresses");
+		Activation.schedule(this, "doButtonPresses()V;");
 	}
 
 	private int readNum(StreamTokenizer st) throws IOException {
@@ -111,7 +111,7 @@ public class Elevator {
 	public static void main(String args[]) {
 		Elevator building = new Elevator();
 		
-		Activation<Void> main = Activation.schedule(building, "begin");
+		Activation<Void> main = Activation.schedule(building, "begin()V;");
 		Activation.kickOffMain(main);		
 	}
 }
