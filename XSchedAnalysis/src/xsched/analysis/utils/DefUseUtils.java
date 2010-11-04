@@ -32,11 +32,7 @@ public class DefUseUtils {
 			} else {
 				return Collections.emptySet();
 			}
-		}
-		if(! definesReferenceType(ir, defUse, variable)) {
-			return Collections.emptySet();
-		}
-		
+		}		
 		if(symTab.isStringConstant(variable)) {
 			return Collections.singleton(TypeReference.JavaLangString);
 		} else if (symTab.isNullConstant(variable)) {
@@ -44,10 +40,19 @@ public class DefUseUtils {
 		}
 		
 		SSAInstruction instruction = defUse.getDef(variable);
+		if(instruction == null) {
+			assert(symTab.isConstant(variable)) : "variable " + variable + " must be a non-string constant";
+			return Collections.emptySet();
+		}
 		
 		//instructions that always define a reference type
-		if(instruction instanceof SSAArrayLoadInstruction) {			
-			return Collections.singleton(((SSAArrayLoadInstruction)instruction).getElementType());
+		if(instruction instanceof SSAArrayLoadInstruction) {		
+			TypeReference typeRef = ((SSAArrayLoadInstruction)instruction).getElementType();
+			if(typeRef.isReferenceType()) {
+				return Collections.singleton(typeRef);
+			} else {
+				return Collections.emptySet();
+			}
 			
 		} else if (instruction instanceof SSACheckCastInstruction) {
 			HashSet<TypeReference> result = new HashSet<TypeReference>();
@@ -72,32 +77,61 @@ public class DefUseUtils {
 			
 		//get defines object if it reads an object field
 		} else if (instruction instanceof SSAGetInstruction) {
-			return Collections.singleton(((SSAGetInstruction)instruction).getDeclaredFieldType());
+			TypeReference typeRef = ((SSAGetInstruction)instruction).getDeclaredFieldType();
+			if(typeRef.isPrimitiveType()) {
+				return Collections.singleton(typeRef);
+			} else {
+				return Collections.emptySet();
+			}
 			
 		//invoke defines an exception object and an object if it returns one
 		} else if (instruction instanceof SSAInvokeInstruction) {
 			HashSet<TypeReference> result = new HashSet<TypeReference>(((SSAInvokeInstruction)instruction).getExceptionTypes());
-			result.add(((SSAInvokeInstruction)instruction).getDeclaredResultType());
+			TypeReference typeRef = ((SSAInvokeInstruction)instruction).getDeclaredResultType();
+			if(typeRef.isReferenceType()) {
+				result.add(typeRef);
+			}
 			return result;
 			
 		//load metadata usually returns an object
 		} else if (instruction instanceof SSALoadMetadataInstruction) {
-			return Collections.singleton(((SSALoadMetadataInstruction)instruction).getType());
+			TypeReference typeRef = ((SSALoadMetadataInstruction)instruction).getType();
+			if(typeRef.isReferenceType()) {
+				return Collections.singleton(typeRef);
+			} else {
+				return Collections.emptySet();
+			}
 			
 		//phi defines an object if at least one of its elements defines one
 		} else if (instruction instanceof SSAPhiInstruction) {
-			HashSet<TypeReference> result = new HashSet<TypeReference>();
-			
-			SSAPhiInstruction phi = (SSAPhiInstruction)instruction;
-			for(int i = 0; i < phi.getNumberOfUses(); i++) {
-				Set<TypeReference> paramTypes = definedReferenceTypes(ir, defUse, phi.getUse(i));
-				result.addAll(paramTypes);				
-			}
-			return result;
-			
+			//find default value of phi and return that type
+			HashSet<TypeReference> typeRefs = new HashSet<TypeReference>();
+			collectPhiDefs(ir, defUse, new HashSet<SSAPhiInstruction>(), (SSAPhiInstruction)instruction, typeRefs);			
+			System.out.println("defuse utils: found typeRefs " + typeRefs + " for phi " + instruction);
+			return typeRefs;
 		//everything else should have been caught by the definesReferenceType method
 		} else {
-			throw new RuntimeException("shouldn't be reachable...");
+			System.out.println("defuse utils: instruction does not define a reference type " + instruction);
+			return Collections.emptySet();
+		}
+	}
+	
+	//since it's kinda whacky to find out what the type of a phi node is in wala, I do this brute-forcy approach of collecting all defs
+	//of the phi that reach it, taking care that (really existing) loops in phi nodes don't result in an infinite loop
+	private static void collectPhiDefs(IR ir, DefUse defUse, HashSet<SSAPhiInstruction> visited, SSAPhiInstruction phi, HashSet<TypeReference> collected) {
+		if(visited.contains(phi)) {
+			return;
+		}
+		visited.add(phi);
+		for(int i=0; i < phi.getNumberOfUses(); i++) {
+			int variable = phi.getUse(i);
+			SSAInstruction child = defUse.getDef(variable);
+			if(child instanceof SSAPhiInstruction) {
+				collectPhiDefs(ir, defUse, visited, phi, collected);
+			} else {
+				//child is NOT an SSAPhiInstruction and therefore the call to definedReferenceTypes will not recurse!
+				collected.addAll(definedReferenceTypes(ir, defUse, variable));
+			}
 		}
 	}
 	
@@ -110,85 +144,12 @@ public class DefUseUtils {
 	}
 	
 	public static boolean definesReferenceType(IR ir, DefUse defUse, int variable) {
-		SymbolTable symTab = ir.getSymbolTable();
-		
-		if(symTab.isParameter(variable)) {
-			int paramPosition = parameterPosition(ir.getParameterValueNumbers(), variable);			
-			return ir.getParameterType(paramPosition).isReferenceType();			
-		}
-		
-		if(symTab.isStringConstant(variable) || symTab.isNullConstant(variable)) {
-			return true;
-		}
-		
-		SSAInstruction instruction = defUse.getDef(variable);
-		if(instruction == null) {
-			//TODO System.err.println("No definition of " + variable + " found in " + ir.getMethod() + ". Not sure if that's OK...");
-			return false;
-		}
-		
-		if(instruction instanceof SSAInvokeInstruction) {
-			return
-				((SSAInvokeInstruction)instruction).getException() == variable || 
-				((SSAInvokeInstruction)instruction).getDeclaredResultType().isReferenceType();
-		} else {
-			if(instruction instanceof SSAPhiInstruction) {
-				//it happens that one 17=phi(23, 16) and another 23=phi(17, 3). This results in an infinite loop. To prevent this, we return false here.
-				System.err.println("Warning: in DefUseUtils, ignoring phi instruction " + instruction + " to prevent infinite loop. Not sure if that's correct");
-				return false;
-			} else {
-				return definesReferenceType(ir, defUse, instruction);
-			}
-		}
+		Set<TypeReference> refs = definedReferenceTypes(ir, defUse, variable);
+		return !refs.isEmpty();		
 	}
 	
 	public static boolean definesReferenceType(IR ir, DefUse defUse, SSAInstruction instruction) {
-		
-		//instructions that always define a reference type
-		if(				
-				instruction instanceof SSAGetCaughtExceptionInstruction ||
-				instruction instanceof SSANewInstruction
-		) {
-			return true;
-			
-		} else if (instruction instanceof SSACheckCastInstruction) {
-			SSACheckCastInstruction cast = (SSACheckCastInstruction)instruction;
-			TypeReference[] types = cast.getDeclaredResultTypes();
-			for(TypeReference type : types) {
-				if(type.isReferenceType())
-					return true;
-			}
-			return false;
-			
-		} else if (instruction instanceof SSAArrayLoadInstruction) {
-			return ((SSAArrayLoadInstruction)instruction).getElementType().isReferenceType();
-			
-		//get defines object if it reads an object field
-		} else if (instruction instanceof SSAGetInstruction) {
-			return ((SSAGetInstruction)instruction).getDeclaredFieldType().isReferenceType();
-			
-		//invoke defines an exception object and an object if it returns one
-		} else if (instruction instanceof SSAInvokeInstruction) {
-			//always returns an exception object, as far as I can tell
-			return true;				
-			
-		//load metadata usually returns an object
-		} else if (instruction instanceof SSALoadMetadataInstruction) {
-			return ((SSALoadMetadataInstruction)instruction).getType().isReferenceType();
-			
-		//phi defines an object if at least one of its elements defines one
-		} else if (instruction instanceof SSAPhiInstruction) {
-			SSAPhiInstruction phi = (SSAPhiInstruction)instruction;			
-			for(int i = 0; i < phi.getNumberOfUses(); i++) {
-				if(definesReferenceType(ir, defUse, phi.getUse(i))) {
-					return true;
-				}
-			}
-			return false;
-			
-		//everything else defines a primitive or nothing at all
-		} else {
-			return false;
-		}
+		Set<TypeReference> refs = definedReferenceTypes(ir, defUse, instruction.getDef());
+		return !refs.isEmpty();
 	}
 }
