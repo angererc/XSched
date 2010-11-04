@@ -1,0 +1,50 @@
+#to be save, we make sure that an invocation edge is really not a schedule. not sure if checking the two activations 
+# in an invocationEdge would be enough (because of recursion)
+isSchedule(m:Method, invokeBC:BC)
+isSchedule(m, invokeBK) :- schedule(m, invokeBC, _, _, _).
+
+#variable v in m escapes if it reaches a schedule statement or a static store directly in m or through method calls
+varEscapes(_, _, _, _, m, v) :- \
+	schedule(m, invokeBC, _, _, _), \
+	actual(m, invokeBC, _, v).
+	
+varEscapes(_, _, _, _, m, v) :- \
+	staticStore(m, _, v).
+	
+varEscapes(nowCtxt, now, thisCtxt, this, m, v2) :- \
+	assign(m, v1, v2), \
+	varEscapes(nowCtxt, now, thisCtxt, this, m, v1).	
+	
+varEscapes(nowCtxt, now, thisCtxt, this, m1, v1) :- \
+	invocationEdge(nowCtxt, now, thisCtxt, this, m1, invokeBC, _, _, receiverCtxt, receiver, m2), \
+	!isSchedule(m1, invokeBC), \
+	actual(m1, invokeBC, n, v1), \
+	formal(m2, n, v2), \
+	varEscapes(nowCtxt, now, receiverCtxt, receiver, m2, v2).
+
+#what objects might escape the method m in the given contexts
+#all objects reachable through escaping variables and recursively in the heap are escaping m
+escapesMethod(nowCtxt, now, thisCtxt, this, objCtxt, obj, m) :- \
+	varEscapes(nowCtxt, now, thisCtxt, this, m, v), \	
+	variablePT(nowCtxt, now, thisCtxt, this, m, v, objCtxt, obj).
+	
+escapesMethod(nowCtxt, now, thisCtxt, this, objCtxt2, obj2, m) :- \
+	escapesMethod(nowCtxt, now, thisCtxt, this, objCtxt1, obj1, m), \
+	heapPT(objCtxt1, obj1, _, objCtxt2, obj2).	
+	
+##
+#params flowing into the activation are considered escaped
+escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt, obj) :- \
+	invocationEdge(creatorNowCtxt, creatorNow, creatorThisCtxt, creatorThis, m1, invokeBC, nowCtxt, now, thisCtxt, this, m2), \
+	isSchedule(m1, invokeBC), \
+	actual(m1, invokeBC, _, v), \
+	variablePT(creatorNowCtxt, creatorNow, creatorThisCtxt, creatorThis, m1, v, objCtxt, obj).
+	
+#everything that escapes from the inside is escaped
+escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt, obj) :- \
+	invocationEdge(_, _, _, _, m1, invokeBC, nowCtxt, now, thisCtxt, this, m2), \
+	isSchedule(m1, invokeBC), \
+	escapesMethod(nowCtxt, now, thisCtxt, this, objCtxt, obj, m2).
+	
+##	
+activationLocal(nowCtxt, now, thisCtxt, this, objCtxt, obj) :- !escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt, obj).

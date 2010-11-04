@@ -1,0 +1,34 @@
+
+	schedule				(m:Method, bc:BC, dest:Variable, obj:Object, name:Selector)	input
+	staticStore				(m:Method, field:Field, source:Variable) 				input	
+	assign					(m:Method, dest:Variable, source:Variable)				input
+	
+	actual					(method:Method, invokeBC:BC, param:ParamPosition, var:Variable)	input
+	formal					(method:Method, param:ParamPosition, var:Variable)		input
+	
+	variablePT				(nowCtxt:Object, now:Object, \
+							 thisCtxt:Object, this:Object, \
+							 method:Method, variable:Variable, \
+							 actContext:Object, object:Object) 						input
+
+	heapPT					(baseCtxt:Object, base:Object, \
+							 field:Field, \
+							 targetCtxt:Object, target:Object)						input
+							
+	invocationEdge			(callerNowCtxt:Object, callerNow:Object, \
+							 callerThisCtxt:Object, callerThis:Object, \
+							 callerMethod:Method, invokeBC:BC, \
+							 calledNowCtxt:Object, calledNow:Object, \
+							 caledThisCtxt:Object, calledThis:Object, calledMethod:Method)	input
+							
+	executionContext		(nowCtxt:Object, now:Object, \
+							 thisCtxt:Object, this:Object, \
+							 m:Method)												input
+							
+	varEscapes(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, method:Method, variable:Variable)
+
+	escapesMethod(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object, method:Method)
+
+	escapesActivation(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object)
+	
+	activationLocal(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) output

@@ -54,7 +54,7 @@
 	#the execution context is just a projection of the invocationEdge relation to simplify some things
 	executionContext		(nowCtxt:Object, now:Object, \
 							 thisCtxt:Object, this:Object, \
-							 m:Method)
+							 m:Method)												output
 
 	#in method callerMethod of callerThisCtxt.callerThis executed in callerNowCtxt.callerNow, 
 	#bytecode invokeBC is a call to 

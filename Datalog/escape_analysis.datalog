@@ -1,0 +1,15 @@
+.basedir "../analysis.out"
+
+### Domains
+.include "Object.dom"
+.include "BC.dom"
+.include "Variable.dom"
+.include "Field.dom"
+.include "Type.dom"
+.include "Method.dom"
+.include "Selector.dom"
+.include "ParamPosition.dom"
+
+.include "./escape_analysis.relations"
+.include "./escape_analysis.rules"
+

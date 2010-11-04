@@ -184,7 +184,7 @@ public class ExtensionalDatabase {
 		new TernaryRelation<IMethod, Integer, Integer>("callSiteReturn", methods, bytecodes, variables, "Method0_BC0_Variable0");
 	
 	public BinaryRelation<IMethod, Integer> catchStatements =
-		new BinaryRelation<IMethod, Integer>("callSiteCatch", methods, variables, "Method0_Variable0");
+		new BinaryRelation<IMethod, Integer>("catch", methods, variables, "Method0_Variable0");
 	
 	/* *******************
 	 * Methods
