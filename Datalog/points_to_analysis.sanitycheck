@@ -51,12 +51,12 @@ _WarningCallsWithoutReceiver(m, t, recVar, selector) :- \
 	virtualInvoke(m, invokeBC, selector), \
 	actual(m, invokeBC, 0, recVar), \
 	variableType(m, recVar, t), \
-	! _varHasValue(nowCtxt, now, thisCtxt, this, m, var).
+	! _varHasValue(nowCtxt, now, thisCtxt, this, m, recVar).
 	
 #0 is static call, 1 is dynamic call		
-_UCKind 2
+UCKind 2
 
-_WarningUnresolvedCalls(kind:_UCKind, type:Type, selector:Selector) outputtuples
+_WarningUnresolvedCalls(kind:UCKind, type:Type, selector:Selector) outputtuples
 _WarningUnresolvedCalls(0, t, s) :- \
 	executionContext(_, _, _, _, m), \
 	_ignoredStaticInvoke(m, t, s).
@@ -64,7 +64,7 @@ _WarningUnresolvedCalls(1, t, s) :- \
 	executionContext(nowCtxt, now, thisCtxt, this, m), \
 	virtualInvoke(m, invokeBC, s), \
 	actual(m, invokeBC, 0, recVar), \
-	variablePT(nowCtxt, now, thisCtxt, this, m, var, _, calledThis), \
+	variablePT(nowCtxt, now, thisCtxt, this, m, recVar, _, calledThis), \
 	objectType(calledThis, t), \
 	!_isArrayType(t), \
 	!_visitedType(t).

@@ -37,6 +37,7 @@ class ComputeDomains {
 	private int maxNumberOfVariables = 0;
 	private int maxNumberOfBytecodes = 0;
 	
+	private int classesProcessed;
 	ComputeDomains(FillExtensionalDatabase parent) {
 		this.database = parent.database;
 		this.cache = parent.cache;
@@ -47,8 +48,10 @@ class ComputeDomains {
 		
 		parent.cheater.cheatBeforeDomainComputation();
 		
+		classesProcessed = 0;
 		//work on all the classes in the hierarchy
 		for(IClass klass : parent.classHierarchy) {
+			classesProcessed++;
 			processClass(klass);
 		}
 		
@@ -84,7 +87,7 @@ class ComputeDomains {
 		}
 		assert( ! (klass.getName().toString().contains("Lxsched/Activation")));
 		
-		System.out.println("computing domain for class " + klass.getReference());
+		System.out.println("computing domain for class # " + classesProcessed + " " + klass.getReference());
 		
 		//********
 		// Types domain

@@ -44,6 +44,8 @@ class ComputeRelations {
 	private final ExtensionalDatabase database;
 	private final ClassHierarchy classHierarchy;
 	
+	private int classesProcessed;
+	
 	ComputeRelations(FillExtensionalDatabase parent) {		
 		this.cache = parent.cache;
 		this.options = parent.options;
@@ -53,8 +55,10 @@ class ComputeRelations {
 		
 		addDefaultRelations();
 		
+		classesProcessed = 0;
 		//work on all the classes in the hierarchy
 		for(IClass klass : parent.classHierarchy) {
+			classesProcessed++;
 			processClass(klass);
 		}
 		
@@ -78,7 +82,7 @@ class ComputeRelations {
 	}
 
 	private void processClass(IClass klass) {		
-		System.out.println("computing relations for class " + klass.getReference());
+		System.out.println("computing relations for class # " + classesProcessed + " " + klass.getReference());
 		//**************
 		// add super classes to Assignable relation
 		IClass superKlass = klass;

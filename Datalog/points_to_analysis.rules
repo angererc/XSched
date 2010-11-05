@@ -24,8 +24,8 @@
 	#**********************
 	canPointTo(m, v, obj) :- \
 							variableType(m, v, varType), \
-							objectType(obj, objectType), \
-							assignable(varType, objType).
+							objectType(obj, objType), \
+							assignable(varType, objType). split
 	
 	#**********************
 	#new statements
@@ -155,14 +155,14 @@
 							invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM), \
 							formal(calledM, z, formalVar), \
 							actual(m, invokeBC, z, actualVar), \
-							variablePT(nowCtxt, no, thisCtxt, this, m, actualVar, objCtxt, obj). split
+							variablePT(nowCtxt, now, thisCtxt, this, m, actualVar, objCtxt, obj). split
 						
 	#**********************	
 	#returns
 	#**********************
 	variablePT(nowCtxt, now, thisCtxt, this, m, callerRetVar, objCtxt, obj) :- \
 							invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM), \
-							callSiteReturn(callerM, invokeBC, callerRetVar), \
+							callSiteReturn(m, invokeBC, callerRetVar), \
 							methodReturn(calledM, retVar), \
 							variablePT(calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM, retVar, objCtxt, obj), \
 							canPointTo(m, callerRetVar, obj). split
@@ -175,5 +175,5 @@
 							catch(m, caughtExcVar), \
 							methodThrow(throwingM, thrownExcVar), \
 							variablePT(_, _, _, _, throwingM, thrownExcVar, excCtxt, excObj), \
-							canPointTo(m, caughtExcVar, obj). split
+							canPointTo(m, caughtExcVar, excObj). split
 	

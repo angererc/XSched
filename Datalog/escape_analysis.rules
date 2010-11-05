@@ -1,7 +1,7 @@
 #to be save, we make sure that an invocation edge is really not a schedule. not sure if checking the two activations 
 # in an invocationEdge would be enough (because of recursion)
 isSchedule(m:Method, invokeBC:BC)
-isSchedule(m, invokeBK) :- schedule(m, invokeBC, _, _, _).
+isSchedule(m, invokeBC) :- schedule(m, invokeBC, _, _, _).
 
 #variable v in m escapes if it reaches a schedule statement or a static store directly in m or through method calls
 varEscapes(_, _, _, _, m, v) :- \
@@ -35,7 +35,7 @@ escapesMethod(nowCtxt, now, thisCtxt, this, objCtxt2, obj2, m) :- \
 ##
 #params flowing into the activation are considered escaped
 escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt, obj) :- \
-	invocationEdge(creatorNowCtxt, creatorNow, creatorThisCtxt, creatorThis, m1, invokeBC, nowCtxt, now, thisCtxt, this, m2), \
+	invocationEdge(creatorNowCtxt, creatorNow, creatorThisCtxt, creatorThis, m1, invokeBC, nowCtxt, now, thisCtxt, this, _), \
 	isSchedule(m1, invokeBC), \
 	actual(m1, invokeBC, _, v), \
 	variablePT(creatorNowCtxt, creatorNow, creatorThisCtxt, creatorThis, m1, v, objCtxt, obj).

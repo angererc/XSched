@@ -28,7 +28,6 @@ org\/.*
 apple\/.*
 sunw\/.*
 java\/awt\/.*
-java\/io\/.*
 java\/nio\/.*
 java\/sql\/.*
 java\/security\/.*
@@ -36,8 +35,4 @@ java\/net\/.*
 java\/text\/.*
 java\/rmi\/.*
 java\/beans\/.*
-java\/util\/.*
-java\/lang\/ref\/.*
-java\/lang\/reflect\/.*
-java\/lang\/management\/.*
-java\/lang\/annotation\/.*
+
