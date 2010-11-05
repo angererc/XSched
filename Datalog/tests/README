@@ -3,4 +3,6 @@ to run the tests (with BUDDY support), go into the XSched/lib directory and run
 to run with findbestorder:
 java -Xmx1024m -Dnoisy=yes -Dfindbestorder -Dfbotrials=700 -Dsingleignore=yes -jar bddbddb.jar ../Datalog/points_to_analysis.datalog
 
+time java -Xmx1024m -Dnoisy=no -jar bddbddb.jar ../Datalog/points_to_analysis.datalog
+
 java -jar bddbddb-full.jar ../Datalog/tests/schedule_analysis/test1.datalog
