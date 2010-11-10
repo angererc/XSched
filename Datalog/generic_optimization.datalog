@@ -1,0 +1,56 @@
+.basedir "../analysis.out"
+
+### Domains
+.include "Object.dom"
+.include "Variable.dom"
+.include "Field.dom"
+.include "Method.dom"
+
+.bddvarorder Field0_Field1_Method0_Method1_Variable0_Variable1_Object0_Object1_Object2_Object3_Object4_Object5_Object6_Object7_Object8_Object9
+
+#statements     		                                                            
+new						(m:Method, dest:Variable, obj:Object)					input
+constant				(m:Method, variable:Variable, object:Object)			input
+load					(m:Method, variable:Variable, base:Variable, field:Field)	input
+primLoad				(m:Method, base:Variable, field:Field)					input
+staticLoad				(m:Method, dest:Variable, field:Field) 					input
+staticPrimLoad			(m:Method, field:Field) 								input
+store					(m:Method, base:Variable, field:Field, source:Variable) input
+primStore				(m:Method, base:Variable, field:Field) 					input
+staticStore				(m:Method, field:Field, source:Variable) 				input	
+staticPrimStore			(m:Method, field:Field) 								input	
+
+executionContext		(nowCtxt:Object, now:Object, \
+							 thisCtxt:Object, this:Object, \
+							 m:Method)											input
+
+variablePT				(nowCtxt:Object, now:Object, \
+						 thisCtxt:Object, this:Object, \
+						 method:Method, variable:Variable, \
+						 actContext:Object, object:Object)						input
+							
+#what statements in a method count as access
+access(method:Method, variable:Variable)
+access(m, v) :- new(m, v, _).
+access(m, v) :- constant(m, v, _).
+access(m, v) :- load(m, _, v, _).
+access(m, v) :- primLoad(m, v, _).
+access(m, v) :- store(m, v, _, _).
+access(m, v) :- primStore(m, v, _).
+
+accessStatic(method:Method, field:Field)
+accessStatic(m, f) :- staticLoad(m,_, f).
+accessStatic(m, f) :- staticPrimLoad(m, f).
+accessStatic(m, f) :- staticStore(m, f, _).
+accessStatic(m, f) :- staticPrimStore(m, f).
+
+accessesMayInterfere(m1:Method, v1:Variable, m2:Method, v2:Variable) output printsize
+staticAccessesMayInterfere(m1:Method, field1:Field, m2:Method, field2:Field) output printsize
+
+#SIZE OF accessesMayInterfere: 242946.
+#SIZE OF staticAccessesMayInterfere: 186.
+#.include "./generic_optimization.p2_only"
+
+#SIZE OF accessesMayInterfere: 132812.
+#SIZE OF staticAccessesMayInterfere: 186.
+.include "./generic_optimization.p2_with_escape"

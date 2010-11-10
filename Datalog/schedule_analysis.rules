@@ -4,105 +4,148 @@
 #************************************
 
 #there can be activations that are only ordered (in ordered0) but not orderedBefore. mix those into the ordered relation
-ordered(t:T0, a:A0, b:A1) 
-ordered(t, a, b) :- ordered0(t, a, b).
-ordered(t, a, b) :- orderedBefore(t, a, b).
-ordered(t, a, b) :- orderedBefore(t, b, a).
-ordered(t, a, b) :- ordered(t, b, a).
+ordered(nowCtxt:Object, now:Object, a:A0, b:A1) 
+ordered(nowCtxt, now, a, b) :- ordered0(nowCtxt, now, a, b).
+ordered(nowCtxt, now, a, b) :- orderedBefore(nowCtxt, now, a, b).
+ordered(nowCtxt, now, a, b) :- orderedBefore(nowCtxt, now, b, a).
+ordered(nowCtxt, now, a, b) :- ordered(nowCtxt, now, b, a).
 
 #************************************
 # infos about parameter flows
 #************************************
 
-#in t, actual is a direct parameter to a and mapped to formal in a's task ta
-param(t:T0, a:A0, actual:A1, ta:T1, formal:A2)
-param(t, a, actual, ta, formal) :- actual0(t, a, n, actual), schedules0(t, a, ta), formal0(ta, n, formal).
+#in nowCtxt.now, actual is a direct parameter to a and mapped to formal in a's task resNowCtxt.resNow
+param(nowCtxt:Object, now:Object, a:A0, actual:A1, resNowCtxt:Object, resNow:Object, formal:A2)
+param(nowCtxt, now, a, actual, resNowCtxt, resNow, formal) :- \
+		actual0(nowCtxt, now, a, n, actual), \
+		schedules0(nowCtxt, now, a, resNowCtxt, resNow), \
+		formal0(resNowCtxt, resNow, n, formal).
 
 #used in negations, where you cannot really use _ (bug in bddbddb? or some concept I don't understand?)
-isParam(t:T0, a:A0, param:A1)
-isParam(t, a, actual) :- param(t, a, actual, _, _).
+isParam(nowCtxt:Object, now:Object, a:A0, param:A1)
+isParam(nowCtxt, now, a, actual) :- param(nowCtxt, now, a, actual, _, _, _).
 
 #in t, b is the parameter or ordered after the parameter that is mapped to formal in ta
-paramOrAfter(t:T0, a:A0, b:A1, ta:T1, formal:A2)
-paramOrAfter(t, a, actual, ta, formal) :- param(t, a, actual, ta, formal).
-paramOrAfter(t, a, after, ta, formal) :- param(t, a, actual, ta, formal), orderedBefore(t, actual, after).
+paramOrAfter(nowCtxt:Object, now:Object, a:A0, b:A1, resNowCtxt:Object, resNow:Object, formal:A2)
+paramOrAfter(nowCtxt, now, a, actual, resNowCtxt, resNow, formal) :- \
+		param(nowCtxt, now, a, actual, resNowCtxt, resNow, formal).
+paramOrAfter(nowCtxt, now, a, after, resNowCtxt, resNow, formal) :- \
+		param(nowCtxt, now, a, actual, resNowCtxt, resNow, formal), \
+		orderedBefore(nowCtxt, now, actual, after).
 
-isParamOrAfter(t:T0, a:A0, b:A1)
-isParamOrAfter(t, a, b) :- paramOrAfter(t, a, b, _, _).
+isParamOrAfter(nowCtxt:Object, now:Object, a:A0, b:A1)
+isParamOrAfter(nowCtxt, now, a, b) :- paramOrAfter(nowCtxt, now, a, b, _, _, _).
 
-paramOrBefore(t:T0, a:A0, b:A1, ta:T1, formal:A2)
-paramOrBefore(t, a, actual, ta, formal) :- param(t, a, actual, ta, formal).
-paramOrBefore(t, a, before, ta, formal) :- param(t, a, actual, ta, formal), orderedBefore(t, before, actual).
+paramOrBefore(nowCtxt:Object, now:Object, a:A0, b:A1, resNowCtxt:Object, resNow:Object, formal:A2)
+paramOrBefore(nowCtxt, now, a, actual, resNowCtxt, resNow, formal) :- \
+		param(nowCtxt, now, a, actual, resNowCtxt, resNow, formal).
+paramOrBefore(nowCtxt, now, a, before, resNowCtxt, resNow, formal) :- \
+		param(nowCtxt, now, a, actual, resNowCtxt, resNow, formal), \
+		orderedBefore(nowCtxt, now, before, actual).
 
-isParamOrBefore(t:T0, a:A0, b:A1)
-isParamOrBefore(t, a, b) :- paramOrBefore(t, a, b, _, _).
+isParamOrBefore(nowCtxt:Object, now:Object, a:A0, b:A1)
+isParamOrBefore(nowCtxt, now, a, b) :- paramOrBefore(nowCtxt, now, a, b, _, _, _).
 
 #************************************
 # tasks not ordered computation
 #************************************
 
-children(t:T0, res:T1)
-children(t, res) :- schedules0(t, _, res).
-children(t, res2) :- children(t, res1), children(res1, res2).
+children(nowCtxt:Object, now:Object, resNowCtxt:Object, resNow:Object)
+children(nowCtxt, now, resNowCtxt, resNow) :- \
+		schedules0(nowCtxt, now, _, resNowCtxt, resNow).
+children(nowCtxt, now, resNowCtxt2, resNow2) :- \
+		children(nowCtxt, now, resNowCtxt1, resNow1), \
+		children(resNowCtxt1, resNow1, resNowCtxt2, resNow2).
 
-contains(t:T0, a:A0, b:A1)
-contains(t, a, b) :- schedules0(t, a, _), schedules0(t, b, _).
-contains(t, a, b) :- formal0(t, _, a), formal0(t, _, b).
-contains(t, a, b) :- schedules0(t, a, _), formal0(t, _, b).
-contains(t, a, b) :- contains(t, b, a).
+contains(nowCtxt:Object, now:Object, a:A0, b:A1)
+contains(nowCtxt, now, a, b) :- schedules0(nowCtxt, now, a, _, _), schedules0(nowCtxt, now, b, _, _).
+contains(nowCtxt, now, a, b) :- formal0(nowCtxt, now, _, a), formal0(nowCtxt, now, _, b).
+contains(nowCtxt, now, a, b) :- schedules0(nowCtxt, now, a, _, _), formal0(nowCtxt, now, _, b).
+contains(nowCtxt, now, a, b) :- contains(nowCtxt, now, b, a).
 
-tasksNotOrderedBefore(t:T0, b:A0, res:T1) outputtuples
-tasksNotOrderedBefore(t, b, res) :- \
-			contains(t, a, b), \
-			!singleton(t, a, b), \
-			!orderedBefore(t, a, b), \
-			schedules0(t, a, res).
-tasksNotOrderedBefore(t, b, res) :- \
-			contains(t, a, b), \
-			!singleton(t, a, b), \
-			paramOrAfter(t, a, b, ta, formal), \
-			tasksNotOrderedBefore(ta, formal, res).
-tasksNotOrderedBefore(t, b, res) :- \
-			contains(t, a, b), \
-			!singleton(t, a, b), \
-			!isParamOrAfter(t, a, b), \
-			schedules0(t, a, ta), \
-			children(ta, res).
-tasksNotOrderedBefore(t, b, res) :- \
-			schedules0(t, b, tb), \
-			children(tb, res).
+tasksNotOrderedBefore(nowCtxt:Object, now:Object, b:A0, resNowCtxt:Object, resNow:Object)
+tasksNotOrderedBefore(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!orderedBefore(nowCtxt, now, a, b), \
+			schedules0(nowCtxt, now, a, resNowCtxt, resNow).
+tasksNotOrderedBefore(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			paramOrAfter(nowCtxt, now, a, b, nCA, nA, formal), \
+			tasksNotOrderedBefore(nCA, nA, formal, resNowCtxt, resNow).
+tasksNotOrderedBefore(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!isParamOrAfter(nowCtxt, now, a, b), \
+			schedules0(nowCtxt, now, a, nCA, nA), \
+			children(nCA, nA, resNowCtxt, resNow).
+tasksNotOrderedBefore(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			schedules0(nowCtxt, now, b, nCB, nB), \
+			children(nCB, nB, resNowCtxt, resNow).
 
-tasksNotOrderedAfter(t:T0, b:A0, res:T1) outputtuples
-tasksNotOrderedAfter(t, b, res) :- contains(t, a, b), !singleton(t, a, b), !orderedBefore(t, b, a), schedules0(t, a, res).
-tasksNotOrderedAfter(t, b, res) :- contains(t, a, b), !singleton(t, a, b), paramOrBefore(t, a, b, ta, formal), tasksNotOrderedAfter(ta, formal, res).
-tasksNotOrderedAfter(t, b, res) :- contains(t, a, b), !singleton(t, a, b), !isParamOrBefore(t, a, b), !orderedBefore(t, b, a), schedules0(t, a, ta), children(ta, res).
+tasksNotOrderedAfter(nowCtxt:Object, now:Object, b:A0, resNowCtxt:Object, resNow:Object)
+tasksNotOrderedAfter(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!orderedBefore(nowCtxt, now, b, a), \
+			schedules0(nowCtxt, now, a, resNowCtxt, resNow).
+tasksNotOrderedAfter(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			paramOrBefore(nowCtxt, now, a, b, nCA, nA, formal), \
+			tasksNotOrderedAfter(nCA, nA, formal, resNowCtxt, resNow).
+tasksNotOrderedAfter(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!isParamOrBefore(nowCtxt, now, a, b), \
+			!orderedBefore(nowCtxt, now, b, a), \
+			schedules0(nowCtxt, now, a, nCA, nA), \
+			children(nCA, nA, resNowCtxt, resNow).
 
-tasksNotOrdered(t:T0, b:A0, res:T1) outputtuples
-tasksNotOrdered(t, b, res) :- contains(t, a, b), !singleton(t, a, b), !ordered(t, a, b), schedules0(t, a, res).
-tasksNotOrdered(t, b, res) :- contains(t, a, b), !singleton(t, a, b), param(t, a, b, ta, formal), tasksNotOrdered(ta, formal, res).
-tasksNotOrdered(t, b, res) :- \
-			contains(t, a, b), \
-			!singleton(t, a, b), \
-			!isParam(t, a, b), \
-			paramOrAfter(t, a, b, ta, formal), \
-			tasksNotOrderedBefore(ta, formal, res).
-tasksNotOrdered(t, b, res) :- \
-			contains(t, a, b), \
-			!singleton(t, a, b), \
-			!isParam(t, a, b), \
-			paramOrBefore(t, a, b, ta, formal), \
-			tasksNotOrderedAfter(ta, formal, res).
-tasksNotOrdered(t, b, res) :- \
-			contains(t, a, b), \
-			!singleton(t, a, b), \
-			!isParam(t, a, b), \
-			!isParamOrAfter(t, a, b), \
-			!isParamOrBefore(t, a, b), \
-			!orderedBefore(t, b, a), \
-			schedules0(t, a, ta), \
-			children(ta, res).
+tasksNotOrdered(nowCtxt:Object, now:Object, b:A0, resNowCtxt:Object, resNow:Object)
+tasksNotOrdered(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!ordered(nowCtxt, now, a, b), \
+			schedules0(nowCtxt, now, a, resNowCtxt, resNow).
+tasksNotOrdered(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			param(nowCtxt, now, a, b, nCA, nA, formal), \
+			tasksNotOrdered(nCA, nA, formal, resNowCtxt, resNow).
+tasksNotOrdered(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!isParam(nowCtxt, now, a, b), \
+			paramOrAfter(nowCtxt, now, a, b, nCA, nA, formal), \
+			tasksNotOrderedBefore(nCA, nA, formal, resNowCtxt, resNow).
+tasksNotOrdered(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!isParam(nowCtxt, now, a, b), \
+			paramOrBefore(nowCtxt, now, a, b, nCA, nA, formal), \
+			tasksNotOrderedAfter(nCA, nA, formal, resNowCtxt, resNow).
+tasksNotOrdered(nowCtxt, now, b, resNowCtxt, resNow) :- \
+			contains(nowCtxt, now, a, b), \
+			!singleton(nowCtxt, now, a, b), \
+			!isParam(nowCtxt, now, a, b), \
+			!isParamOrAfter(nowCtxt, now, a, b), \
+			!isParamOrBefore(nowCtxt, now, a, b), \
+			!orderedBefore(nowCtxt, now, b, a), \
+			schedules0(nowCtxt, now, a, nCA, nA), \
+			children(nCA, nA, resNowCtxt, resNow).
 
-parallel(t1:T0, t1:T1)
-parallel(t1, t2) :-	schedules0(t, a, t1), tasksNotOrdered(t, a, t2).
-parallel(t1, t2) :-	contains(t, a, b), !singleton(t, a, b), schedules0(t, a, ta), schedules0(t, b, tb), children(ta, t1), children(tb, t2).
-parallel(t1, t2) :- parallel(t2, t1).
+##
+parallel(nowCtxt1, now1, nowCtxt2, now2) :-	\
+			schedules0(nC1, n1, a, nowCtxt1, now1), \
+			tasksNotOrdered(nC1, n1, a, nowCtxt2, now2).
+parallel(nowCtxt1, now1, nowCtxt2, now2) :-	\
+			contains(nC1, n1, a, b), \
+			!singleton(nC1, n1, a, b), \
+			schedules0(nC1, n1, a, nCA, nA), \
+			schedules0(nC1, n1, b, nCB, nB), \
+			children(nCA, nA, nowCtxt1, now1), \
+			children(nCB, nB, nowCtxt2, now2).
+parallel(nowCtxt1, now1, nowCtxt2, now2) :- \
+			parallel(nowCtxt2, now2, nowCtxt1, now1).

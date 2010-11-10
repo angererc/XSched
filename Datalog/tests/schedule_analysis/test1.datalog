@@ -1,42 +1,42 @@
 .basedir "test_out"
 
 ## Domains
-T 27 tasks.map
+Object 28 objects.map
 A 10 activations.map
-N 5
+ParamPosition 5
 
 .include "../../schedule_analysis.relations"
 .include "../../structural_analysis.rules"
 .include "../../schedule_analysis.rules"
 
 #dummies to fill the empty database
-arrow0("<dummy>", 0, 0).
-formal0("<dummy>", 0, 0).
-actual0("<dummy>", 0, 0, 0).
-ordered0("<dummy>", 0, 0).
-orderedBefore("<dummy>", 0, 0).
-multiple0("<dummy>", 0).
+arrow0("root", "<dummy>", 0, 0).
+formal0("root", "<dummy>", 0, 0).
+actual0("root", "<dummy>", 0, 0, 0).
+ordered0("root", "<dummy>", 0, 0).
+orderedBefore("root", "<dummy>", 0, 0).
+multiple0("root", "<dummy>", 0).
 
 #@X: a1:A, a2:B
 #@A: a1:C
-schedules0("X", "a1", "A").
-schedules0("X", "a2", "B").
-schedules0("A", "a1", "C").
-schedules0("B", "a1", "D").
+schedules0("root", "X", "a1", "root", "A").
+schedules0("root", "X", "a2", "root", "B").
+schedules0("root", "A", "a1", "root", "C").
+schedules0("root", "B", "a1", "root", "D").
 
 #assertions
 ERR 256
 error1(num:ERR) outputtuples
 
-error1(0) :- !children("X", "A").
-error1(1) :- !children("X", "B").
-error1(2) :- !children("X", "C").
-error1(3) :- !children("X", "D").
+error1(0) :- !children("root", "X", "root", "A").
+error1(1) :- !children("root", "X", "root", "B").
+error1(2) :- !children("root", "X", "root", "C").
+error1(3) :- !children("root", "X", "root", "D").
 
 
-error1(13) :- !parallel("A", "B").
-error1(14) :- !parallel("A", "D").
-error1(15) :- parallel("A", "C").
-error1(16) :- !parallel("B", "A").
-error1(17) :- !parallel("B", "C").
-error1(18) :- parallel("B", "D").
+error1(13) :- !parallel("root", "A", "root", "B").
+error1(14) :- !parallel("root", "A", "root", "D").
+error1(15) :- parallel("root", "A", "root", "C").
+error1(16) :- !parallel("root", "B", "root", "A").
+error1(17) :- !parallel("root", "B", "root", "C").
+error1(18) :- parallel("root", "B", "root", "D").

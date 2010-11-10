@@ -1,0 +1,33 @@
+parallel(nowCtxt1:Object, now1:Object, nowCtxt2:Object, now2:Object) input
+
+accessesDoNotInterfere(m1:Method, v1:Variable, m2:Method, v2:Variable) output printsize
+accessesMayInterfere(m1:Method, v1:Variable, m2:Method, v2:Variable) output printsize
+staticAccessesDoNotInterfere(m1:Method, field1:Field, m2:Method, field2:Field) output printsize
+staticAccessesMayInterfere(m1:Method, field1:Field, m2:Method, field2:Field) output printsize
+	
+executionContextsInterfere(nowCtxt1:Object, now1:Object, thisCtxt1:Object, this1:Object, nowCtxt2:Object, now2:Object, thisCtxt2:Object, this2:Object)
+executionContextsInterfere(nowCtxt1, now1, thisCtxt1, this1, nowCtxt2, now2, thisCtxt2, this2) :- 
+	executionContext(nowCtxt1, now1, thisCtxt1, this1, m1),
+	executionContext(nowCtxt2, now2, thisCtxt2, this2, m2),
+	access(m1, v1),
+	access(m2, v2),
+	variablePT(nowCtxt1, now1, thisCtxt1, this1, m1, v1, objCtxt, obj),
+	variablePT(nowCtxt2, now2, thisCtxt2, this2, m2, v2, objCtxt, obj).
+executionContextsInterfere(nowCtxt1, now1, thisCtxt1, this1, nowCtxt2, now2, thisCtxt2, this2) :-
+	executionContext(nowCtxt1, now1, thisCtxt1, this1, m1),
+	executionContext(nowCtxt2, now2, thisCtxt2, this2, m2),
+	accessStatic(m1, f),	
+	accessStatic(m2, f).
+	
+accessesMayInterfere(m1, v1, m2, v2) :-
+	executionContextsInterfere(nowCtxt1, now1, thisCtxt1, this1, nowCtxt2, now2, thisCtxt2, this2)
+	escapesActivation(nowCtxt1, now1, thisCtxt1, this1, objCtxt, obj),
+	escapesActivation(nowCtxt2, now2, thisCtxt2, this2, objCtxt, obj),
+	
+	parallel(nowCtxt1, now1, nowCtxt2, now2).
+	
+mayInterfere(method:Method, ) :-
+	
+	escapesActivation(nowCtxt1, now1, thisCtxt1, this1, objCtxt, obj),
+	escapesActivation(nowCtxt2, now2, thisCtxt2, this2, objCtxt, obj),	
+	parallel(nowCtxt1, now1, nowCtxt2, now2).

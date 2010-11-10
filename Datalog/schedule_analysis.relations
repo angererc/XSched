@@ -1,9 +1,12 @@
 
 #input relations
-schedules0(x:T0, var:A0, t:T1)
-actual0(x:T0, var:A0, p:N0, val:A1)
-formal0(x:T0, p:N0, var:A0)
-arrow0(x:T0, lhs:A0, rhs:A1)
+schedules0(nowCtxt:Object, now:Object, var:A0, resNowCtxt:Object, resNow:Object)
+actual0(nowCtxt:Object, now:Object, var:A0, p:ParamPosition, val:A1)
+formal0(nowCtxt:Object, now:Object, p:ParamPosition, var:A0)
+arrow0(nowCtxt:Object, now:Object, lhs:A0, rhs:A1)
 
-ordered0(t:T0, a:A0, b:A1)
-multiple0(t:T0, a:A0)
+ordered0(nowCtxt:Object, now:Object, a:A0, b:A1)
+multiple0(nowCtxt:Object, now:Object, a:A0)
+
+#in nowCtxt.now, what other tasks (resNowCtxt.resNow) are not ordered with activation b
+parallel(nowCtxt1:Object, now1:Object, nowCtxt2:Object, now2:Object) output

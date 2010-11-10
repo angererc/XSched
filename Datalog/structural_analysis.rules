@@ -1,9 +1,9 @@
 
-orderedBefore(t:T0, a:A0, b:A1)
-orderedBefore(t, a, b) :- arrow0(t, a, b).
-orderedBefore(t, a, b2) :- orderedBefore(t, a, b1), arrow0(t, b1, b2).
+orderedBefore(nowCtxt:Object, now:Object, a:A0, b:A1)
+orderedBefore(nowCtxt, now, a, b) :- arrow0(nowCtxt, now, a, b).
+orderedBefore(nowCtxt, now, a, b2) :- orderedBefore(nowCtxt, now, a, b1), arrow0(nowCtxt, now, b1, b2).
 
 #singleton0 and formals are singletons
-singleton(t:T0, a:A0, b:A1)
-singleton(t, a, alsoA) :- !multiple0(t, a), a=alsoA.
-singleton(t, a, alsoA) :- formal0(t, _, a), a=alsoA.
+singleton(nowCtxt:Object, now:Object, a:A0, b:A1)
+singleton(nowCtxt, now, a, alsoA) :- !multiple0(nowCtxt, now, a), a=alsoA.
+singleton(nowCtxt, now, a, alsoA) :- formal0(nowCtxt, now, _, a), a=alsoA.

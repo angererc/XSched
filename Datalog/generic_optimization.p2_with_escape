@@ -1,0 +1,46 @@
+escapesActivation(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) input
+accessesDoNotInterfere(m1:Method, v1:Variable, m2:Method, v2:Variable)
+staticAccessesDoNotInterfere(m1:Method, field1:Field, m2:Method, field2:Field)
+
+#if we don't have a schedule analysis at hand, we select all accesses that don't point to the same object
+accessesDoNotInterfere(m1, v1, m2, v2) :- \
+	executionContext(nowCtxt1, now1, thisCtxt1, this1, m1), \
+	executionContext(nowCtxt2, now2, thisCtxt2, this2, m2), \
+	access(m1, v1), \
+	access(m2, v2), \
+	variablePT(nowCtxt1, now1, thisCtxt1, this1, m1, v1, objCtxt1, obj1), \
+	variablePT(nowCtxt2, now2, thisCtxt2, this2, m2, v2, objCtxt2, obj2), \
+	objCtxt1!=objCtxt2, \
+	obj1!=obj2.										split
+accessesDoNotInterfere(m1, v1, m2, v2) :- \
+	executionContext(nowCtxt1, now1, thisCtxt1, this1, m1), \
+	executionContext(nowCtxt2, now2, thisCtxt2, this2, m2), \
+	access(m1, v1), \
+	access(m2, v2), \
+	variablePT(nowCtxt1, now1, thisCtxt1, this1, m1, v1, objCtxt, obj), \
+	variablePT(nowCtxt2, now2, thisCtxt2, this2, m2, v2, objCtxt, obj), \
+	!escapesActivation(nowCtxt1, now1, thisCtxt1, this1, objCtxt, obj).	split
+accessesDoNotInterfere(m1, v1, m2, v2) :- accessesDoNotInterfere(m2, v2, m1, v1).
+	
+accessesMayInterfere(m1, v1, m2, v2) :- \
+	executionContext(_, _, _, _, m1), \
+	executionContext(_, _, _, _, m2), \
+	access(m1, v1), \
+	access(m2, v2), \
+	!accessesDoNotInterfere(m1, v1, m2, v2).		split
+	
+staticAccessesDoNotInterfere(m1, f1, m2, f2) :- \
+	executionContext(_, _, _, _, m1), \
+	executionContext(_, _, _, _, m2), \
+	accessStatic(m1, f1), \
+	accessStatic(m2, f2), \
+	f1!=f2.											split
+staticAccessesDoNotInterfere(m1, f1, m2, f2) :- staticAccessesDoNotInterfere(m2, f2, m1, f1).
+
+staticAccessesMayInterfere(m1, f1, m2, f2) :- \
+	executionContext(_, _, _, _, m1), \
+	executionContext(_, _, _, _, m2), \
+	accessStatic(m1, f1), \
+	accessStatic(m2, f2), \
+	!staticAccessesDoNotInterfere(m1, f1, m2, f2).	split
+	
