@@ -3,69 +3,67 @@
 ## Domains
 T 27 tasks.map
 A 10 activations.map
-S 10 scopes.map
 N 5
 
 .include "../../schedule_analysis.relations"
+.include "../../structural_analysis.rules"
 .include "../../schedule_analysis.rules"
 
-#dummies to fill the empty database
-formal0("<dummy>", 0, 0).
-actual0("<dummy>", 0, 0, 0).
+ordered0("<dummy>", 0, 0).
+multiple0("<dummy>", "a1").
 
 #****************************
-#test scopes and transitivity
+#test simple "later" param passing
 #****************************
 
-subscope0("X", "top", "s1").
-subscope0("X", "top", "s1").
-subscope0("X", "s1", "s2").
-subscope0("X", "s1", "s3").
-subscope0("X", "top", "s4").
+#@X: a1:A(a2)->a2:B->a3:C
+#and: a4:D->a2 
+schedules0("X", "a1", "A").
+schedules0("X", "a2", "B").
+schedules0("X", "a3", "C").
+schedules0("X", "a4", "D").
+actual0("X", "a1", 0, "a2").
+
+arrow0("X", "a1", "a2").
+arrow0("X", "a2", "a3").
+arrow0("X", "a4", "a2").
+
+#@A: a1:E->a2:F-><0>->a3:G
+schedules0("A", "a1", "E").
+schedules0("A", "a2", "F").
+schedules0("A", "a3", "G").
+formal0("A", 0, "<0>").
+formal0("A", 1, "<1>").
+
+arrow0("A", "a1", "a2").
+arrow0("A", "a2", "<0>").
+arrow0("A", "<0>", "a3").
 
 #assertions
 ERR 256
 error3(num:ERR) outputtuples
 
-error3(0) :- !subscope("X", "top", "s1").
-error3(1) :- !subscope("X", "top", "s2").
-error3(2) :- !subscope("X", "top", "s3").
-error3(3) :- !subscope("X", "top", "s4").
-error3(4) :- !subscope("X", "s1", "s2").
-error3(5) :- !subscope("X", "s1", "s3").
-# negative tests:
-error3(6) :- subscope("X", "s1", "s4").
-error3(7) :- subscope("X", "s4", "s1").
-error3(8) :- subscope("X", "s2", "s3").
-error3(9) :- subscope("X", "s1", "top").
-error3(10) :- subscope("X", "s2", "top").
-error3(11) :- subscope("X", "s3", "top").
-error3(12) :- subscope("X", "s4", "top").
-error3(13) :- subscope("X", "s2", "s1").
-error3(14) :- subscope("X", "s3", "s1").
+#simple ordering
+error3(11) :- parallel("A", "B").
+error3(11) :- parallel("A", "C").
+error3(11) :- parallel("A", "G").
+error3(11) :- parallel("A", "E").
+error3(11) :- parallel("A", "F").
+error3(11) :- parallel("E", "F").
+error3(11) :- parallel("E", "G").
+error3(11) :- parallel("D", "C").
+error3(11) :- !parallel("A", "D").
 
-## test simple transitivity in same scope
-schedules0("X", "top", "a1", "A").
-schedules0("X", "top", "a2", "A").
-schedules0("X", "top", "a3", "A").
-arrow0("X", "a1", "a2").
-arrow0("X", "a2", "a3").
-error3(15) :- !orderedBefore("X", "a1", "a3").
+#ordering through param b
+error3(12) :- parallel("E", "B").
+error3(13) :- parallel("F", "B").
+error3(14) :- parallel("B", "G").
+error3(15) :- parallel("E", "C").
+error3(16) :- parallel("F", "C").
+error3(17) :- parallel("D", "G").
+error3(18) :- parallel("A", "G").
+error3(19) :- !parallel("A", "D").
+error3(20) :- !parallel("E", "D").
+error3(21) :- !parallel("F", "D").
 
-#don't allow transitive edges via nodes that are in sub-scopes
-schedules0("X", "top", "a4", "A").
-schedules0("X", "s1", "a5", "A").
-schedules0("X", "top", "a6", "A").
-arrow0("X", "a4", "a5").
-arrow0("X", "a5", "a6").
-error3(16) :- !orderedBefore("X", "a4", "a5").
-error3(17) :- !orderedBefore("X", "a5", "a6").
-error3(18) :- orderedBefore("X", "a4", "a6").
-
-#do allow transitive edges into sub-scopes
-schedules0("X", "top", "a7", "A").
-schedules0("X", "s1", "a8", "A").
-schedules0("X", "s3", "a9", "A").
-arrow0("X", "a7", "a8").
-arrow0("X", "a8", "a9").
-error3(19) :- !orderedBefore("X", "a7", "a9").
+#error3(99) :- tasksNotOrderedAfter("A", "<0>", "G").

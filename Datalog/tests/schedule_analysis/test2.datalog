@@ -3,28 +3,29 @@
 ## Domains
 T 27 tasks.map
 A 10 activations.map
-S 10 scopes.map
 N 5
 
 .include "../../schedule_analysis.relations"
+.include "../../structural_analysis.rules"
 .include "../../schedule_analysis.rules"
-
-#a lying "F" shape
-#@X: a1:A->a2:B->a3:E
-#@A: a1:C
-#@B: a1:D
-schedules0("X", "top", "a1", "A").
-schedules0("X", "top", "a2", "B").
-schedules0("X", "top", "a3", "E").
-schedules0("A", "top", "a1", "C").
-schedules0("B", "top", "a1", "D").
-arrow0("X", "a1", "a2").
-arrow0("X", "a2", "a3").
 
 #dummies to fill the empty database
 formal0("<dummy>", 0, 0).
 actual0("<dummy>", 0, 0, 0).
-subscope0("<dummy>", 0, 0).
+ordered0("<dummy>", 0, 0).
+multiple0("<dummy>", "a1").
+
+#an "F" shape
+#@X: a1:A->a2:B->a3:E
+#@A: a1:C
+#@B: a1:D
+schedules0("X", "a1", "A").
+schedules0("X", "a2", "B").
+schedules0("X", "a3", "E").
+schedules0("A", "a1", "C").
+schedules0("B", "a1", "D").
+arrow0("X", "a1", "a2").
+arrow0("X", "a2", "a3").
 
 #assertions
 ERR 256
@@ -37,7 +38,44 @@ error2(3) :- parallel("B", "E").
 error2(4) :- !parallel("C", "B").
 error2(5) :- !parallel("C", "D").
 error2(6) :- !parallel("E", "D").
-#also check that our unordered relation is bidirectional
+##also check that our unordered relation is bidirectional
 error2(7) :- !parallel("B", "C").
 error2(8) :- !parallel("D", "C").
 
+#a1 is ordered before everything else
+error2(50) :- tasksNotOrderedAfter("X", "a1", "A").
+error2(50) :- tasksNotOrderedAfter("X", "a1", "B").
+error2(50) :- tasksNotOrderedAfter("X", "a1", "C").
+error2(50) :- tasksNotOrderedAfter("X", "a1", "D").
+error2(50) :- tasksNotOrderedAfter("X", "a1", "E").
+#.
+error2(51) :- tasksNotOrderedAfter("X", "a2", "B").
+error2(51) :- tasksNotOrderedAfter("X", "a2", "D").
+error2(51) :- tasksNotOrderedAfter("X", "a2", "E").
+error2(51) :- !tasksNotOrderedAfter("X", "a2", "A").
+error2(51) :- !tasksNotOrderedAfter("X", "a2", "C").
+#
+error2(52) :- tasksNotOrderedAfter("X", "a3", "E").
+error2(52) :- !tasksNotOrderedAfter("X", "a3", "A").
+error2(52) :- !tasksNotOrderedAfter("X", "a3", "C").
+error2(52) :- !tasksNotOrderedAfter("X", "a3", "B").
+error2(52) :- !tasksNotOrderedAfter("X", "a3", "D").
+#
+#
+error2(60) :- tasksNotOrderedBefore("X", "a1", "A").
+error2(60) :- !tasksNotOrderedBefore("X", "a1", "B").
+error2(60) :- !tasksNotOrderedBefore("X", "a1", "C").
+error2(60) :- !tasksNotOrderedBefore("X", "a1", "D").
+error2(60) :- !tasksNotOrderedBefore("X", "a1", "E").
+#.     
+error2(61) :- tasksNotOrderedBefore("X", "a2", "B").
+error2(61) :- tasksNotOrderedBefore("X", "a2", "A").
+error2(61) :- !tasksNotOrderedBefore("X", "a2", "D").
+error2(61) :- !tasksNotOrderedBefore("X", "a2", "E").
+error2(61) :- !tasksNotOrderedBefore("X", "a2", "C").
+#      
+error2(62) :- tasksNotOrderedBefore("X", "a3", "E").
+error2(62) :- tasksNotOrderedBefore("X", "a3", "A").
+error2(62) :- tasksNotOrderedBefore("X", "a3", "B").
+error2(62) :- !tasksNotOrderedBefore("X", "a3", "C").
+error2(62) :- !tasksNotOrderedBefore("X", "a3", "D").
