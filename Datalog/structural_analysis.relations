@@ -1,0 +1,10 @@
+scoped_schedule(m:Method, a:A, obj:Object) input
+scoped_actual(m:Method, a:A, n:ParamPosition, b:A) input
+scoped_formal(m:Method, n:ParamPosition, a:A) input
+scoped_arrow(m:Method, lhs:A, rhs:A) input
+scoped_ordered(m:Method, a:A) input
+scoped_multiple(m:Method, a:A) input
+
+executionContext		(nowCtxt:Object, now:Object, \
+							 thisCtxt:Object, this:Object, \
+							 m:Method)											input

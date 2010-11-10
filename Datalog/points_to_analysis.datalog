@@ -43,5 +43,5 @@
 
 .include "./points_to_analysis.sanitycheck"
 
-#roots("< Application, Ljgfmt/section3/JGFMonteCarloBenchSizeA, main([Ljava/lang/String;)V >").
-roots("< Application, Ljgfmt/section3/JGFRayTracerBenchSizeA, main([Ljava/lang/String;)V >").
+
+#roots("< Application, Ljgfmt/section3/JGFRayTracerBenchSizeA, main([Ljava/lang/String;)V >").

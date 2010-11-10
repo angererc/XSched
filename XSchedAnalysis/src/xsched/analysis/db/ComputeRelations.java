@@ -86,7 +86,7 @@ class ComputeRelations {
 		//**************
 		// add super classes to Assignable relation
 		IClass superKlass = klass;
-		
+				
 		database.visitedTypes.add(klass.getName());
 		
 		while(superKlass != null) {
@@ -147,6 +147,11 @@ class ComputeRelations {
 		}
 		
 		public void processMethod() {
+			
+			String name = method.toString();
+			if(name.equals("< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V >")) {
+				System.out.println("break here");
+			}
 			
 			/**
 			 * add constants from the symbol table

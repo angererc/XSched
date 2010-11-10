@@ -78,7 +78,7 @@ public class DefUseUtils {
 		//get defines object if it reads an object field
 		} else if (instruction instanceof SSAGetInstruction) {
 			TypeReference typeRef = ((SSAGetInstruction)instruction).getDeclaredFieldType();
-			if(typeRef.isPrimitiveType()) {
+			if(typeRef.isReferenceType()) {
 				return Collections.singleton(typeRef);
 			} else {
 				return Collections.emptySet();

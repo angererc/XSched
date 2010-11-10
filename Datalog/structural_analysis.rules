@@ -1,3 +1,30 @@
+executedMs(m:Method) outputtuples
+executedMs(m) :- executionContext(_,_,_,_,m).
+
+schedules0(nowCtxt, now, a, alsoNow, resNow) :- \
+	executionContext(nowCtxt, now, _, _, m), \
+	scoped_schedule(m, a, resNow), \
+	now=alsoNow.
+
+actual0(nowCtxt, now, a, n, b) :- \
+	executionContext(nowCtxt, now, _, _, m), \
+	scoped_actual(m, a, n, b).
+	
+formal0(nowCtxt, now, n, a) :- \
+	executionContext(nowCtxt, now, _, _, m), \
+	scoped_formal(m, n, a).
+	
+arrow0(nowCtxt, now, lhs, rhs) :- \
+	executionContext(nowCtxt, now, _, _, m), \
+	scoped_arrow(m, lhs, rhs).
+	
+ordered0(nowCtxt, now, a) :- \
+	executionContext(nowCtxt, now, _, _, m), \
+	scoped_ordered(m, a).
+	
+multiple0(nowCtxt, now, a) :- \
+	executionContext(nowCtxt, now, _, _, m), \
+	scoped_multiple(m, a).
 
 orderedBefore(nowCtxt:Object, now:Object, a:A0, b:A1)
 orderedBefore(nowCtxt, now, a, b) :- arrow0(nowCtxt, now, a, b).

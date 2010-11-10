@@ -6,7 +6,7 @@
 .include "Field.dom"
 .include "Method.dom"
 
-.bddvarorder Field0_Field1_Method0_Method1_Variable0_Variable1_Object0_Object1_Object2_Object3_Object4_Object5_Object6_Object7_Object8_Object9
+.bddvarorder Field0_Field1_Method0_Method1_Variable0_Variable1_Object0_Object1_Object2_Object3_Object4_Object5
 
 #statements     		                                                            
 new						(m:Method, dest:Variable, obj:Object)					input
@@ -48,9 +48,17 @@ accessesMayInterfere(m1:Method, v1:Variable, m2:Method, v2:Variable) output prin
 staticAccessesMayInterfere(m1:Method, field1:Field, m2:Method, field2:Field) output printsize
 
 #SIZE OF accessesMayInterfere: 242946.
-#SIZE OF staticAccessesMayInterfere: 186.
+#SIZE OF staticAccessesMayInterfere: 444.
 #.include "./generic_optimization.p2_only"
 
-#SIZE OF accessesMayInterfere: 132812.
+#SIZE OF accessesMayInterfere: 6690.
 #SIZE OF staticAccessesMayInterfere: 186.
-.include "./generic_optimization.p2_with_escape"
+#.include "./generic_optimization.p2_with_escape"
+
+#SIZE OF accessesMayInterfere: 61303.
+#SIZE OF staticAccessesMayInterfere: 54.
+#.include "./generic_optimization.p2_sa"
+
+#SIZE OF accessesMayInterfere: 1.
+#SIZE OF staticAccessesMayInterfere: 54.
+.include "./generic_optimization.p2_escape_sa"

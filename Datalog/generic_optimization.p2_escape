@@ -1,0 +1,18 @@
+escapesActivation(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) input
+	
+accessesMayInterfere(m1, v1, m2, v2) :- \	
+	escapesActivation(nowCtxt1, now1, thisCtxt1, this1, objCtxt, obj), \
+	executionContext(nowCtxt1, now1, thisCtxt1, this1, m1), \
+	access(m1, v1), \
+	variablePT(nowCtxt1, now1, thisCtxt1, this1, m1, v1, objCtxt, obj), \
+	executionContext(nowCtxt2, now2, thisCtxt2, this2, m2), \
+	access(m2, v2), \
+	variablePT(nowCtxt2, now2, thisCtxt2, this2, m2, v2, objCtxt, obj). split
+	
+staticAccessesMayInterfere(m1, f1, m2, f2) :- \
+	executionContext(_, _, _, _, m1), \
+	executionContext(_, _, _, _, m2), \
+	accessStatic(m1, f1), \
+	accessStatic(m2, f2), \
+	f1=f2.											split
+	

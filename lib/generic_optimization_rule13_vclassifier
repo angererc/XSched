@@ -1,0 +1,241 @@
+Classifier "name":
+Attributes: 
+@attribute 'm1,m2' {<,~,>}
+@attribute 'm1,nowCtxt1' {<,~,>}
+@attribute 'm1,now1' {<,~,>}
+@attribute 'm1,nowCtxt2' {<,~,>}
+@attribute 'm1,now2' {<,~,>}
+@attribute 'm1,thisCtxt1' {<,~,>}
+@attribute 'm1,thisCtxt2' {<,~,>}
+@attribute 'm1,this2' {<,~,>}
+@attribute 'm1,this1' {<,~,>}
+@attribute 'm2,nowCtxt1' {<,~,>}
+@attribute 'm2,now1' {<,~,>}
+@attribute 'm2,nowCtxt2' {<,~,>}
+@attribute 'm2,now2' {<,~,>}
+@attribute 'm2,thisCtxt1' {<,~,>}
+@attribute 'm2,thisCtxt2' {<,~,>}
+@attribute 'm2,this2' {<,~,>}
+@attribute 'm2,this1' {<,~,>}
+@attribute 'now1,nowCtxt1' {<,~,>}
+@attribute 'nowCtxt1,nowCtxt2' {<,~,>}
+@attribute 'now2,nowCtxt1' {<,~,>}
+@attribute 'nowCtxt1,thisCtxt1' {<,~,>}
+@attribute 'nowCtxt1,thisCtxt2' {<,~,>}
+@attribute 'nowCtxt1,this2' {<,~,>}
+@attribute 'nowCtxt1,this1' {<,~,>}
+@attribute 'now1,nowCtxt2' {<,~,>}
+@attribute 'now1,now2' {<,~,>}
+@attribute 'now1,thisCtxt1' {<,~,>}
+@attribute 'now1,thisCtxt2' {<,~,>}
+@attribute 'now1,this2' {<,~,>}
+@attribute 'now1,this1' {<,~,>}
+@attribute 'now2,nowCtxt2' {<,~,>}
+@attribute 'nowCtxt2,thisCtxt1' {<,~,>}
+@attribute 'nowCtxt2,thisCtxt2' {<,~,>}
+@attribute 'nowCtxt2,this2' {<,~,>}
+@attribute 'nowCtxt2,this1' {<,~,>}
+@attribute 'now2,thisCtxt1' {<,~,>}
+@attribute 'now2,thisCtxt2' {<,~,>}
+@attribute 'now2,this2' {<,~,>}
+@attribute 'now2,this1' {<,~,>}
+@attribute 'thisCtxt1,thisCtxt2' {<,~,>}
+@attribute 'this2,thisCtxt1' {<,~,>}
+@attribute 'this1,thisCtxt1' {<,~,>}
+@attribute 'this2,thisCtxt2' {<,~,>}
+@attribute 'this1,thisCtxt2' {<,~,>}
+@attribute 'this1,this2' {<,~,>}
+
+Based on data from 81 instances:
+    rule13_update1_op1 [m2, [now1, this1, this2], [nowCtxt1, thisCtxt1], m1, [now2, nowCtxt2], thisCtxt2] 0 (234 ms)
+    rule13_update1_op1 [now2, [m2, nowCtxt2, this1, thisCtxt2], [m1, nowCtxt1], now1, [this2, thisCtxt1]] 1 (813 ms)
+    rule13_update1_op1 [[this2, thisCtxt2], [now1, nowCtxt1, this1, thisCtxt1], now2, nowCtxt2, [m1, m2]] 0 (257 ms)
+    rule13_update1_op1 [[m1, m2, now1, now2, this1, this2, thisCtxt1], [nowCtxt1, nowCtxt2, thisCtxt2]] 3 (3865 ms)
+    rule13_update1_op1 [[m1, nowCtxt1, nowCtxt2, this1, thisCtxt1, thisCtxt2], [m2, now1, now2], this2] 1 (412 ms)
+    rule13_update1_op1 [m2, [this1, thisCtxt2], this2, [m1, nowCtxt1], nowCtxt2, [now1, now2, thisCtxt1]] 0 (107 ms)
+    rule13_update1_op1 [now1, this2, m1, [m2, thisCtxt1], this1, nowCtxt2, [now2, nowCtxt1, thisCtxt2]] 1 (262 ms)
+    rule13_update1_op1 [m2, [now2, nowCtxt1, nowCtxt2, thisCtxt1], m1, [now1, this1], this2, thisCtxt2] 0 (92 ms)
+    rule13_update1_op1 [[m1, m2, now1, nowCtxt1, nowCtxt2, this1, this2], now2, [thisCtxt1, thisCtxt2]] 4 (2479 ms)
+    rule13_update1_op1 [nowCtxt1, [m2, thisCtxt2], [this1, this2], now2, now1, [nowCtxt2, thisCtxt1], m1] 0 (50 ms)
+    rule13_update1_op1 [nowCtxt1, [m1, m2, thisCtxt1], [now1, now2, nowCtxt2, this1, this2, thisCtxt2]] 3 (852 ms)
+    rule13_update1_op1 [[now1, now2, nowCtxt2, this1, thisCtxt1, thisCtxt2], this2, m2, [m1, nowCtxt1]] 1 (125 ms)
+    rule13_update1_op1 [[m2, this1, this2, thisCtxt1, thisCtxt2], [m1, now1, now2, nowCtxt1, nowCtxt2]] 3 (793 ms)
+    rule13_update1_op1 [now2, this1, [m2, now1, nowCtxt1], [m1, nowCtxt2, this2, thisCtxt1], thisCtxt2] 2 (537 ms)
+    rule13_update1_op1 [[nowCtxt1, thisCtxt2], [nowCtxt2, thisCtxt1], [m1, now2], [m2, now1, this1, this2]] 1 (172 ms)
+    rule13_update1_op1 [[m2, nowCtxt1, this1], [m1, nowCtxt2], this2, thisCtxt2, [now2, thisCtxt1], now1] 2 (326 ms)
+    rule13_update1_op1 [m2, nowCtxt2, nowCtxt1, thisCtxt2, [m1, this2], this1, thisCtxt1, [now1, now2]] 0 (31 ms)
+    rule13_update1_op1 [[m2, nowCtxt1], this1, [m1, now1, now2, nowCtxt2, this2, thisCtxt1, thisCtxt2]] 8 (4014 ms)
+    rule13_update1_op1 [[m2, nowCtxt1], m1, [nowCtxt2, thisCtxt1], [now1, now2, this1, this2, thisCtxt2]] 3 (466 ms)
+    rule13_update1_op1 [nowCtxt2, m2, [this2, thisCtxt2], [m1, now1, now2, nowCtxt1, this1, thisCtxt1]] 0 (16 ms)
+    rule13_update1_op1 [m2, m1, [now1, this2], this1, [nowCtxt1, thisCtxt1, thisCtxt2], nowCtxt2, now2] 3 (284 ms)
+    rule13_update1_op1 [m2, [now2, nowCtxt1, this2, thisCtxt1], m1, thisCtxt2, this1, [now1, nowCtxt2]] 2 (129 ms)
+    rule13_update1_op1 [[m1, this2], m2, [now2, nowCtxt2, this1], [nowCtxt1, thisCtxt1], thisCtxt2, now1] 3 (196 ms)
+    rule13_update1_op1 [m2, [this2, thisCtxt1], [m1, now1, now2, nowCtxt1], nowCtxt2, [this1, thisCtxt2]] 3 (264 ms)
+    rule13_update1_op1 [[m2, thisCtxt2], [nowCtxt1, this1, thisCtxt1], [m1, now1, now2, this2], nowCtxt2] 4 (468 ms)
+    rule13_update1_op1 [m2, [now2, thisCtxt1, thisCtxt2], [nowCtxt2, this2], m1, this1, nowCtxt1, now1] 1 (74 ms)
+    rule13_update1_op1 [thisCtxt2, m2, [m1, nowCtxt1, this1], [nowCtxt2, this2], [now1, thisCtxt1], now2] 5 (582 ms)
+    rule13_update1_op1 [thisCtxt2, now1, m2, [m1, this1, this2], [now2, nowCtxt2], [nowCtxt1, thisCtxt1]] 2 (135 ms)
+    rule13_update1_op1 [m2, this2, [m1, nowCtxt1, nowCtxt2], thisCtxt1, now2, [now1, this1, thisCtxt2]] 2 (128 ms)
+    rule13_update1_op1 [[now2, thisCtxt2], m2, [m1, nowCtxt2], [nowCtxt1, this2], thisCtxt1, [now1, this1]] 1 (85 ms)
+    rule13_update1_op1 [[m2, nowCtxt1, this2], [m1, now1, now2, nowCtxt2, this1, thisCtxt1, thisCtxt2]] 5 (557 ms)
+    rule13_update1_op1 [m2, [now1, nowCtxt1, this2, thisCtxt1], [this1, thisCtxt2], now2, nowCtxt2, m1] 3 (233 ms)
+    rule13_update1_op1 [this2, this1, thisCtxt1, [m1, m2, nowCtxt1], nowCtxt2, thisCtxt2, now2, now1] 4 (324 ms)
+    rule13_update1_op1 [this2, m2, [now1, now2, thisCtxt2], [m1, nowCtxt1, nowCtxt2], this1, thisCtxt1] 0 (4 ms)
+    rule13_update1_op1 [nowCtxt2, [m1, now1], [m2, now2, nowCtxt1, this2, thisCtxt1], thisCtxt2, this1] 8 (593 ms)
+    rule13_update1_op1 [nowCtxt2, [m2, now2, nowCtxt1], this1, [m1, now1, thisCtxt2], thisCtxt1, this2] 6 (219 ms)
+    rule13_update1_op1 [m2, now2, [m1, now1, nowCtxt1, nowCtxt2, thisCtxt2], [this1, this2], thisCtxt1] 5 (192 ms)
+    rule13_update1_op1 [[m2, thisCtxt2], nowCtxt1, [m1, nowCtxt2], [now1, this1], [this2, thisCtxt1], now2] 7 (331 ms)
+    rule13_update1_op1 [[m1, this2, thisCtxt2], this1, nowCtxt2, nowCtxt1, [m2, now1, now2, thisCtxt1]] 6 (217 ms)
+    rule13_update1_op1 [nowCtxt2, m1, m2, this1, [now1, now2, nowCtxt1, this2, thisCtxt1, thisCtxt2]] 6 (317 ms)
+    rule13_update1_op1 [[m2, this2], nowCtxt2, nowCtxt1, m1, [now1, now2], thisCtxt2, this1, thisCtxt1] 2 (47 ms)
+    rule13_update1_op1 [this2, thisCtxt2, [m1, m2, nowCtxt2], [now1, now2, nowCtxt1, this1, thisCtxt1]] 3 (72 ms)
+    rule13_update1_op1 [nowCtxt2, [this2, thisCtxt2], [m1, m2, nowCtxt1], [now1, now2, thisCtxt1], this1] 2 (56 ms)
+    rule13_update1_op1 [nowCtxt2, m2, this2, thisCtxt1, [m1, now1, now2, thisCtxt2], [nowCtxt1, this1]] 4 (153 ms)
+    rule13_update1_op1 [[nowCtxt1, nowCtxt2, thisCtxt2], this2, m1, [m2, this1], now2, [now1, thisCtxt1]] 4 (121 ms)
+    rule13_update1_op1 [nowCtxt1, [nowCtxt2, this1], [m1, m2, now2, thisCtxt2], this2, [now1, thisCtxt1]] 8 (798 ms)
+    rule13_update1_op1 [nowCtxt2, thisCtxt1, m2, [m1, now2, nowCtxt1, this1, this2], [now1, thisCtxt2]] 7 (366 ms)
+    rule13_update1_op1 [[m2, nowCtxt2], [m1, nowCtxt1, this2, thisCtxt2], [now1, now2, this1, thisCtxt1]] 4 (157 ms)
+    rule13_update1_op1 [[m1, now2, nowCtxt1, this1, this2], thisCtxt2, [now1, nowCtxt2], m2, thisCtxt1] 6 (210 ms)
+    rule13_update1_op1 [[now2, nowCtxt1, nowCtxt2], [m1, this2], [m2, now1, thisCtxt1], thisCtxt2, this1] 6 (212 ms)
+    rule13_update1_op1 [this1, now2, now1, m2, thisCtxt1, [nowCtxt1, this2], nowCtxt2, m1, thisCtxt2] 4 (84 ms)
+    rule13_update1_op1 [[m2, this1], [now1, thisCtxt1], [m1, nowCtxt1, this2, thisCtxt2], now2, nowCtxt2] 8 (733 ms)
+    rule13_update1_op1 [[now2, nowCtxt1, this1, thisCtxt1], m1, m2, [now1, nowCtxt2, this2, thisCtxt2]] 0 (6 ms)
+    rule13_update1_op1 [[m2, nowCtxt1, nowCtxt2], thisCtxt2, now2, m1, [this1, this2], [now1, thisCtxt1]] 2 (45 ms)
+    rule13_update1_op1 [this2, thisCtxt2, now2, [nowCtxt1, this1], [m1, m2], [now1, nowCtxt2, thisCtxt1]] 4 (124 ms)
+    rule13_update1_op1 [this2, [m1, m2, nowCtxt1, thisCtxt2], [now1, this1, thisCtxt1], nowCtxt2, now2] 7 (499 ms)
+    rule13_update1_op1 [m2, this1, [nowCtxt1, nowCtxt2], thisCtxt2, [m1, this2], [now1, thisCtxt1], now2] 7 (465 ms)
+    rule13_update1_op1 [[this1, this2], now1, m2, [m1, nowCtxt1, thisCtxt1], [now2, nowCtxt2, thisCtxt2]] 7 (386 ms)
+    rule13_update1_op1 [m2, [now2, nowCtxt1, thisCtxt1], [m1, now1, nowCtxt2, this1, this2], thisCtxt2] 7 (430 ms)
+    rule13_update1_op1 [[m1, this1], [m2, nowCtxt1], [now1, now2, nowCtxt2, thisCtxt2], [this2, thisCtxt1]] 6 (257 ms)
+    rule13_update1_op1 [[m2, nowCtxt1, nowCtxt2], [now2, this2], now1, m1, this1, thisCtxt2, thisCtxt1] 2 (25 ms)
+    rule13_update1_op1 [[now1, this1, this2], m1, [nowCtxt1, thisCtxt1], [m2, now2, nowCtxt2, thisCtxt2]] 4 (162 ms)
+    rule13_update1_op1 [[m1, m2, nowCtxt1], this2, [now1, this1, thisCtxt2], now2, [nowCtxt2, thisCtxt1]] 7 (361 ms)
+    rule13_update1_op1 [m2, m1, thisCtxt2, [now1, now2, nowCtxt1, nowCtxt2, thisCtxt1], this2, this1] 7 (573 ms)
+    rule13_update1_op1 [[now1, this2], m1, [m2, nowCtxt1], [now2, thisCtxt2], nowCtxt2, thisCtxt1, this1] 6 (264 ms)
+    rule13_update1_op1 [m2, [m1, nowCtxt1], now1, [now2, nowCtxt2, this1, this2, thisCtxt1, thisCtxt2]] 8 (1157 ms)
+    rule13_update1_op1 [[now2, nowCtxt2], [m1, now1, this1, this2], [m2, nowCtxt1, thisCtxt1, thisCtxt2]] 7 (362 ms)
+    rule13_update1_op1 [[m1, nowCtxt1, thisCtxt1], m2, nowCtxt2, [now1, now2, this1], [this2, thisCtxt2]] 5 (197 ms)
+    rule13_update1_op1 [now2, [now1, this1, thisCtxt1], [m1, m2], [nowCtxt1, nowCtxt2, this2, thisCtxt2]] 1 (12 ms)
+    rule13_update1_op1 [m2, [now1, this1, thisCtxt1], this2, [m1, now2, nowCtxt1, nowCtxt2], thisCtxt2] 5 (184 ms)
+    rule13_update1_op1 [now2, [m1, this1, thisCtxt1], [m2, now1, nowCtxt1, this2, thisCtxt2], nowCtxt2] 1 (11 ms)
+    rule13_update1_op1 [m2, [m1, now1, now2, nowCtxt1, nowCtxt2, this1, this2, thisCtxt1], thisCtxt2] 8 (1813 ms)
+    rule13_update1_op1 [[now1, this1], [m1, m2], [now2, nowCtxt1, nowCtxt2, thisCtxt1], this2, thisCtxt2] 5 (165 ms)
+    rule13_update1_op1 [this2, [m1, m2, now1, now2, nowCtxt1, nowCtxt2, this1, thisCtxt1, thisCtxt2]] MAX TIME
+    rule13_update1_op1 [[m1, now1, now2, this1], this2, [nowCtxt2, thisCtxt1, thisCtxt2], [m2, nowCtxt1]] 5 (167 ms)
+    rule13_update1_op1 [[now1, nowCtxt1, this1, this2, thisCtxt2], [nowCtxt2, thisCtxt1], m1, [m2, now2]] 6 (309 ms)
+    rule13_update1_op1 [[now1, this2], [nowCtxt1, this1], [m1, m2], [now2, nowCtxt2, thisCtxt1], thisCtxt2] 8 (944 ms)
+    rule13_update1_op1 [[nowCtxt1, this1, thisCtxt1], m1, [now1, thisCtxt2], this2, m2, [now2, nowCtxt2]] 0 (6 ms)
+    rule13_update1_op1 [[this1, this2], m1, [m2, thisCtxt2], [nowCtxt2, thisCtxt1], nowCtxt1, [now1, now2]] 5 (198 ms)
+    rule13_update1_op1 [this2, [now2, nowCtxt1, thisCtxt1], now1, m1, thisCtxt2, m2, [nowCtxt2, this1]] 6 (210 ms)
+    rule13_update1_op1 [[m1, m2], [nowCtxt1, thisCtxt1], [now1, now2, nowCtxt2, this2, thisCtxt2], this1] 8 (1144 ms)
+Id3
+
+
+now2,this2 = <
+|  nowCtxt1,thisCtxt1 = <
+|  |  m2,thisCtxt2 = <
+|  |  |  now2,nowCtxt1 = <
+|  |  |  |  m1,nowCtxt1 = <: null
+|  |  |  |  m1,nowCtxt1 = ~: 5
+|  |  |  |  m1,nowCtxt1 = >: 2
+|  |  |  now2,nowCtxt1 = ~: 6
+|  |  |  now2,nowCtxt1 = >
+|  |  |  |  m1,m2 = <: 6
+|  |  |  |  m1,m2 = ~: null
+|  |  |  |  m1,m2 = >: 2
+|  |  m2,thisCtxt2 = ~
+|  |  |  m1,m2 = <: null
+|  |  |  m1,m2 = ~: 8
+|  |  |  m1,m2 = >: 1
+|  |  m2,thisCtxt2 = >: 1
+|  nowCtxt1,thisCtxt1 = ~
+|  |  now2,this1 = <
+|  |  |  this1,this2 = <: 0
+|  |  |  this1,this2 = ~: 7
+|  |  |  this1,this2 = >: 7
+|  |  now2,this1 = ~
+|  |  |  m1,nowCtxt1 = <: null
+|  |  |  m1,nowCtxt1 = ~: 5
+|  |  |  m1,nowCtxt1 = >: 0
+|  |  now2,this1 = >
+|  |  |  m1,m2 = <: 1
+|  |  |  m1,m2 = ~: 5
+|  |  |  m1,m2 = >: null
+|  nowCtxt1,thisCtxt1 = >
+|  |  now1,thisCtxt1 = <
+|  |  |  m1,m2 = <: 5
+|  |  |  m1,m2 = ~: null
+|  |  |  m1,m2 = >: 4
+|  |  now1,thisCtxt1 = ~: 1
+|  |  now1,thisCtxt1 = >: 1
+now2,this2 = ~
+|  now1,this1 = <
+|  |  m1,nowCtxt1 = <: 8
+|  |  m1,nowCtxt1 = ~: 8
+|  |  m1,nowCtxt1 = >: 2
+|  now1,this1 = ~
+|  |  m1,nowCtxt1 = <: 3
+|  |  m1,nowCtxt1 = ~: 8
+|  |  m1,nowCtxt1 = >: 3
+|  now1,this1 = >
+|  |  m1,thisCtxt1 = <: 6
+|  |  m1,thisCtxt1 = ~: 8
+|  |  m1,thisCtxt1 = >
+|  |  |  m1,this1 = <: 2
+|  |  |  m1,this1 = ~: 7
+|  |  |  m1,this1 = >: 4
+now2,this2 = >
+|  m2,nowCtxt1 = <
+|  |  nowCtxt1,thisCtxt1 = <
+|  |  |  m1,thisCtxt2 = <: 2
+|  |  |  m1,thisCtxt2 = ~: 4
+|  |  |  m1,thisCtxt2 = >
+|  |  |  |  now1,now2 = <
+|  |  |  |  |  m1,nowCtxt1 = <: null
+|  |  |  |  |  m1,nowCtxt1 = ~: 5
+|  |  |  |  |  m1,nowCtxt1 = >: 7
+|  |  |  |  now1,now2 = ~: 0
+|  |  |  |  now1,now2 = >: null
+|  |  nowCtxt1,thisCtxt1 = ~
+|  |  |  nowCtxt2,thisCtxt2 = <
+|  |  |  |  m1,m2 = <: 3
+|  |  |  |  m1,m2 = ~: null
+|  |  |  |  m1,m2 = >: 0
+|  |  |  nowCtxt2,thisCtxt2 = ~: 7
+|  |  |  nowCtxt2,thisCtxt2 = >
+|  |  |  |  m1,this2 = <: 3
+|  |  |  |  m1,this2 = ~: 2
+|  |  |  |  m1,this2 = >: 3
+|  |  nowCtxt1,thisCtxt1 = >
+|  |  |  this1,thisCtxt2 = <
+|  |  |  |  m2,this1 = <
+|  |  |  |  |  m1,m2 = <: 1
+|  |  |  |  |  m1,m2 = ~: null
+|  |  |  |  |  m1,m2 = >: 5
+|  |  |  |  m2,this1 = ~: 8
+|  |  |  |  m2,this1 = >: 5
+|  |  |  this1,thisCtxt2 = ~: 3
+|  |  |  this1,thisCtxt2 = >: 4
+|  m2,nowCtxt1 = ~
+|  |  nowCtxt2,thisCtxt2 = <
+|  |  |  nowCtxt2,this2 = <: 2
+|  |  |  nowCtxt2,this2 = ~: 4
+|  |  |  nowCtxt2,this2 = >: 4
+|  |  nowCtxt2,thisCtxt2 = ~
+|  |  |  m1,m2 = <: null
+|  |  |  m1,m2 = ~: 8
+|  |  |  m1,m2 = >: 5
+|  |  nowCtxt2,thisCtxt2 = >
+|  |  |  m1,m2 = <: 6
+|  |  |  m1,m2 = ~: 7
+|  |  |  m1,m2 = >: null
+|  m2,nowCtxt1 = >
+|  |  nowCtxt2,thisCtxt2 = <: 8
+|  |  nowCtxt2,thisCtxt2 = ~: 4
+|  |  nowCtxt2,thisCtxt2 = >
+|  |  |  m2,now2 = <: 0
+|  |  |  m2,now2 = ~: 6
+|  |  |  m2,now2 = >
+|  |  |  |  now2,nowCtxt1 = <: 4
+|  |  |  |  now2,nowCtxt1 = ~: 6
+|  |  |  |  now2,nowCtxt1 = >: 0

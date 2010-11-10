@@ -5,7 +5,7 @@
 
 #there can be activations that are only ordered (in ordered0) but not orderedBefore. mix those into the ordered relation
 ordered(nowCtxt:Object, now:Object, a:A0, b:A1) 
-ordered(nowCtxt, now, a, b) :- ordered0(nowCtxt, now, a, b).
+ordered(nowCtxt, now, a, alsoA) :- ordered0(nowCtxt, now, a), a=alsoA.
 ordered(nowCtxt, now, a, b) :- orderedBefore(nowCtxt, now, a, b).
 ordered(nowCtxt, now, a, b) :- orderedBefore(nowCtxt, now, b, a).
 ordered(nowCtxt, now, a, b) :- ordered(nowCtxt, now, b, a).

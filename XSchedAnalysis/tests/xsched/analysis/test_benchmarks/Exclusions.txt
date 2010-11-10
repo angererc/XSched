@@ -35,4 +35,3 @@ java\/net\/.*
 java\/text\/.*
 java\/rmi\/.*
 java\/beans\/.*
-

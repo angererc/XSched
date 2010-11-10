@@ -1,0 +1,33 @@
+.basedir "../analysis.out"
+
+### Domains
+A 16
+.include "Object.dom"
+.include "Method.dom"
+.include "ParamPosition.dom"
+
+roots					(method:Method)											output
+scoped_schedule(m:Method, a:A, obj:Object)										output printsize
+scoped_actual(m:Method, a:A, n:ParamPosition, b:A)								output
+scoped_formal(m:Method, n:ParamPosition, a:A)									output
+scoped_arrow(m:Method, lhs:A, rhs:A)											output
+scoped_ordered(m:Method, a:A)													output
+scoped_multiple(m:Method, a:A)													output
+
+roots("< Application, Ljgfmt/section3/JGFMonteCarloBenchSizeA, main([Ljava/lang/String;)V >").
+
+#dummies to shut up bddbddb
+scoped_actual(0,0,0,0).
+scoped_formal(0,0,0).
+scoped_ordered(0,0).
+
+scoped_schedule("< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V >", 0, "< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@29").
+
+#later
+scoped_schedule("< Application, Ljgfmt/section3/montecarlo/AppDemoActivations, runThread()V >", 0, "< Application, Ljgfmt/section3/montecarlo/AppDemoActivations, runThread()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@22").
+
+#monte carlo tasks
+scoped_schedule("< Application, Ljgfmt/section3/montecarlo/AppDemoActivations, runThread()V >", 1, "< Application, Ljgfmt/section3/montecarlo/AppDemoActivations, runThread()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@46").
+
+scoped_arrow("< Application, Ljgfmt/section3/montecarlo/AppDemoActivations, runThread()V >", 1, 0).
+scoped_multiple("< Application, Ljgfmt/section3/montecarlo/AppDemoActivations, runThread()V >", 1).

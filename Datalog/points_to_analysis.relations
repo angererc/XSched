@@ -1,5 +1,5 @@
 ### Relations
-	roots					(method:Method)											
+	roots					(method:Method)											input				
 	                		                                                            
 	#statements     		                                                            
 	new						(m:Method, dest:Variable, obj:Object)					input
@@ -44,11 +44,11 @@
 	variablePT				(nowCtxt:Object, now:Object, \
 							 thisCtxt:Object, this:Object, \
 							 method:Method, variable:Variable, \
-							 actContext:Object, object:Object)						output
+							 actContext:Object, object:Object)						output outputtuples
 							
 	heapPT					(baseCtxt:Object, base:Object, \
 							 field:Field, \
-							 targetCtxt:Object, target:Object)						output
+							 targetCtxt:Object, target:Object)						output outputtuples
 	
 	#method m on thisCtxt.this is executed in nowCtxt.now;
 	#the execution context is just a projection of the invocationEdge relation to simplify some things
@@ -63,4 +63,4 @@
 							 callerThisCtxt:Object, callerThis:Object, \
 							 callerMethod:Method, invokeBC:BC, \
 							 calledNowCtxt:Object, calledNow:Object, \
-							 caledThisCtxt:Object, calledThis:Object, calledMethod:Method)	output
+							 caledThisCtxt:Object, calledThis:Object, calledMethod:Method)	output outputtuples
