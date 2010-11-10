@@ -149,7 +149,7 @@ class ComputeRelations {
 		public void processMethod() {
 			
 			String name = method.toString();
-			if(name.equals("< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V >")) {
+			if(name.equals("< Application, Ljgfmt/section3/montecarlo/AppDemoActivations$MontecarloTask, <init>(Ljgfmt/section3/montecarlo/AppDemoActivations;I)V >")) {
 				System.out.println("break here");
 			}
 			

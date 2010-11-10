@@ -27,8 +27,5 @@
 							
 	varEscapes(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, method:Method, variable:Variable)
 
-	escapesMethod(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object, method:Method)
-
 	escapesActivation(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) output
 	
-	activationLocal(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) output
