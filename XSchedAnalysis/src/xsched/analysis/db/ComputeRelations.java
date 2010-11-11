@@ -68,9 +68,15 @@ class ComputeRelations {
 				TypeName elementType = type.getInnermostElementType();
 				if(elementType.isPrimitiveType()) {
 					database.primitiveArrayTypes.add(type);
+					//this is important, add array types to assignable
+					database.assignable.add(type, type);
 				} else {
 					assert(!elementType.isArrayType());
 					database.objectArrayTypes.add(type, elementType);
+					
+					//this is important!! add array types to assignable
+					//TODO deal with co/contra variance of arrays here?
+					database.assignable.add(type, type);
 				}				
 			}
 		}
@@ -149,7 +155,7 @@ class ComputeRelations {
 		public void processMethod() {
 			
 			String name = method.toString();
-			if(name.equals("< Application, Ljgfmt/section3/montecarlo/AppDemoActivations$MontecarloTask, <init>(Ljgfmt/section3/montecarlo/AppDemoActivations;I)V >")) {
+			if(name.equals("< Primordial, Ljava/util/Vector, <init>(I)V >")) {
 				System.out.println("break here");
 			}
 			

@@ -42,5 +42,12 @@ escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt2, obj2) :- \
 	escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt1, obj1), \
 	heapPT(objCtxt1, obj1, _, objCtxt2, obj2).	split	
 		
-#activationLocal(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) output	
-#activationLocal(nowCtxt, now, thisCtxt, this, objCtxt, obj) :- !escapesActivation(nowCtxt, now, thisCtxt, this, objCtxt, obj).
+activationReaches(nowCtxt, now, thisCtxt, this, alsoThisCtxt, alsoThis, m) :- \
+	invocationEdge(_, _, _, _, m1, invokeBC, nowCtxt, now, thisCtxt, this, m), \
+	isSchedule(m1, invokeBC), \
+	thisCtxt=alsoThisCtxt, \
+	this=alsoThis. split
+activationReaches(nowCtxt, now, thisCtxt, this, calledThisCtxt2, calledThis2, m2) :- \
+	activationReaches(nowCtxt, now, thisCtxt, this, calledThisCtxt1, calledThis1, m1), \
+	invocationEdge(nowCtxt, now, calledThisCtxt1, calledThis1, m1, invokeBC, _, _, calledThisCtxt2, calledThis2, m2), \
+	!isSchedule(m1, invokeBC). split

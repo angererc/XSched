@@ -78,12 +78,7 @@
 							load(m, v2, v1, f), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, v1, baseCtxt, base), \
 							heapPT(baseCtxt, base, f, targetCtxt, target), \
-							canPointTo(m, v2, target). split
-							
-	test_variablePT(nC:Object, n:Object, tC:Object, t:Object, m:Method) outputtuples
-	test_variablePT(nowCtxt, now, thisCtxt, this, "< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V >"):- \
-							executionContext(nowCtxt, now, thisCtxt, this, "< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V >").
-#							load("< Application, Ljgfmt/section3/montecarlo/CallAppDemo, runiters()V >", _, _, f). split
+							canPointTo(m, v2, target). split							
 							
 	#**********************
 	#static loads; 
@@ -144,14 +139,14 @@
 	#**********************
 	#schedule statements
 	#**********************
-	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM) :- \
+	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, alsoNow, calledNow, calledThisCtxt, calledThis, calledM) :- \
 							executionContext(nowCtxt, now, thisCtxt, this, m), \
-							schedule(m, invokeBC, actVar, _, selector), \
-							variablePT(nowCtxt, now, thisCtxt, this, m, actVar, calledNowCtxt, calledNow), \
+							schedule(m, invokeBC, _, calledNow, selector), \
 							actual(m, invokeBC, 0, recVar), \
 							variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis), \
 							objectType(calledThis, t), \
-							member(t, selector, calledM). split
+							member(t, selector, calledM), \
+							now=alsoNow. split
 
 #   test_invocationEdge(nC:Object, n:Object, tC:Object, t:Object, m:Method, ic:BC, cNC:Object, cN:Object, v:Variable) outputtuples
 #   test_invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, recVar) :- \

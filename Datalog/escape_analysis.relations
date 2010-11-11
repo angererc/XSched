@@ -27,5 +27,7 @@
 							
 	varEscapes(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, method:Method, variable:Variable)
 
+	#now is the activation where object escapes from, this is the this object of the activation
 	escapesActivation(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) output
 	
+	activationReaches(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, calledThisCtxt:Object, calledThis:Object, m:Method) output
