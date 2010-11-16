@@ -1,0 +1,30 @@
+.include "basedir.include"
+
+### Domains
+A 32
+.include "Object.dom"
+.include "Method.dom"
+.include "ParamPosition.dom"
+
+roots					(method:Method)											output
+scoped_schedule(m:Method, a:A, obj:Object)										output printsize
+scoped_actual(m:Method, a:A, n:ParamPosition, b:A)								output
+scoped_formal(m:Method, n:ParamPosition, a:A)									output
+scoped_arrow(m:Method, lhs:A, rhs:A)											output
+scoped_ordered(m:Method, a:A)													output
+scoped_multiple(m:Method, a:A)													output
+
+roots("< Application, Lerco/activations/philo/Philo, main([Ljava/lang/String;)V >").
+
+#dummies to shut up bddbddb
+scoped_actual(0,0,0,0).
+scoped_formal(0,0,0).
+scoped_ordered(0,0).
+scoped_arrow(0, 0, 0).
+
+#main
+scoped_schedule("< Application, Lerco/activations/philo/Philo, main([Ljava/lang/String;)V >", 0, "< Application, Lerco/activations/philo/Philo, main([Ljava/lang/String;)V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@13").
+
+#Driver.begin
+scoped_schedule("< Application, Lerco/activations/philo/Philo$Driver, begin()V >", 0, "< Application, Lerco/activations/philo/Philo$Driver, begin()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@43").
+scoped_multiple("< Application, Lerco/activations/philo/Philo$Driver, begin()V >", 0).

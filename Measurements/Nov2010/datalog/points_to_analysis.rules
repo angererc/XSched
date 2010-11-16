@@ -1,0 +1,187 @@
+# Activation-sensitive and 1-object-sensitive points to analysis
+# objects in the heap are distinguished by the activation they were created in
+# variables are distinguished by the now activation and the current this
+
+	
+### Rules
+	#known objects:
+	#bc 0: the global object (receiver of static class methods)
+	
+	#**********************
+	#execution scope
+	#**********************													
+	executionContext(calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM) :- \								
+							invocationEdge(_, _, _, _, _, _, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM).
+	
+	#**********************
+	#Root
+	#**********************
+	executionContext(0, 0, 0, 0, m) :- \
+							roots(m).
+	
+	#**********************
+	#type filtering
+	#**********************
+	canPointTo(m, v, obj) :- \
+							variableType(m, v, varType), \
+							objectType(obj, objType), \
+							assignable(varType, objType). split
+	
+	#**********************
+	#new statements
+	#**********************
+	#two options: we could use "this" or "now" as the context for the new object
+	variablePT(nowCtxt, now, thisCtxt, this, m, v, alsoThis, obj)	:- 	\
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							new(m, v, obj), \
+							this=alsoThis. split
+	
+	#**********************
+	#schedule statement
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, v, alsoNow, obj) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							schedule(m, _, v, obj, _), \	
+							now=alsoNow. split				
+	
+	#**********************
+	#now statement
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, v, alsoNowCtxt, alsoNow) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							now(m, v), \
+							nowCtxt=alsoNowCtxt, \
+							now=alsoNow. split
+	
+	#**********************
+	#constants
+	#**********************
+	#two options: we could use "this" or "now" as the context for the new object
+	variablePT(nowCtxt, now, thisCtxt, this, m, v, 0, obj)	:- 	\
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							constant(m, v, obj). split
+							
+	#**********************
+	#assignments; 
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, v1, objCtxt, obj)	:- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							assign(m, v1, v2), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, v2, objCtxt, obj), \
+							canPointTo(m, v1, obj).	split
+	
+	#**********************
+	#loads; 
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, v2, targetCtxt, target):- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							load(m, v2, v1, f), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, v1, baseCtxt, base), \
+							heapPT(baseCtxt, base, f, targetCtxt, target), \
+							canPointTo(m, v2, target). split							
+							
+	#**********************
+	#static loads; 
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, v, targetCtxt, target):- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							staticLoad(m, v, f), \
+							heapPT(0, 0, f, targetCtxt, target), \
+							canPointTo(m, v, target). split
+	
+	#**********************
+	#stores; 
+	#**********************
+	heapPT(baseCtxt, base, f, targetCtxt, target):- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							store(m, v1, f, v2), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, v1, baseCtxt, base), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, v2, targetCtxt, target). split
+	
+	#**********************
+	#static stores; 
+	#**********************
+	heapPT(0, 0, f, targetCtxt, target):- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							staticStore(m, f, v), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, v, targetCtxt, target). split
+							
+	#**********************
+	#static calls
+	#**********************
+	#statically bound instance methods
+	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, alsoNowCtxt, alsoNow, calledThisCtxt, calledThis, calledM) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							staticInstanceInvoke(m, invokeBC, calledM), \
+							actual(m, invokeBC, 0, recVar), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis), \
+							nowCtxt=alsoNowCtxt, \
+							now=alsoNow. split
+	
+	#statically bound class methods (don't use actual variable but the global object)
+	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, 0, 0, 0, 0, calledM) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							staticClassInvoke(m, invokeBC, calledM). split
+																													
+	#**********************
+	#virtual calls
+	#**********************
+	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, alsoNowCtxt, alsoNow, calledThisCtxt, calledThis, calledM) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							virtualInvoke(m, invokeBC, selector), \
+							actual(m, invokeBC, 0, recVar), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis), \
+							objectType(calledThis, t), \
+							member(t, selector, calledM), \
+							nowCtxt=alsoNowCtxt, \
+							now=alsoNow. split
+							
+	#**********************
+	#schedule statements
+	#**********************
+	invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, alsoNow, calledNow, calledThisCtxt, calledThis, calledM) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							schedule(m, invokeBC, _, calledNow, selector), \
+							actual(m, invokeBC, 0, recVar), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis), \
+							objectType(calledThis, t), \
+							member(t, selector, calledM), \
+							now=alsoNow. split
+
+#   test_invocationEdge(nC:Object, n:Object, tC:Object, t:Object, m:Method, ic:BC, cNC:Object, cN:Object, v:Variable) outputtuples
+#   test_invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, recVar) :- \
+#   						executionContext(nowCtxt, now, thisCtxt, this, m), \
+#   						schedule(m, invokeBC, actVar, _, _), \
+#   						variablePT(nowCtxt, now, thisCtxt, this, m, actVar, calledNowCtxt, calledNow), \
+#   						actual(m, invokeBC, 0, recVar),
+#   						variablePT(nowCtxt, now, thisCtxt, this, m, recVar, calledThisCtxt, calledThis). split
+
+	#**********************
+	#parameter passing
+	#**********************
+	variablePT(calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM, formalVar, objCtxt, obj) :- \
+							invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM), \
+							formal(calledM, z, formalVar), \
+							actual(m, invokeBC, z, actualVar), \
+							variablePT(nowCtxt, now, thisCtxt, this, m, actualVar, objCtxt, obj). split
+						
+	#**********************	
+	#returns
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, callerRetVar, objCtxt, obj) :- \
+							invocationEdge(nowCtxt, now, thisCtxt, this, m, invokeBC, calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM), \
+							callSiteReturn(m, invokeBC, callerRetVar), \
+							methodReturn(calledM, retVar), \
+							variablePT(calledNowCtxt, calledNow, calledThisCtxt, calledThis, calledM, retVar, objCtxt, obj), \
+							canPointTo(m, callerRetVar, obj). split
+							
+	#**********************	
+	#exceptions
+	#**********************
+	variablePT(nowCtxt, now, thisCtxt, this, m, caughtExcVar, excCtxt, excObj) :- \
+							executionContext(nowCtxt, now, thisCtxt, this, m), \
+							catch(m, caughtExcVar), \
+							methodThrow(throwingM, thrownExcVar), \
+							variablePT(_, _, _, _, throwingM, thrownExcVar, excCtxt, excObj), \
+							canPointTo(m, caughtExcVar, excObj). split
+	
