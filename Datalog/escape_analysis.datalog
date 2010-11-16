@@ -1,4 +1,4 @@
-.basedir "../analysis.out"
+.include "basedir.include"
 
 ### Domains
 .include "Object.dom"

@@ -1,0 +1,83 @@
+.include "basedir.include"
+
+### Domains
+A 32
+.include "Object.dom"
+.include "Method.dom"
+.include "ParamPosition.dom"
+
+roots					(method:Method)											output
+scoped_schedule(m:Method, a:A, obj:Object)										output printsize
+scoped_actual(m:Method, a:A, n:ParamPosition, b:A)								output
+scoped_formal(m:Method, n:ParamPosition, a:A)									output
+scoped_arrow(m:Method, lhs:A, rhs:A)											output
+scoped_ordered(m:Method, a:A)													output
+scoped_multiple(m:Method, a:A)													output
+
+roots("< Application, Ljgfmt/section3/JGFMolDynBenchSizeA, main([Ljava/lang/String;)V >").
+
+#dummies to shut up bddbddb
+scoped_actual(0,0,0,0).
+scoped_formal(0,0,0).
+scoped_ordered(0,0).
+
+#main in MolDynBench.JGFapplication schedules runiter
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/JGFMolDynBench, JGFapplication()V >", 0, "< Application, Ljgfmt/section3/moldyn/JGFMolDynBench, JGFapplication()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@30").
+
+#scheduling the barriers 1, 2, 3, 4 in mdActivations.runiters()
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 0, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@65").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 1, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@81").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 2, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@98").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 3, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@115").
+
+#the phases 1, 2, 4
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 4, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@165").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 5, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@187").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 6, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@216").
+
+#barriers 31 to 36
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 7, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@283").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 8, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@315").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 9, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@347").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 10, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@379").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 11, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@411").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 12, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@443").
+
+#phases 31 to 36
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 13, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@465").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 14, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@512").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 15, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@559").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 16, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@606").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 17, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@653").
+scoped_schedule("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 18, "< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@708").
+
+#arrows
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 4, 0).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 0, 5).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 5, 1).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 1, 13).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 13, 7).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 7, 14).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 14, 8).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 8, 15).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 15, 9).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 9, 16).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 16, 10).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 10, 17).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 17, 11).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 11, 18).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 18, 12).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 12, 2).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 2, 6).
+scoped_arrow("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 6, 3).
+
+#the parallel loops
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 4).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 5).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 13).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 14).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 15).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 16).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 17).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 18).
+scoped_multiple("< Application, Ljgfmt/section3/moldyn/mdActivations, runiters()V >", 6).

@@ -1,7 +1,2 @@
-rbddinfo
-*.tuples
-*.bdd
-*.dom
-*.map
 bin/
 .DS_Store

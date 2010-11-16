@@ -54,7 +54,7 @@ public class CallAppDemo {
 
 	public void runiters() {
 		if (JGFMonteCarloBench.nthreads != -1) {
-			ap.runThread();
+			//ap.runThread(); //TODO commented out to avoid spurious call in schedule analysis
 		} else {
 			Activation<Void> runThread = Activation.schedule(ap, "runThread()V;"); 
 			Activation.kickOffMain(runThread);

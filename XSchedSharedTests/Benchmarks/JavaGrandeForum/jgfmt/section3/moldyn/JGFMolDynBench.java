@@ -54,9 +54,9 @@ public class JGFMolDynBench implements JGFSection3 {
 	}
 
 	public void JGFapplication() {
-		if (! (base instanceof mdActivations)) 
-			base.runiters();
-		else {
+		if (! (base instanceof mdActivations)) { 
+			//base.runiters(); //TODO commented out to avoid spurious call in schedule analysis
+		} else {
 			Activation<Void> run = Activation.schedule(base, "runiters()V;");
 			Activation.kickOffMain(run);
 		}		

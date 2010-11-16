@@ -1,0 +1,5 @@
+rbddinfo
+*.tuples
+*.bdd
+*.dom
+*.map

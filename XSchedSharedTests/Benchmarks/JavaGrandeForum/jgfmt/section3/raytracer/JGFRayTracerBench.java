@@ -81,29 +81,30 @@ public class JGFRayTracerBench extends RayTracer implements JGFSection3 {
 			nthreads = 2;
 			Activation<Void> start = Activation.schedule(this, "start()V;"); 
 			Activation.kickOffMain(start);			
-		} else {		
-			Runnable thobjects[] = new Runnable[nthreads];
-			Thread th[] = new Thread[nthreads];
-			Barrier br = new TournamentBarrier(nthreads);
-	
-			// Start Threads
-	
-			for (int i = 1; i < nthreads; i++) {
-	
-				thobjects[i] = new RayTracerRunner(i, width, height, br);
-				th[i] = new Thread(thobjects[i]);
-				th[i].start();
-			}
-	
-			thobjects[0] = new RayTracerRunner(0, width, height, br);
-			thobjects[0].run();
-	
-			for (int i = 1; i < nthreads; i++) {
-				try {
-					th[i].join();
-				} catch (InterruptedException e) {
-				}
-			}
+		} else {	
+			//TODO commented out to avoid spurious call in schedule analysis
+//			Runnable thobjects[] = new Runnable[nthreads];
+//			Thread th[] = new Thread[nthreads];
+//			Barrier br = new TournamentBarrier(nthreads);
+//	
+//			// Start Threads
+//	
+//			for (int i = 1; i < nthreads; i++) {
+//	
+//				thobjects[i] = new RayTracerRunner(i, width, height, br);
+//				th[i] = new Thread(thobjects[i]);
+//				th[i].start();
+//			}
+//	
+//			thobjects[0] = new RayTracerRunner(0, width, height, br);
+//			thobjects[0].run();
+//	
+//			for (int i = 1; i < nthreads; i++) {
+//				try {
+//					th[i].join();
+//				} catch (InterruptedException e) {
+//				}
+//			}
 		}
 	}
 

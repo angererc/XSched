@@ -1,5 +1,3 @@
-executedMs(m:Method) outputtuples
-executedMs(m) :- executionContext(_,_,_,_,m).
 
 schedules0(nowCtxt, now, a, alsoNow, resNow) :- \
 	executionContext(nowCtxt, now, _, _, m), \

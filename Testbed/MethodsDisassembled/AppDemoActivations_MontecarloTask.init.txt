@@ -1,0 +1,27 @@
+< Application, Ljgfmt/section3/montecarlo/AppDemoActivations$MontecarloTask, <init>(Ljgfmt/section3/montecarlo/AppDemoActivations;I)V >
+CFG:
+BB0[-1..-2]
+    -> BB1
+BB1[0..2]
+    -> BB2
+    -> BB5
+BB2[3..4]
+    -> BB3
+    -> BB5
+BB3[5..7]
+    -> BB4
+    -> BB5
+BB4[8..8]
+    -> BB5
+BB5[-1..-2]
+Instructions:
+BB0
+BB1
+2   putfield v1 = v2 < Application, Ljgfmt/section3/montecarlo/AppDemoActivations$MontecarloTask, this$0, <Application,Ljgfmt/section3/montecarlo/AppDemoActivations> >(line 163)
+BB2
+4   invokespecial < Application, Ljava/lang/Object, <init>()V > v1 @6 exception:v5(line 161)
+BB3
+7   putfield v1 = v3 < Application, Ljgfmt/section3/montecarlo/AppDemoActivations$MontecarloTask, i, <Primordial,I> >(line 162)
+BB4
+8   return                                   (line 162)
+BB5

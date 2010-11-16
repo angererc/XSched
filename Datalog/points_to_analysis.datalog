@@ -1,4 +1,4 @@
-.basedir "../analysis.out"
+.include "basedir.include"
 
 ### Domains
 .include "Object.dom"
@@ -41,7 +41,4 @@
 .include "./points_to_analysis.relations"
 .include "./points_to_analysis.rules"
 
-.include "./points_to_analysis.sanitycheck"
-
-
-#roots("< Application, Ljgfmt/section3/JGFRayTracerBenchSizeA, main([Ljava/lang/String;)V >").
+#.include "./points_to_analysis.sanitycheck"

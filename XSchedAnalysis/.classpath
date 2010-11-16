@@ -5,6 +5,11 @@
 	<classpathentry kind="src" path="jchord"/>
 	<classpathentry kind="src" path="shared_tests/Benchmarks/JavaGrandeForum"/>
 	<classpathentry kind="src" path="shared"/>
+	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/elevator"/>
+	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/hedc"/>
+	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/philo"/>
+	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/sor"/>
+	<classpathentry kind="src" path="shared_tests/Benchmarks/Erco/tsp"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/com.ibm.wala.core"/>

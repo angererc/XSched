@@ -142,6 +142,7 @@ public class mdActivations extends mdBase {
 			lastRound = barrier36;
 			
 		}
+		lastRound.hb(barrier3);
 
 	}
 		

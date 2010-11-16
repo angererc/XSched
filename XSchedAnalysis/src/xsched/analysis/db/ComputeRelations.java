@@ -155,7 +155,7 @@ class ComputeRelations {
 		public void processMethod() {
 			
 			String name = method.toString();
-			if(name.equals("< Primordial, Ljava/util/Vector, <init>(I)V >")) {
+			if(name.equals("< Application, Ljgfmt/section3/raytracer/JGFRayTracerBench, start()V >")) {
 				System.out.println("break here");
 			}
 			

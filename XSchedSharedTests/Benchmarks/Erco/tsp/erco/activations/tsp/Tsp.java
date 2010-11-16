@@ -77,15 +77,12 @@ public class Tsp {
 	public static void main(String args[]) throws IOException {
 		//start with argument like shared_tests/Benchmarks/Erco/tsp/tspfiles/map10
 		//can only handle one file right now due to the way I create the initial activation.
-		for(String fname : args) {
-			Tsp tsp = new Tsp();
-			int[] tour = tsp.solve(fname).minTour;
+		Tsp tsp = new Tsp();
+		int[] tour = tsp.solve("...").minTour;
 			
-			System.out.printf("%s:", fname);
-			for(int i = 0; i < tour.length; i++)
-				System.out.printf(" %d", tour[i]);
-			System.out.println();
-		}
+		for(int i = 0; i < tour.length; i++)
+			System.out.printf(" %d", tour[i]);
+		System.out.println();
 	}
 	
 }

@@ -89,6 +89,10 @@ class ComputeDomains {
 		
 		System.out.println("computing domain for class # " + classesProcessed + " " + klass.getReference());
 		
+		if(klass.getName().toString().contains("MetaSearchImpl")) {
+			System.out.println("break here");
+		}
+		
 		//********
 		// Types domain
 		database.types.add(klass.getName());

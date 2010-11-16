@@ -1,4 +1,4 @@
-
+.include "./generic_optimization.shared"
 
 accessesMayInterfere(m1, v1, m2, v2) :- \
 	executionContext(nowCtxt1, now1, thisCtxt1, this1, m1), \

@@ -1,3 +1,5 @@
+.include "./generic_optimization.shared"
+
 escapesActivation(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, objCtxt:Object, obj:Object) input
 activationReaches(nowCtxt:Object, now:Object, thisCtxt:Object, this:Object, calledThisCtxt:Object, calledThis:Object, m:Method) input
 	

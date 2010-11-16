@@ -1,6 +1,6 @@
 
 #input relations
-schedules0(nowCtxt:Object, now:Object, var:A0, resNowCtxt:Object, resNow:Object) outputtuples printsize
+schedules0(nowCtxt:Object, now:Object, var:A0, resNowCtxt:Object, resNow:Object)
 actual0(nowCtxt:Object, now:Object, var:A0, p:ParamPosition, val:A1)
 formal0(nowCtxt:Object, now:Object, p:ParamPosition, var:A0)
 arrow0(nowCtxt:Object, now:Object, lhs:A0, rhs:A1)
@@ -9,4 +9,4 @@ ordered0(nowCtxt:Object, now:Object, a:A0)
 multiple0(nowCtxt:Object, now:Object, a:A0)
 
 #in nowCtxt.now, what other tasks (resNowCtxt.resNow) are not ordered with activation b
-parallel(nowCtxt1:Object, now1:Object, nowCtxt2:Object, now2:Object) output printsize
+parallel(nowCtxt1:Object, now1:Object, nowCtxt2:Object, now2:Object) output

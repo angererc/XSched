@@ -80,6 +80,7 @@ tasksNotOrderedBefore(nowCtxt, now, b, resNowCtxt, resNow) :- \
 			!isParamOrAfter(nowCtxt, now, a, b), \
 			schedules0(nowCtxt, now, a, nCA, nA), \
 			children(nCA, nA, resNowCtxt, resNow).
+#i think that the following clause isn't really needed. we only recurse into tasks ot ordered before with formals and those don't have any children			
 tasksNotOrderedBefore(nowCtxt, now, b, resNowCtxt, resNow) :- \
 			schedules0(nowCtxt, now, b, nCB, nB), \
 			children(nCB, nB, resNowCtxt, resNow).
@@ -140,6 +141,8 @@ tasksNotOrdered(nowCtxt, now, b, resNowCtxt, resNow) :- \
 parallel(nowCtxt1, now1, nowCtxt2, now2) :-	\
 			schedules0(nC1, n1, a, nowCtxt1, now1), \
 			tasksNotOrdered(nC1, n1, a, nowCtxt2, now2).
+#the next clause could be made a little more precise, no?
+#if b is a param to a then b's children are parallel only to all children of a that are not ordered before
 parallel(nowCtxt1, now1, nowCtxt2, now2) :-	\
 			contains(nC1, n1, a, b), \
 			!singleton(nC1, n1, a, b), \

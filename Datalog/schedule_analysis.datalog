@@ -1,7 +1,7 @@
-.basedir "../analysis.out"
+.include "basedir.include"
 
 ### Domains
-A 16
+A 32
 .include "Object.dom"
 .include "BC.dom"
 .include "Variable.dom"
