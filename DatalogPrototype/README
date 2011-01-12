@@ -1,7 +1,0 @@
-This folder contains a prototype of the schedule analysis. The whole schedule analysis is done in 4 phases. First, a pre-processor extracts facts from the program; second, a points-to analysis computes points-to sets; third, the schedule analysis computes an abstract schedule; and fourth, a flattening phase flattens the abstract schedule into parallel(act1, act2), sequential(act1, act2), and exclusive(act1, act2) relations.
-
-Phase 2 and 3 are implemented as the datalog programs "points_to_analysis.datalog" and "schedule_analysis.datalog". As a preprocessor, the original preprocessor from Whaley/Lam implemented using JoeQ can be used (see bddbddb.sourceforge.org). In this prototype, some explicit-scheduling tuples have been hand-generated from the example program, though. The flattening-phase is currently under development and not part of this prototype. The parallel() relation has been hand-generated from the abstract schedule.
-
-The two files, "strong_atomicity_overhead.datalog" and "synchronization_removal.datalog" implement two different optimizations that are based on the schedule analysis. 
-
-To run the datalog programs, you need the bddbddb-full.jar file from bddbddb.sourceforge.net.

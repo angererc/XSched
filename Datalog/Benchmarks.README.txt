@@ -1,5 +1,0 @@
-1) run the java app to extract the initial extensional database
-2) run bddbddb with the benchmarkX.dat to generate some more input
-3) run the points_to_analysis.datalog
-4) run the escape_analysis.datalog
-5) run the schedule_analysis.datalog
