@@ -1,4 +1,4 @@
-XSched is a framework for eXplicit Scheduling in Java and a corresponding schedule analysis. A schedule analysis can answer the question whether two tasks may execute in parallel or whether they are ordered. This information can be used in optimizations of parallel programs.
+XSched is a framework for eXplicit Scheduling in Java and a corresponding schedule analysis. A schedule analysis can answer the question whether two tasks may execute in parallel or if they are (always) ordered. This information can be used in optimizations of parallel programs.
 
-A BDDBDDB-based prototype can be found in a different branch. This branch contains a re-write of the schedule analysis in Java. The plan is, to integrate this analysis with the Wala framework as well as a JIT-version in the Jikes RVM.
+A BDDBDDB-based prototype can be found in a different branch. This branch contains a re-write of the schedule analysis in Java. The plan is to integrate this analysis with the Wala framework as well as a JIT-version in the Jikes RVM.
 
