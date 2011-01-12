@@ -10,6 +10,7 @@
 .bddvarorder Method0_Method1_Variable0_Variable1_Object0_Object1_Object2_Object3_Object4_Object6_Object7_Object8_Field0_Field1_Object9_Object5
 
 #statements     		                                                            
+monitorEnter			(m:Method, variable:Variable) 							input
 new						(m:Method, dest:Variable, obj:Object)					input
 constant				(m:Method, variable:Variable, object:Object)			input
 load					(m:Method, variable:Variable, base:Variable, field:Field)	input
@@ -32,6 +33,7 @@ variablePT				(nowCtxt:Object, now:Object, \
 
 #what statements in a method count as access
 access(method:Method, variable:Variable)
+access(m, v) :- monitorEnter(m, v).
 access(m, v) :- new(m, v, _).
 #access(m, v) :- constant(m, v, _).
 access(m, v) :- load(m, _, v, _).

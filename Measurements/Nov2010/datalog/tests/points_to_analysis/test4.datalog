@@ -1,0 +1,64 @@
+.basedir "test_out"
+
+## Domains
+BC 255
+Variable 26 variables.map
+Object 35 objects.map
+Field 10 fields.map
+Type 27 types.map
+Selector 3 selectors.map
+Method 78 methods.map
+ParamPosition 255
+	
+.include "./test_points_to_analysis.relations"
+.include "./dummies.relations"
+.include "../../points_to_analysis.rules"
+
+roots("A.m1()").
+
+# simple store static and load static
+# and some load/store	
+# X<:Y
+# A.m1() { Y y = constant 1; C.f3 = y; B b = new B(); b.m2(); X z = b.f1;}
+# B.m2() { X x = C.f3; this.f1 = x; }
+
+assignable("A", "A").
+assignable("B", "B").
+assignable("C", "C").
+assignable("X", "X").
+assignable("X", "Y").
+assignable("Y", "Y").
+
+variableType("A.m1()", "b", "B").
+variableType("A.m1()", "y", "Y").
+variableType("A.m1()", "z", "X").
+variableType("B.m2()", "x", "X").
+
+objectType("new B()", "B").
+objectType("constant 1", "Y").
+
+member("B", "m2()", "B.m2()").
+
+constant("A.m1()", "y", "constant 1").
+new("A.m1()", "b", "new B()").
+staticStore("A.m1()", "C.f3", "y").
+virtualInvoke("A.m1()", 1, "m2()").
+actual("A.m1()", 1, 0, "b").
+load("A.m1()", "z", "b", "f1").
+
+formal("B.m2()", 0, "this").
+staticLoad("B.m2()", "x", "C.f3").
+store("B.m2()", "this", "f1", "x").
+
+roots("A.m1()").
+
+#assertions
+ERR 256
+error4(num:ERR) outputtuples
+
+error4(0) :- !variablePT(0, 0, 0, "new B()", "B.m2()", "x", 0, "constant 1").
+error4(1) :- !heapPT(0, 0, "C.f3", 0, "constant 1").
+
+error4(2) :- !variablePT(0, 0, 0, "new B()", "B.m2()", "this", 0, "new B()").
+error4(3) :- !heapPT(0, "new B()", "f1", 0, "constant 1").
+error4(1) :- !variablePT(0, 0, 0, 0, "A.m1()", "z", 0, "constant 1").

@@ -97,6 +97,9 @@ public class ExtensionalDatabase {
 	public BinaryRelation<IMethod, Integer> nowStatements = 
 		new BinaryRelation<IMethod, Integer>("now", methods, variables, "Method0_Variable0");
 		
+	public BinaryRelation<IMethod, Integer> monitorEnters = 
+		new BinaryRelation<IMethod, Integer>("monitorEnter", methods, variables, "Method0_Variable0");
+	
 	public TernaryRelation<IMethod, Integer, Obj> constants = 
 		new TernaryRelation<IMethod, Integer, Obj>("constant", methods, variables, objects, "Method0_Variable0_Object0");
 	

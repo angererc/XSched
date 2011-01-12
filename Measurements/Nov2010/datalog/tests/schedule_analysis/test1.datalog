@@ -1,0 +1,42 @@
+.basedir "test_out"
+
+## Domains
+Object 28 objects.map
+A 10 activations.map
+ParamPosition 5
+
+.include "../../schedule_analysis.relations"
+.include "../../structural_analysis.rules"
+.include "../../schedule_analysis.rules"
+
+#dummies to fill the empty database
+arrow0("root", "<dummy>", 0, 0).
+formal0("root", "<dummy>", 0, 0).
+actual0("root", "<dummy>", 0, 0, 0).
+ordered0("root", "<dummy>", 0, 0).
+orderedBefore("root", "<dummy>", 0, 0).
+multiple0("root", "<dummy>", 0).
+
+#@X: a1:A, a2:B
+#@A: a1:C
+schedules0("root", "X", "a1", "root", "A").
+schedules0("root", "X", "a2", "root", "B").
+schedules0("root", "A", "a1", "root", "C").
+schedules0("root", "B", "a1", "root", "D").
+
+#assertions
+ERR 256
+error1(num:ERR) outputtuples
+
+error1(0) :- !children("root", "X", "root", "A").
+error1(1) :- !children("root", "X", "root", "B").
+error1(2) :- !children("root", "X", "root", "C").
+error1(3) :- !children("root", "X", "root", "D").
+
+
+error1(13) :- !parallel("root", "A", "root", "B").
+error1(14) :- !parallel("root", "A", "root", "D").
+error1(15) :- parallel("root", "A", "root", "C").
+error1(16) :- !parallel("root", "B", "root", "A").
+error1(17) :- !parallel("root", "B", "root", "C").
+error1(18) :- parallel("root", "B", "root", "D").

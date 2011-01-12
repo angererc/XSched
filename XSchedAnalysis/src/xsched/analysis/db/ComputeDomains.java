@@ -1,6 +1,5 @@
 package xsched.analysis.db;
 
-import java.util.Collection;
 import java.util.Set;
 
 import xsched.analysis.utils.AnnotationsUtil;

@@ -22,6 +22,7 @@ import com.ibm.wala.ssa.SSAGetInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
 import com.ibm.wala.ssa.SSALoadMetadataInstruction;
+import com.ibm.wala.ssa.SSAMonitorInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAPutInstruction;
@@ -169,7 +170,7 @@ class ComputeRelations {
 					addToVariableTypes(variable);				
 				}
 			}
-			
+						
 			/**
 			 * add method formals variables
 			 */
@@ -181,6 +182,16 @@ class ComputeRelations {
 					database.formals.add(method, i, params[i]);
 					addToVariableTypes(params[i]);
 				}
+			}
+			
+			//add monitor enter
+			if(method.isSynchronized()) {			
+				if(! method.isStatic()) {
+					database.monitorEnters.add(method, params[0]);
+				} else {
+					System.err.println("Warning: unhandled synchronized in static method " + method);
+				}
+				
 			}
 			
 			/**
@@ -270,7 +281,18 @@ class ComputeRelations {
 			database.catchStatements.add(method, variable);
 			addToVariableTypes(variable);
 		}
+		
+		
 			
+		@Override
+		public void visitMonitor(SSAMonitorInstruction instruction) {
+			if(instruction.isMonitorEnter()) {
+				int variable = instruction.getRef();
+				database.monitorEnters.add(method, variable);
+				addToVariableTypes(variable);
+			}			
+		}
+
 		@Override
 		public void visitInvoke(SSAInvokeInstruction instruction) {
 		

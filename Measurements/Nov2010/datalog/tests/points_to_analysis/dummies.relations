@@ -1,0 +1,23 @@
+#dummies to shut up datalog when not all relations contain at least one entry...
+new						("Z.m3()", "z", "new Z()").
+schedule				("Z.m3()", 255, "z", "new Z()", "m1()").
+now						("Z.m3()", "z").		
+constant				("Z.m3()", "z", "constant 1").
+load					("Z.m3()", "z", "z", "f1").
+staticLoad				("Z.m3()", "z", "f1").	
+store					("Z.m3()", "z", "f1", "z").
+staticStore				("Z.m3()", "f1", "z").
+assign					("Z.m3()", "y", "z").
+methodReturn			("Z.m3()", "z").					
+methodThrow				("Z.m3()", "z").                    
+variableType			("Z.m3()", "z", "A").
+objectType				("new Z()", "Z").
+assignable				("Y", "Z").						
+member					("Z", "m1()", "Z.m1()").
+actual					("Z.m1()", 1, 0, "z").
+formal					("Z.m1()", 0, "z").
+staticClassInvoke		("Z.m1()", 1, "Z.m1()").
+staticInstanceInvoke	("Z.m1()", 1, "Z.m1()").
+virtualInvoke			("Z.m1()", 1, "m1()").
+callSiteReturn			("Z.m1()", 1, "z").
+catch					("Z.m1()", "Z", "z").

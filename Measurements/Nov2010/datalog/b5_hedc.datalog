@@ -27,8 +27,8 @@ scoped_schedule("< Application, Lerco/activations/hedc/Tester, main([Ljava/lang/
 #Driver.begin
 scoped_schedule("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 0, "< Application, Lerco/activations/hedc/Tester$Driver, begin()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@7").
 scoped_schedule("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1, "< Application, Lerco/activations/hedc/Tester$Driver, begin()V > -> invokestatic < Application, Lxsched/Activation, schedule(Ljava/lang/Object;Ljava/lang/String;[Ljava/lang/Object;)Lxsched/Activation; >@74").
-#scoped_multiple("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1).
-#scoped_ordered("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1).
+scoped_multiple("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1).
+scoped_ordered("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1).
 scoped_arrow("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1, 0).
 scoped_actual("< Application, Lerco/activations/hedc/Tester$Driver, begin()V >", 1, 0, 0).
 

@@ -1,0 +1,81 @@
+.basedir "test_out"
+
+## Domains
+Object 28 objects.map
+A 10 activations.map
+ParamPosition 5
+
+.include "../../schedule_analysis.relations"
+.include "../../structural_analysis.rules"
+.include "../../schedule_analysis.rules"
+
+#dummies to fill the empty database
+formal0("root", "<dummy>", 0, 0).
+actual0("root", "<dummy>", 0, 0, 0).
+ordered0("root", "<dummy>", 0, 0).
+multiple0("root", "<dummy>", "a1").
+
+#an "F" shape
+#@X: a1:A->a2:B->a3:E
+#@A: a1:C
+#@B: a1:D
+schedules0("root", "X", "a1", "root", "A").
+schedules0("root", "X", "a2", "root", "B").
+schedules0("root", "X", "a3", "root", "E").
+schedules0("root", "A", "a1", "root", "C").
+schedules0("root", "B", "a1", "root", "D").
+arrow0("root", "X", "a1", "a2").
+arrow0("root", "X", "a2", "a3").
+
+#assertions
+ERR 256
+error2(num:ERR) outputtuples
+
+error2(0) :- parallel("root", "A", "root", "B").
+error2(1) :- parallel("root", "A", "root", "D").
+error2(2) :- parallel("root", "A", "root", "E").
+error2(3) :- parallel("root", "B", "root", "E").
+error2(4) :- !parallel("root", "C", "root", "B").
+error2(5) :- !parallel("root", "C", "root", "D").
+error2(6) :- !parallel("root", "E", "root", "D").
+##also check that our unordered relation is bidirectional
+error2(7) :- !parallel("root", "B", "root", "C").
+error2(8) :- !parallel("root", "D", "root", "C").
+
+#a1 is ordered before everything else
+error2(50) :- tasksNotOrderedAfter("root", "X", "a1", "root", "A").
+error2(50) :- tasksNotOrderedAfter("root", "X", "a1", "root", "B").
+error2(50) :- tasksNotOrderedAfter("root", "X", "a1", "root", "C").
+error2(50) :- tasksNotOrderedAfter("root", "X", "a1", "root", "D").
+error2(50) :- tasksNotOrderedAfter("root", "X", "a1", "root", "E").
+#.
+error2(51) :- tasksNotOrderedAfter("root", "X", "a2", "root", "B").
+error2(51) :- tasksNotOrderedAfter("root", "X", "a2", "root", "D").
+error2(51) :- tasksNotOrderedAfter("root", "X", "a2", "root", "E").
+error2(51) :- !tasksNotOrderedAfter("root", "X", "a2", "root", "A").
+error2(51) :- !tasksNotOrderedAfter("root", "X", "a2", "root", "C").
+#
+error2(52) :- tasksNotOrderedAfter("root", "X", "a3", "root", "E").
+error2(52) :- !tasksNotOrderedAfter("root", "X", "a3", "root", "A").
+error2(52) :- !tasksNotOrderedAfter("root", "X", "a3", "root", "C").
+error2(52) :- !tasksNotOrderedAfter("root", "X", "a3", "root", "B").
+error2(52) :- !tasksNotOrderedAfter("root", "X", "a3", "root", "D").
+#
+#
+error2(60) :- tasksNotOrderedBefore("root", "X", "a1", "root", "A").
+error2(60) :- !tasksNotOrderedBefore("root", "X", "a1", "root", "B").
+error2(60) :- !tasksNotOrderedBefore("root", "X", "a1", "root", "C").
+error2(60) :- !tasksNotOrderedBefore("root", "X", "a1", "root", "D").
+error2(60) :- !tasksNotOrderedBefore("root", "X", "a1", "root", "E").
+#.     
+error2(61) :- tasksNotOrderedBefore("root", "X", "a2", "root", "B").
+error2(61) :- tasksNotOrderedBefore("root", "X", "a2", "root", "A").
+error2(61) :- !tasksNotOrderedBefore("root", "X", "a2", "root", "D").
+error2(61) :- !tasksNotOrderedBefore("root", "X", "a2", "root", "E").
+error2(61) :- !tasksNotOrderedBefore("root", "X", "a2", "root", "C").
+#      
+error2(62) :- tasksNotOrderedBefore("root", "X", "a3", "root", "E").
+error2(62) :- tasksNotOrderedBefore("root", "X", "a3", "root", "A").
+error2(62) :- tasksNotOrderedBefore("root", "X", "a3", "root", "B").
+error2(62) :- !tasksNotOrderedBefore("root", "X", "a3", "root", "C").
+error2(62) :- !tasksNotOrderedBefore("root", "X", "a3", "root", "D").
