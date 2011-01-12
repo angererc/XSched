@@ -1,9 +1,4 @@
-XSched is a framework for eXplicit Scheduling in Java.
+XSched is a framework for eXplicit Scheduling in Java and a corresponding schedule analysis. A schedule analysis can answer the question whether two tasks may execute in parallel or whether they are ordered. This information can be used in optimizations of parallel programs.
 
-Currently it consists of two eclipse projects and a shared tests folder.
+A BDDBDDB-based prototype can be found in a different branch. This branch contains a re-write of the schedule analysis in Java. The plan is, to integrate this analysis with the Wala framework as well as a JIT-version in the Jikes RVM.
 
-Because we "trick" the points-to analysis to not see what happens internally, the implementations of xsched.Activation in the runtime and the analysis are different. There is nothing that really holds them together (from the Java perspective) so we have to make sure that both implementations can function as "drop in replacements".
-
-The shared tests use the Activation API (and therefore test, that the runtime implementation and analysis implementation are compatible). However, the SharedTests is not an eclipse project but just a folder. Instead, the eclipse projects of the runtime and the analysis contain a soft-link to the shared tests. This way, the shared tests are always compiled with the correct Activation implementation.
-
-Also, the shared tests do not contain JUnit tests, but only the source code that contains test cases that use explicit scheduling.
