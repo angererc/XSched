@@ -13,30 +13,30 @@ public class FormalParameterResult<T, SS> {
 		
 	public FormalParameterResult(int numParameters) {
 		for(int i = 0; i < numParameters; i++) {
-			parameters.add(new UnorderedTasksSets<T, SS>(new HashSet<Task<T, SS>>(), new HashSet<Task<T, SS>>()));
+			parameters.add(new UnorderedTasksSets<T, SS>(new HashSet<AnalysisTask<T, SS>>(), new HashSet<AnalysisTask<T, SS>>()));
 		}
 	}
 	
-	public void setNotOrderedBefore(int param, Task<T, SS> task) {
+	public void setNotOrderedBefore(int param, AnalysisTask<T, SS> task) {
 		parameters.get(param).tasksNotOrderedBefore.add(task);
 	}
 	
-	public void setTasksNotOrderedBefore(int param, Collection<Task<T, SS>> tasks) {
+	public void setTasksNotOrderedBefore(int param, Collection<AnalysisTask<T, SS>> tasks) {
 		parameters.get(param).tasksNotOrderedBefore.addAll(tasks);
 	}
 	
-	public void setNotOrderedAfter(int param, Task<T, SS> task) {
+	public void setNotOrderedAfter(int param, AnalysisTask<T, SS> task) {
 		parameters.get(param).tasksNotOrderedAfter.add(task);
 	}
 	
-	public void setTasksNotOrderedAfter(int param, Collection<Task<T, SS>> tasks) {
+	public void setTasksNotOrderedAfter(int param, Collection<AnalysisTask<T, SS>> tasks) {
 		parameters.get(param).tasksNotOrderedAfter.addAll(tasks);
 	}
 	
-	public Set<Task<T, SS>> tasksNotOrderedBefore(int param) {
+	public Set<AnalysisTask<T, SS>> tasksNotOrderedBefore(int param) {
 		return parameters.get(param).tasksNotOrderedBefore;
 	}
-	public Set<Task<T, SS>> tasksNotOrderedAfter(int param) {
+	public Set<AnalysisTask<T, SS>> tasksNotOrderedAfter(int param) {
 		return parameters.get(param).tasksNotOrderedAfter;
 	}
 	

@@ -1,10 +1,11 @@
 package xsched.analysis.core;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Task<T, SS> {
+public class AnalysisTask<T, SS> {
 		
 	public final T id;
 	
@@ -13,9 +14,9 @@ public class Task<T, SS> {
 	
 	private HashMap<FormalParameterConstraints, AnalysisResult<T, SS>> resultsCache = new HashMap<FormalParameterConstraints, AnalysisResult<T, SS>>();
 	 
-	private HashSet<Task<T, SS>> childrenCache;
+	private HashSet<AnalysisTask<T, SS>> childrenCache;
 		
-	Task(T id) {
+	AnalysisTask(T id) {
 		this.id = id;
 	}
 	
@@ -40,7 +41,7 @@ public class Task<T, SS> {
 			
 			//for each possible target task of the schedule site, get the analysis result and aggregate all of them			
 			FormalParameterResult<T, SS> aggregate = new FormalParameterResult<T, SS>(scheduleSite.numActualParameters());
-			for(Task<T, SS> siteTask : scheduleSite.possibleTargetTasks()) {
+			for(AnalysisTask<T, SS> siteTask : scheduleSite.possibleTargetTasks()) {
 				AnalysisResult<T, SS> siteResult = siteTask.analyze(scheduleSiteConstraints);
 				myResult.parallelTasksResult.mergeWith(siteResult.parallelTasksResult);				
 				aggregate.mergeWith(siteResult.formalParameterResult);				
@@ -72,7 +73,7 @@ public class Task<T, SS> {
 				
 					UnorderedTasksSets<T, SS> unorderedChildren = foldParameters(scheduleSite, aggregate, otherScheduleSite);
 					//intersect tasks that are not ordered before and not ordered after
-					HashSet<Task<T, SS>> unordered = new HashSet<Task<T, SS>>(unorderedChildren.tasksNotOrderedBefore);
+					HashSet<AnalysisTask<T, SS>> unordered = new HashSet<AnalysisTask<T, SS>>(unorderedChildren.tasksNotOrderedBefore);
 					unordered.retainAll(unorderedChildren.tasksNotOrderedAfter);
 					myResult.parallelTasksResult.setParallel(otherScheduleSite.possibleTargetTasks(), unordered);					
 				}
@@ -85,7 +86,7 @@ public class Task<T, SS> {
 	
 	private UnorderedTasksSets<T, SS> foldParameters(ScheduleSite<T, SS> scheduleSite, FormalParameterResult<T, SS> aggregate, TaskVariable<?> taskVariable) {
 		//pessimistically assume that the parameter is parallel to all of the schedule site's children
-		UnorderedTasksSets<T, SS> unorderedChildren = new UnorderedTasksSets<T, SS>(new HashSet<Task<T, SS>>(scheduleSite.children()), new HashSet<Task<T, SS>>(scheduleSite.children()));
+		UnorderedTasksSets<T, SS> unorderedChildren = new UnorderedTasksSets<T, SS>(new HashSet<AnalysisTask<T, SS>>(scheduleSite.children()), new HashSet<AnalysisTask<T, SS>>(scheduleSite.children()));
 		for(int i = 0; i < scheduleSite.numActualParameters(); i++) {
 			TaskVariable<?> actual = scheduleSite.actualParameter(i);
 			
@@ -104,16 +105,16 @@ public class Task<T, SS> {
 		return unorderedChildren;
 	}
 	
-	public Set<Task<T, SS>> children() {
+	public Set<AnalysisTask<T, SS>> children() {
 		if(childrenCache != null)
 			return childrenCache;
 		
-		childrenCache = new HashSet<Task<T, SS>>();
+		childrenCache = new HashSet<AnalysisTask<T, SS>>();
 		
 		for(ScheduleSite<T, SS> site : scheduleSites.values()) {
-			Set<Task<T, SS>> possibleTasks = site.possibleTargetTasks();
+			Set<AnalysisTask<T, SS>> possibleTasks = site.possibleTargetTasks();
 			childrenCache.addAll(possibleTasks);
-			for(Task<T, SS> possibleTask : possibleTasks) {
+			for(AnalysisTask<T, SS> possibleTask : possibleTasks) {
 				childrenCache.addAll(possibleTask.children());
 			}
 		}
@@ -121,7 +122,11 @@ public class Task<T, SS> {
 		return childrenCache;
 	}
 	
-	public ScheduleSite<T, SS> scheduleSite(String variableID) {
+	public Collection<ScheduleSite<T,SS>> scheduleSites() {
+		return scheduleSites.values();
+	}
+	
+	public ScheduleSite<T, SS> scheduleSite(SS variableID) {
 		return scheduleSites.get(variableID);
 	}
 	

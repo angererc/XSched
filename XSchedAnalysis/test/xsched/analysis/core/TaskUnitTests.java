@@ -8,7 +8,7 @@ import xsched.analysis.core.FormalTaskParameter;
 import xsched.analysis.core.ParallelTasksResult;
 import xsched.analysis.core.ScheduleAnalysis;
 import xsched.analysis.core.ScheduleSite;
-import xsched.analysis.core.Task;
+import xsched.analysis.core.AnalysisTask;
 
 
 
@@ -16,9 +16,9 @@ public class TaskUnitTests {
 	@Test
 	public void twoUnorderedTasksNoParams() {
 		ScheduleAnalysis<String, String> sa = new ScheduleAnalysis<String, String>();
-		Task<String, String> X = sa.taskForID("X");
-		Task<String, String> A = sa.taskForID("A");
-		Task<String, String> B = sa.taskForID("B");
+		AnalysisTask<String, String> X = sa.taskForID("X");
+		AnalysisTask<String, String> A = sa.taskForID("A");
+		AnalysisTask<String, String> B = sa.taskForID("B");
 		
 		ScheduleSite<String, String> a =  X.addScheduleSite("a", ScheduleSite.Multiplicity.single);
 		a.addPossibleTaskTarget(A);
@@ -43,13 +43,13 @@ public class TaskUnitTests {
 	public void simpleNowHappensBeforeLaterPatternNoRecursion() {
 		ScheduleAnalysis<String, String> sa = new ScheduleAnalysis<String, String>();
 				
-		Task<String, String> X = sa.taskForID("X");
-		Task<String, String> Later = sa.taskForID("Later");
+		AnalysisTask<String, String> X = sa.taskForID("X");
+		AnalysisTask<String, String> Later = sa.taskForID("Later");
 		
-		Task<String, String> A = sa.taskForID("A");
-		Task<String, String> Worker = sa.taskForID("Work");
+		AnalysisTask<String, String> A = sa.taskForID("A");
+		AnalysisTask<String, String> Worker = sa.taskForID("Work");
 		
-		Task<String, String> Parallel = sa.taskForID("Parallel");
+		AnalysisTask<String, String> Parallel = sa.taskForID("Parallel");
 		
 		//task X: a(later)->later
 		ScheduleSite<String, String> later = X.addScheduleSite("later", ScheduleSite.Multiplicity.single);

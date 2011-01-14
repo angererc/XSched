@@ -9,12 +9,12 @@ import java.util.Set;
 //for each task it contains other tasks that have been found to be potentially parallel
 //if t1 is parallel to t2 then t2 is parallel to t1
 public class ParallelTasksResult<T, SS> {
-	private HashMap<Task<T, SS>, HashSet<Task<T, SS>>> parallelTasksMap =  new HashMap<Task<T, SS>, HashSet<Task<T, SS>>>();
+	private HashMap<AnalysisTask<T, SS>, HashSet<AnalysisTask<T, SS>>> parallelTasksMap =  new HashMap<AnalysisTask<T, SS>, HashSet<AnalysisTask<T, SS>>>();
 	
-	private void addIntoMap(Task<T, SS> key, Task<T, SS> value) {
-		HashSet<Task<T, SS>> set = parallelTasksMap.get(key);
+	private void addIntoMap(AnalysisTask<T, SS> key, AnalysisTask<T, SS> value) {
+		HashSet<AnalysisTask<T, SS>> set = parallelTasksMap.get(key);
 		if(set == null) {
-			set = new HashSet<Task<T, SS>>();
+			set = new HashSet<AnalysisTask<T, SS>>();
 			parallelTasksMap.put(key, set);
 		}
 		set.add(value);
@@ -24,33 +24,33 @@ public class ParallelTasksResult<T, SS> {
 		parallelTasksMap.putAll(other.parallelTasksMap);
 	}
 	
-	public void setParallel(Task<T, SS> one, Task<T, SS> other) {
+	public void setParallel(AnalysisTask<T, SS> one, AnalysisTask<T, SS> other) {
 		addIntoMap(one, other);
 		addIntoMap(other, one);
 	}
 		
-	public void setParallel(Collection<Task<T, SS>> one, Collection<Task<T, SS>> other) {
-		for(Task<T, SS> t1 : one) {
-			for(Task<T, SS> t2 : other) {
+	public void setParallel(Collection<AnalysisTask<T, SS>> one, Collection<AnalysisTask<T, SS>> other) {
+		for(AnalysisTask<T, SS> t1 : one) {
+			for(AnalysisTask<T, SS> t2 : other) {
 				setParallel(t1, t2);
 			}
 		}
 	}
 	
-	public boolean isParallel(Task<T, SS> one, Task<T, SS> other) {
-		HashSet<Task<T, SS>> set = parallelTasksMap.get(one);
+	public boolean isParallel(AnalysisTask<T, SS> one, AnalysisTask<T, SS> other) {
+		HashSet<AnalysisTask<T, SS>> set = parallelTasksMap.get(one);
 		if(set == null)
 			return false;
 		
 		return set.contains(other);
 	}
 	
-	public boolean isOrdered(Task<T, SS> one, Task<T, SS> other) {
+	public boolean isOrdered(AnalysisTask<T, SS> one, AnalysisTask<T, SS> other) {
 		return ! isParallel(one, other);
 	}
 	
-	public Set<Task<T, SS>> parallelTasksFor(Task<T, SS> task) {
-		HashSet<Task<T, SS>> set = parallelTasksMap.get(task);
+	public Set<AnalysisTask<T, SS>> parallelTasksFor(AnalysisTask<T, SS> task) {
+		HashSet<AnalysisTask<T, SS>> set = parallelTasksMap.get(task);
 		if(set == null)
 			return Collections.emptySet();
 		

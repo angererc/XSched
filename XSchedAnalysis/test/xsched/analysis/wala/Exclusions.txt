@@ -1,0 +1,6 @@
+javax\/.*
+sun\/.*
+com\/.*
+org\/.*
+apple\/.*
+sunw\/.*
