@@ -1,6 +1,8 @@
 package xsched.analysis.wala;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 
 import xsched.analysis.core.ScheduleAnalysis;
 import xsched.analysis.core.ScheduleSite.Multiplicity;
@@ -21,9 +23,6 @@ import com.ibm.wala.types.TypeName;
 import com.ibm.wala.types.annotations.Annotations;
 
 public class TaskStringContextSelector implements ContextSelector {
-
-	//we collect all task methods that we find so that the later analysis doesn't have to search for them
-	private final ScheduleAnalysis<CGNode, CallSiteReference> analysis;
 	
 	public static final ContextKey TASK_CREATION_SITE = new ContextKey() {
 		@Override
@@ -34,9 +33,8 @@ public class TaskStringContextSelector implements ContextSelector {
 
 	private final ContextSelector base;
 
-	public TaskStringContextSelector(ContextSelector base, ScheduleAnalysis<CGNode, CallSiteReference> analysis) {
+	public TaskStringContextSelector(ContextSelector base) {
 		this.base = base;
-		this.analysis = analysis;
 	}
 
 	//do something like: have a base context selector (probably a default one). 
@@ -47,7 +45,7 @@ public class TaskStringContextSelector implements ContextSelector {
 	@Override
 	public Context getCalleeTarget(CGNode caller, CallSiteReference site, IMethod callee, InstanceKey receiver) {
 		Context baseContext = base.getCalleeTarget(caller, site, callee, receiver);
-		
+				
 		IR ir = caller.getIR();
 		if(Annotations.hasAnnotation(callee, TypeName.findOrCreate("Lxsched/TaskMethod"))) {
 			 SSAAbstractInvokeInstruction[] invokes = ir.getCalls(site);
@@ -56,10 +54,7 @@ public class TaskStringContextSelector implements ContextSelector {
 			 int now = invokes[0].getUse(1);
 			 SSAInstruction creationSite = caller.getDU().getDef(now);
 			 TaskCreationSite tcs = new TaskCreationSite(caller.getMethod(), (SSANewInstruction)creationSite);
-			 
-			 //add to analysis
-			 analysis.taskForID(caller).addScheduleSite(site, Multiplicity.single);
-			 
+						 
 			 return new TaskContextPair(tcs, baseContext);			 
 		} else {
 			//normal call

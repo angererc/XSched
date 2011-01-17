@@ -25,7 +25,7 @@ public class FormalParameterConstraints {
 		
 	}
 	
-	public FormalParameterConstraints(ArrayList<TaskVariable<?>> actuals) {
+	public FormalParameterConstraints(HashMap<Integer, TaskVariable<?>> actuals) {
 		int size = actuals.size();
 		for(int i = 0; i < size-1; i++) {
 			for(int j = i+1; j < size; j++) {

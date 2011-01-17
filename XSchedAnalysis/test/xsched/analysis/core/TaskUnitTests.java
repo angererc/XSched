@@ -59,7 +59,7 @@ public class TaskUnitTests {
 		a.addPossibleTaskTarget(A);
 		
 		a.happensBefore(later);
-		a.addActualParameter(later);
+		a.addActualParameter(0, later);
 		
 		//task A: work->#1
 		ScheduleSite<String, String> worker = A.addScheduleSite("worker", ScheduleSite.Multiplicity.single);
@@ -68,7 +68,7 @@ public class TaskUnitTests {
 		ScheduleSite<String, String> parallel = A.addScheduleSite("parallel", ScheduleSite.Multiplicity.single);
 		parallel.addPossibleTaskTarget(Parallel);
 		
-		FormalTaskParameter param1 = A.addFormalParameter();
+		FormalTaskParameter param1 = A.addFormalParameter(0);
 		
 		worker.happensBefore(param1);
 		

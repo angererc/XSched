@@ -1,12 +1,12 @@
 package xsched.analysis.core;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public class ScheduleSite<T, SS> extends TaskVariable<SS> {
 	
 	private HashSet<AnalysisTask<T, SS>> possibleTargetTasks = new HashSet<AnalysisTask<T, SS>>();
-	private ArrayList<TaskVariable<?>> actualParameters = new ArrayList<TaskVariable<?>>();
+	private HashMap<Integer, TaskVariable<?>> actualParameters = new HashMap<Integer, TaskVariable<?>>();
 	private Set<AnalysisTask<T, SS>> childrenCache;
 	
 	public enum Multiplicity {
@@ -28,15 +28,16 @@ public class ScheduleSite<T, SS> extends TaskVariable<SS> {
 		return possibleTargetTasks;
 	}
 	
-	public void addActualParameter(TaskVariable<?> tVar) {
-		actualParameters.add(tVar);
+	public void addActualParameter(int position, TaskVariable<?> tVar) {
+		assert ! actualParameters.containsKey(position);
+		actualParameters.put(position, tVar);
 	}
 	
 	public TaskVariable<?> actualParameter(int i) {
 		return actualParameters.get(i);
 	}
 	
-	public ArrayList<TaskVariable<?>> actualParameters() {
+	public HashMap<Integer, TaskVariable<?>> actualParameters() {
 		return actualParameters;
 	}
 	

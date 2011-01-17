@@ -139,17 +139,16 @@ public class AnalysisTask<T, SS> {
 	}
 	
 	public FormalTaskParameter formalParameter(int i) {
-		return formalParameters.get(i);
+		for(FormalTaskParameter param : formalParameters) {
+			if(param.id.intValue() == i)
+				return param;
+		}
+		return null;
 	}
-	
-	public int numFormalParameters() {
-		return formalParameters.size();
-	}
-	
-	public FormalTaskParameter addFormalParameter() {
-		//formal parameter ID's depend on their location in the formal parameter array
-		FormalTaskParameter param = new FormalTaskParameter(formalParameters.size());
-		assert ! formalParameters.contains(param);
+ 
+	public FormalTaskParameter addFormalParameter(int position) {
+		FormalTaskParameter param = new FormalTaskParameter(position);
+		assert formalParameter(position) == null;
 		formalParameters.add(param);
 		return param;
 	}
