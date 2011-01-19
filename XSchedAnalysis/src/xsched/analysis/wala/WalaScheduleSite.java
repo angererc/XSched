@@ -6,6 +6,8 @@ import com.ibm.wala.ssa.SSAInvokeInstruction;
 
 public class WalaScheduleSite {
 	//method and task creation site are relevant for equality; the invocation site is only for convenience reasons
+	
+	//XXX it's wrong to take the method, I have to take the call graph node or the context!!!
 	public final IMethod method;	
 	public final NewSiteReference taskCreationSite;
 	

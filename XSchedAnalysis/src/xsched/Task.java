@@ -18,7 +18,7 @@ public final class Task<R> {
 		return null;
 	}
 	
-	public synchronized void hb(Task<R> later) {
+	public synchronized final void hb(Task<R> later) {
 	}
 
 }

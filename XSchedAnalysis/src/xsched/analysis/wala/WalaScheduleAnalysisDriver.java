@@ -3,6 +3,8 @@ package xsched.analysis.wala;
 import java.io.IOException;
 import java.util.HashSet;
 import xsched.analysis.core.AnalysisSchedule;
+import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
+
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
@@ -66,8 +68,8 @@ public class WalaScheduleAnalysisDriver {
 		}
 		
 		for(CGNode node : taskMethodNodes) {
-			ScheduleSolver solver = new ScheduleSolver(node.getIR().getControlFlowGraph());
-			solver.solve();
+			TaskScheduleSolver.solve(node.getIR().getControlFlowGraph());
+			
 		}
 		
 		AnalysisSchedule<CGNode, WalaScheduleSite> analysis = ScheduleInference.populateScheduleAnalysis(cg, taskMethodNodes);		
