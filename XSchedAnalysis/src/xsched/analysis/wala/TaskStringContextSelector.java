@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
-import xsched.analysis.core.ScheduleAnalysis;
+import xsched.analysis.core.AnalysisSchedule;
 import xsched.analysis.core.ScheduleSite.Multiplicity;
 
 import com.ibm.wala.classLoader.CallSiteReference;

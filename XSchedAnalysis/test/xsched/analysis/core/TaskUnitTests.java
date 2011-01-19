@@ -6,7 +6,7 @@ import org.junit.Test;
 import xsched.analysis.core.AnalysisResult;
 import xsched.analysis.core.FormalTaskParameter;
 import xsched.analysis.core.ParallelTasksResult;
-import xsched.analysis.core.ScheduleAnalysis;
+import xsched.analysis.core.AnalysisSchedule;
 import xsched.analysis.core.ScheduleSite;
 import xsched.analysis.core.AnalysisTask;
 
@@ -15,7 +15,7 @@ import xsched.analysis.core.AnalysisTask;
 public class TaskUnitTests {
 	@Test
 	public void twoUnorderedTasksNoParams() {
-		ScheduleAnalysis<String, String> sa = new ScheduleAnalysis<String, String>();
+		AnalysisSchedule<String, String> sa = new AnalysisSchedule<String, String>();
 		AnalysisTask<String, String> X = sa.taskForID("X");
 		AnalysisTask<String, String> A = sa.taskForID("A");
 		AnalysisTask<String, String> B = sa.taskForID("B");
@@ -41,7 +41,7 @@ public class TaskUnitTests {
 	
 	@Test
 	public void simpleNowHappensBeforeLaterPatternNoRecursion() {
-		ScheduleAnalysis<String, String> sa = new ScheduleAnalysis<String, String>();
+		AnalysisSchedule<String, String> sa = new AnalysisSchedule<String, String>();
 				
 		AnalysisTask<String, String> X = sa.taskForID("X");
 		AnalysisTask<String, String> Later = sa.taskForID("Later");

@@ -3,7 +3,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 
-public class ScheduleAnalysis<T, SS> {
+public class AnalysisSchedule<T, SS> {
 
 	private HashMap<T, AnalysisTask<T, SS>> tasks = new HashMap<T, AnalysisTask<T, SS>>();
 	

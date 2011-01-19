@@ -5,8 +5,7 @@ import java.util.Collection;
 import java.util.HashMap;
 
 import xsched.analysis.core.AnalysisTask;
-import xsched.analysis.core.AnyTask;
-import xsched.analysis.core.ScheduleAnalysis;
+import xsched.analysis.core.AnalysisSchedule;
 import xsched.analysis.core.ScheduleSite;
 import xsched.analysis.core.TaskVariable;
 import xsched.analysis.core.ScheduleSite.Multiplicity;
@@ -60,7 +59,7 @@ public class ScheduleInference {
 		return null;
 	}
 	
-	public static ScheduleAnalysis<CGNode, WalaScheduleSite> populateScheduleAnalysis(CallGraph cg, Collection<CGNode> taskMethodNodes) {
+	public static AnalysisSchedule<CGNode, WalaScheduleSite> populateScheduleAnalysis(CallGraph cg, Collection<CGNode> taskMethodNodes) {
 		ScheduleInference inference = new ScheduleInference(cg);
 		for(CGNode taskMethodNode : taskMethodNodes) {
 			inference.analyzeTaskNode(taskMethodNode);
@@ -72,7 +71,7 @@ public class ScheduleInference {
 	 * instance implementation
 	 */
 	
-	private final ScheduleAnalysis<CGNode, WalaScheduleSite> analysis = new ScheduleAnalysis<CGNode, WalaScheduleSite>();
+	private final AnalysisSchedule<CGNode, WalaScheduleSite> analysis = new AnalysisSchedule<CGNode, WalaScheduleSite>();
 	private final CallGraph cg;	
 	//loops that do not pass through task methods
 	private final LoopFinder<CGNode> callGraphLoops;
@@ -163,7 +162,8 @@ public class ScheduleInference {
 			TaskVariable<?> rhs = findTaskVariable(thisMethod, rhsValue, thisTask, thisSymTab, thisDefUse);
 				
 			//XXX TODO check for some simple patterns; don't just believe the hb call in the program!
-			lhs.happensBefore(rhs);			
+			if(lhs != null && rhs != null)
+				lhs.happensBefore(rhs);			
 		}
 		
 		
@@ -177,14 +177,15 @@ public class ScheduleInference {
 				if(methodRef.getParameterType(i).equals(TaskType)) {
 					int value = invoke.getUse(i);
 					TaskVariable<?> paramValue = findTaskVariable(thisMethod, value, thisTask, thisSymTab, thisDefUse);
-					assert paramValue != null;
-					scheduleSite.addActualParameter(i, paramValue);					
+					if(paramValue != null)
+						scheduleSite.addActualParameter(i, paramValue);					
 				}
 			}
 		}
 		
 	}
 		
+	//returns null if we can't find a local task variable (e.g., if the task was read from a field or comes from a phi node)
 	private TaskVariable<?> findTaskVariable(IMethod method, int ssaValue, AnalysisTask<CGNode, WalaScheduleSite> task, SymbolTable symTab, DefUse defUse) {
 		
 		if(symTab.isParameter(ssaValue)) {
@@ -200,7 +201,7 @@ public class ScheduleInference {
 			WalaScheduleSite key = new WalaScheduleSite(method, taskCreationSite);
 			return task.scheduleSite(key);
 		} else {
-			return AnyTask.instance;
+			return null;
 		}
 		
 	}
