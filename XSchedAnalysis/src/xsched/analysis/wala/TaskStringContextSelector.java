@@ -1,12 +1,5 @@
 package xsched.analysis.wala;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-
-import xsched.analysis.core.AnalysisSchedule;
-import xsched.analysis.core.ScheduleSite.Multiplicity;
-
 import com.ibm.wala.classLoader.CallSiteReference;
 import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.CGNode;

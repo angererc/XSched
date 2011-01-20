@@ -10,18 +10,18 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import com.ibm.wala.dataflow.graph.BasicFramework;
 import com.ibm.wala.dataflow.graph.DataflowSolver;
 import com.ibm.wala.fixedpoint.impl.AbstractStatement;
+import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.Acyclic;
 import com.ibm.wala.util.intset.IBinaryNaturalRelation;
-import com.ibm.wala.util.intset.IntPair;
 
 public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData> {
 
-	public static boolean solve(SSACFG cfg) {
+	public static boolean solve(IR ir) {
 		try {
-			TaskScheduleSolver solver = new TaskScheduleSolver(cfg);
+			TaskScheduleSolver solver = new TaskScheduleSolver(ir);
 			return solver.solve((IProgressMonitor)null);			
 		} catch (CancelException e) {			
 			//
@@ -36,9 +36,9 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 	final IBinaryNaturalRelation backEdges;
 	private FlowData entry;
 	
-	public TaskScheduleSolver(SSACFG cfg) {
-		super(new BasicFramework<ISSABasicBlock, FlowData>(cfg, new TransferFunctionProvider()));
-		this.cfg = cfg;
+	public TaskScheduleSolver(IR ir) {
+		super(new BasicFramework<ISSABasicBlock, FlowData>(ir.getControlFlowGraph(), new TransferFunctionProvider()));
+		this.cfg = ir.getControlFlowGraph();
 		this.backEdges = Acyclic.computeBackEdges(cfg, cfg.entry());
 	}
 
@@ -55,15 +55,22 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 	protected FlowData makeNodeVariable(ISSABasicBlock n, boolean IN) {
 		assert n != null;
 		
-		boolean isLoopHead = false;
-		for(IntPair rel : backEdges) {
-			if(rel.getY() == n.getGraphNodeId()) {
-				isLoopHead = true;
-				break;
-			}
+		NormalNodeFlowData result;
+		int predNodeCount = cfg.getPredNodeCount(n);
+		if(IN &&  predNodeCount > 1) {
+			result = new JoinNodeFlowData(predNodeCount);
+		} else {
+			result = new NormalNodeFlowData();
 		}
 		
-		NodeFlowData result = new NodeFlowData(isLoopHead);
+//		boolean isLoopHead = false;
+//		for(IntPair rel : backEdges) {
+//			if(rel.getY() == n.getGraphNodeId()) {
+//				isLoopHead = true;
+//				break;
+//			}
+//		}
+				
 		result.initEmpty();
 		if (IN && n.equals(cfg.entry())) {
 			entry = result;

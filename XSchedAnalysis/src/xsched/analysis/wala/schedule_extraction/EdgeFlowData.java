@@ -2,21 +2,23 @@ package xsched.analysis.wala.schedule_extraction;
 
 public class EdgeFlowData extends FlowData {
 
-	NodeFlowData data; 
+	//data can be null when the edge has not yet been evaluated
+	NormalNodeFlowData data; 
 	
-	NodeFlowData data() {
+	NormalNodeFlowData data() {
 		return data;
 	}
 	
 	@Override
 	boolean stateEquals(FlowData other) {
-		return data.stateEquals(other);
+		assert other != null;
+		return data == null ? false : data.stateEquals(other);
 	}
 	
 	@Override
 	public void copyState(FlowData v) {
-		assert v instanceof NodeFlowData;
-		this.data = (NodeFlowData)v;
+		assert v instanceof NormalNodeFlowData;
+		this.data = (NormalNodeFlowData)v;
 	}
 	
 }

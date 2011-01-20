@@ -3,6 +3,8 @@
  */
 package xsched.analysis.wala.schedule_extraction;
 
+import java.util.Set;
+
 import xsched.analysis.wala.WalaConstants;
 
 import com.ibm.wala.ssa.SSAInvokeInstruction;
@@ -10,12 +12,13 @@ import com.ibm.wala.ssa.SSANewInstruction;
 import com.ibm.wala.ssa.SSAPhiInstruction;
 import com.ibm.wala.ssa.SSAReturnInstruction;
 import com.ibm.wala.ssa.SSAInstruction.Visitor;
+import com.ibm.wala.util.debug.Assertions;
 
-class NodeVisitor extends Visitor {
+class NormalNodeVisitor extends Visitor {
 
-	private final NodeFlowData data;
+	private final NormalNodeFlowData data;
 	
-	public NodeVisitor(NodeFlowData data) {
+	public NormalNodeVisitor(NormalNodeFlowData data) {
 		this.data = data;
 	}
 
@@ -27,11 +30,13 @@ class NodeVisitor extends Visitor {
 			
 			for(LoopContext loopContext : data.loopContexts()) {
 				//resolve the ssa variables
-				TaskVariable lhsVariable = data.taskVariableForSSAVariable(loopContext, lhs);
-				TaskVariable rhsVariable = data.taskVariableForSSAVariable(loopContext, rhs);
-				if(lhsVariable != null && rhsVariable != null)
-					data.addHappensBeforeEdge(new HappensBeforeEdge(lhsVariable, rhsVariable));
-				
+				Set<TaskVariable> lhsVariables = data.taskVariableForSSAVariable(loopContext, lhs);
+				Set<TaskVariable> rhsVariables = data.taskVariableForSSAVariable(loopContext, rhs);
+				for(TaskVariable lhsVariable : lhsVariables) {
+					for(TaskVariable rhsVariable : rhsVariables) {
+						data.addHappensBeforeEdge(new HappensBeforeEdge(lhsVariable, rhsVariable));
+					}
+				}				
 			}			
 		}		
 	}
@@ -44,13 +49,10 @@ class NodeVisitor extends Visitor {
 			}			
 		}
 	}
-
+	
 	@Override
 	public void visitPhi(SSAPhiInstruction instruction) {
-		for(int i = 0; i < instruction.getNumberOfUses(); i++) {
-			int use = instruction.getUse(i);
-			Task 
-		}
+		Assertions.UNREACHABLE();
 	}
 
 	@Override

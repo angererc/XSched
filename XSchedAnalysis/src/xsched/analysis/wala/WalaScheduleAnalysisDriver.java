@@ -2,7 +2,6 @@ package xsched.analysis.wala;
 
 import java.io.IOException;
 import java.util.HashSet;
-import xsched.analysis.core.AnalysisSchedule;
 import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
 
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -27,7 +26,7 @@ import com.ibm.wala.util.ref.ReferenceCleanser;
 
 public class WalaScheduleAnalysisDriver {
 
-	private static boolean DEBUG = true;
+	//private static boolean DEBUG = true;
 
 	private static final ClassLoader MY_CLASSLOADER = WalaScheduleAnalysisDriver.class.getClassLoader();
 	
@@ -68,11 +67,11 @@ public class WalaScheduleAnalysisDriver {
 		}
 		
 		for(CGNode node : taskMethodNodes) {
-			TaskScheduleSolver.solve(node.getIR().getControlFlowGraph());
+			TaskScheduleSolver.solve(node.getIR());
 			
 		}
 		
-		AnalysisSchedule<CGNode, WalaScheduleSite> analysis = ScheduleInference.populateScheduleAnalysis(cg, taskMethodNodes);		
+		//AnalysisSchedule<CGNode, WalaScheduleSite> analysis = ScheduleInference.populateScheduleAnalysis(cg, taskMethodNodes);		
 		
 		//do it like this:
 		//use a TaskForrestCallGraph to cut the call graph into disjoint forests with the task methods at their root
