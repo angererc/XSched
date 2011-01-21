@@ -88,7 +88,7 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		return super.stateEquals(otherData);
 	}
 	
-	protected void filterUnreliableEdges(EdgeFlowData edge, HashSet<HappensBeforeEdge> hbedges) {
+	protected void filterUnreliableEdges(EdgeFlowData edge, HashSet<HappensBeforeEdge> hbedges) { //iterate a copy of my hb edges and check whether the incoming data agrees
 		if(!edge.isInitial()) {
 			NormalNodeFlowData other = edge.getData();
 			
