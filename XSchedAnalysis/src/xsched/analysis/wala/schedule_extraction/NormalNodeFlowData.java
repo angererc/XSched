@@ -1,8 +1,14 @@
 package xsched.analysis.wala.schedule_extraction;
 
+import java.io.PrintStream;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Map.Entry;
+
+import com.ibm.wala.ssa.ISSABasicBlock;
 
 public class NormalNodeFlowData extends FlowData {
 
@@ -12,10 +18,16 @@ public class NormalNodeFlowData extends FlowData {
 	protected Set<LoopContext> loopContexts;
 	protected Set<TaskVariable> scheduledTasks;
 	protected Set<HappensBeforeEdge> happensBeforeEdges;
+	//a phi node in a certain context can point to multiple task variables from different contexts
+	protected HashMap<PhiVariable, Set<TaskVariable>> phiMappings;
 	
 	protected NormalNodeVisitor visitor;
 	
-	NormalNodeFlowData() {
+	//just to improve debugging
+	final ISSABasicBlock basicBlock;
+	
+	NormalNodeFlowData(ISSABasicBlock basicBlock) {
+		this.basicBlock = basicBlock;
 	}
 	
 	public NormalNodeVisitor createNodeVisitor() {
@@ -41,27 +53,34 @@ public class NormalNodeFlowData extends FlowData {
 		return loopContexts;
 	}
 	
+	void initEmpty() {
+		assert this.isInitial();
+		this.loopContexts = new HashSet<LoopContext>();
+		this.scheduledTasks = new HashSet<TaskVariable>();
+		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>();	
+	}
+	
 	NormalNodeFlowData duplicate() {
-		NormalNodeFlowData data = new NormalNodeFlowData();
+		NormalNodeFlowData data = new NormalNodeFlowData(basicBlock);
 		data.copyState(this);
 		return data;
 	}
 	
 	//never returns null
 	Set<TaskVariable> taskVariableForSSAVariable(LoopContext ctxt, int ssaVariable) {
-			
+		
+		if(phiMappings != null) {
+			Set<TaskVariable> tasks = phiMappings.get(new PhiVariable(ctxt, ssaVariable));
+			if(tasks != null)
+				return tasks;
+		}
+		
 		//ssaVariable is not a phi node, then it must be a scheduled task
 		TaskVariable scheduledTask = new TaskVariable(ctxt, ssaVariable);
 		if(scheduledTask != null)
 			return Collections.singleton(scheduledTask);
 		else
 			return Collections.emptySet();
-	}
-	
-	void initEmpty() {
-		this.loopContexts = new HashSet<LoopContext>();
-		this.scheduledTasks = new HashSet<TaskVariable>();
-		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>();
 	}
 	
 	void addLoopContext(LoopContext lc) {
@@ -75,15 +94,34 @@ public class NormalNodeFlowData extends FlowData {
 	void addHappensBeforeEdge(HappensBeforeEdge edge) {
 		this.happensBeforeEdges.add(edge);
 	}
+	
+	boolean isInitial() {
+		assert  (loopContexts != null && happensBeforeEdges != null && scheduledTasks != null) 
+			|| (loopContexts == null && phiMappings == null && happensBeforeEdges == null && scheduledTasks == null);
+		return loopContexts == null;
+	}
 
 	@Override
 	boolean stateEquals(FlowData otherData) {
 		assert otherData instanceof NormalNodeFlowData;
 		NormalNodeFlowData other = (NormalNodeFlowData)otherData;
-		
-		return other.loopContexts.equals(loopContexts) 
+		assert ! other.isInitial();
+				
+		return ! isInitial() && other.loopContexts.equals(loopContexts) 
 			&& other.scheduledTasks.equals(scheduledTasks) 
 			&& other.happensBeforeEdges.equals(happensBeforeEdges);
+	}
+	
+	protected void addAllPhiVariables(PhiVariable phi, Collection<TaskVariable> toAdd) {
+		if (phiMappings == null)
+			phiMappings = new HashMap<PhiVariable, Set<TaskVariable>>();
+		
+		Set<TaskVariable> tasks = phiMappings.get(phi);
+		if(tasks == null) {
+			tasks = new HashSet<TaskVariable>();
+			phiMappings.put(phi, tasks);			
+		}
+		tasks.addAll(toAdd);
 	}
 
 	@Override
@@ -94,11 +132,25 @@ public class NormalNodeFlowData extends FlowData {
 		assert other.loopContexts != null;
 		this.loopContexts = new HashSet<LoopContext>(other.loopContexts);
 		this.scheduledTasks = new HashSet<TaskVariable>(other.scheduledTasks);
-		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>(other.happensBeforeEdges);		
+		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>(other.happensBeforeEdges);	
+		
+		if (other.phiMappings != null) {
+			this.phiMappings = new HashMap<PhiVariable, Set<TaskVariable>>();
+			for(Entry<PhiVariable, Set<TaskVariable>> entry : other.phiMappings.entrySet()) {
+				this.addAllPhiVariables(entry.getKey(), entry.getValue());
+			}
+		}
 	}
 	
 	@Override
 	public String toString() {
-		return "Node Flow Data";
+		return "Node Flow Data " + basicBlock.getGraphNodeId();
+	}
+	
+	public void print(PrintStream out) {
+		out.println("Loop Contexts: " + loopContexts);
+		out.println("Scheduled Tasks: " + scheduledTasks);
+		out.println("Phi Mappings: " + phiMappings);
+		out.println("HB Edges: " + happensBeforeEdges);
 	}
 }

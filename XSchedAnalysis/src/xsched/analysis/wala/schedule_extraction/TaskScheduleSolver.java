@@ -19,14 +19,20 @@ import com.ibm.wala.util.intset.IBinaryNaturalRelation;
 
 public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData> {
 
-	public static boolean solve(IR ir) {
+	public static void solve(IR ir) {
 		try {
+			System.out.println("=================================================================");
+			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
 			TaskScheduleSolver solver = new TaskScheduleSolver(ir);
-			return solver.solve((IProgressMonitor)null);			
+			solver.solve((IProgressMonitor)null);			
+			NormalNodeFlowData result = (NormalNodeFlowData)solver.getIn(ir.getControlFlowGraph().exit());
+			System.out.println("+++ RESULT +++");
+			result.print(System.out);
+			System.out.println("=================================================================");
 		} catch (CancelException e) {			
 			//
 		}
-		return false;
+		
 	};
 	
 	/**
@@ -48,7 +54,7 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 		assert dst != null;
 		
 		return backEdges.contains(src.getGraphNodeId(), dst.getGraphNodeId()) ?
-				new BackEdgeFlowData(src, dst) : new EdgeFlowData();	
+				new BackEdgeFlowData(src, dst) : new EdgeFlowData(src, dst);	
 	}
 
 	@Override
@@ -58,9 +64,9 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 		NormalNodeFlowData result;
 		int predNodeCount = cfg.getPredNodeCount(n);
 		if(IN &&  predNodeCount > 1) {
-			result = new JoinNodeFlowData(predNodeCount);
+			result = new JoinNodeFlowData(n, predNodeCount);
 		} else {
-			result = new NormalNodeFlowData();
+			result = new NormalNodeFlowData(n);
 		}
 		
 //		boolean isLoopHead = false;
@@ -71,9 +77,9 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 //			}
 //		}
 				
-		result.initEmpty();
 		if (IN && n.equals(cfg.entry())) {
 			entry = result;
+			result.initEmpty();
 		}
 		return result;
 	}

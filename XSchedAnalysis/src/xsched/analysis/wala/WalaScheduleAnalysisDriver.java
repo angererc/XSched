@@ -21,6 +21,7 @@ import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeBT.analysis.Analyzer.FailureException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
+import com.ibm.wala.ssa.IR;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 
@@ -59,15 +60,17 @@ public class WalaScheduleAnalysisDriver {
 		//create call graph and perform points-to analysis
 		CallGraph cg = cgBuilder.makeCallGraph(options, null);
 
-		HashSet<CGNode> taskMethodNodes = new HashSet<CGNode>();
+		//XXX note: in FakeRootClass, Wala imitates schedules of all task methods, it seems; that's of course bad and should be prevented or dealt with
+		HashSet<IR> taskMethods = new HashSet<IR>();
 		for(CGNode node : cg) {
-			if(ScheduleInference.isTaskMethod(node.getMethod())) {
-				taskMethodNodes.add(node);
+			if(WalaConstants.isTaskMethod(node.getMethod().getReference())) {
+				taskMethods.add(node.getIR());
 			}
 		}
 		
-		for(CGNode node : taskMethodNodes) {
-			TaskScheduleSolver.solve(node.getIR());
+		//have to add the fake entry method as a task 
+		for(IR ir : taskMethods) {
+			TaskScheduleSolver.solve(ir);
 			
 		}
 		

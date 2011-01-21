@@ -4,16 +4,12 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 
 public class BackEdgeFlowData extends EdgeFlowData {
 	
-	final ISSABasicBlock sourceBasicBlock;
-	final ISSABasicBlock targetBasicBlock;
-	
-	BackEdgeFlowData(ISSABasicBlock sourceBasicBlock, ISSABasicBlock targetBasicBlock) {
-		this.sourceBasicBlock = sourceBasicBlock;
-		this.targetBasicBlock = targetBasicBlock;		
+	BackEdgeFlowData(ISSABasicBlock from, ISSABasicBlock to) {
+		super(from, to);
 	}
 	
 	@Override
 	public String toString() {
-		return sourceBasicBlock.getNumber() + "->" + targetBasicBlock.getNumber();
+		return "Back-" + super.toString();
 	}
 }

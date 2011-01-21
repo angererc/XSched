@@ -17,7 +17,7 @@ public class TaskForestCallGraph extends PartialCallGraph {
 		final Collection<CGNode> nodes = DFS.getReachableNodes(cg, taskMethodNodes, new Filter<CGNode>(){
 			@Override
 			public boolean accepts(CGNode o) {				
-				return ! ScheduleInference.isTaskMethod(o.getMethod()); 				
+				return ! WalaConstants.isTaskMethod(o.getMethod().getReference()); 				
 			}			
 		});
 		Graph<CGNode> partialGraph = GraphSlicer.prune(cg, new Filter<CGNode>() {

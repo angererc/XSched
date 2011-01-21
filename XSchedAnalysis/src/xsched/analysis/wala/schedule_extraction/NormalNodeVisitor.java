@@ -19,12 +19,14 @@ class NormalNodeVisitor extends Visitor {
 	private final NormalNodeFlowData data;
 	
 	public NormalNodeVisitor(NormalNodeFlowData data) {
+		assert data != null;
+		assert ! data.isInitial();
 		this.data = data;
 	}
 
 	@Override
 	public void visitInvoke(SSAInvokeInstruction instruction) {
-		if(instruction.getDeclaredTarget().equals(WalaConstants.HappensBeforeMethod)) {
+		if(WalaConstants.isHappensBeforeCall(instruction)) {
 			int lhs = instruction.getReceiver();
 			int rhs = instruction.getUse(1);
 			
@@ -38,12 +40,12 @@ class NormalNodeVisitor extends Visitor {
 					}
 				}				
 			}			
-		}		
+		}
 	}
 
 	@Override
 	public void visitNew(SSANewInstruction instruction) {
-		if(instruction.getConcreteType().equals(WalaConstants.TaskType)) {
+		if(WalaConstants.isNewTaskSite(instruction)) {
 			for(LoopContext loopContext : data.loopContexts()) {
 				data.addTaskScheduleSite(new TaskVariable(loopContext, instruction.getDef()));
 			}			

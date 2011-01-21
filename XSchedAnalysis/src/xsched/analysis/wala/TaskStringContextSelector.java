@@ -12,8 +12,6 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAAbstractInvokeInstruction;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSANewInstruction;
-import com.ibm.wala.types.TypeName;
-import com.ibm.wala.types.annotations.Annotations;
 
 public class TaskStringContextSelector implements ContextSelector {
 	
@@ -40,7 +38,7 @@ public class TaskStringContextSelector implements ContextSelector {
 		Context baseContext = base.getCalleeTarget(caller, site, callee, receiver);
 				
 		IR ir = caller.getIR();
-		if(Annotations.hasAnnotation(callee, TypeName.findOrCreate("Lxsched/TaskMethod"))) {
+		if(WalaConstants.isTaskMethod(site.getDeclaredTarget())) {
 			 SSAAbstractInvokeInstruction[] invokes = ir.getCalls(site);
 			 assert invokes.length == 1;
 			 //0 is the "this" of the invoke, 1 is the "now" parameter (1st param)

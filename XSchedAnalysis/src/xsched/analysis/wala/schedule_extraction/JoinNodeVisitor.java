@@ -59,8 +59,7 @@ class JoinNodeVisitor extends NormalNodeVisitor {
 					
 					Set<TaskVariable> tasks = incomingData.taskVariableForSSAVariable(lc, use);
 					for(TaskVariable task : tasks) {						
-						data.addPhiVariable(new PhiVariable(nextContext, phi), task);
-						data.addLoopContext(nextContext);
+						data.addPhiVariable(new PhiVariable(nextContext, phi), task);						
 					}
 				}
 								
