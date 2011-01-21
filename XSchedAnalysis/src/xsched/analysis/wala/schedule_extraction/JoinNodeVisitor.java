@@ -37,10 +37,10 @@ class JoinNodeVisitor extends NormalNodeVisitor {
 			
 			for(int i = 0; i < instruction.getNumberOfUses(); i++) {				
 				EdgeFlowData edge = data.incomingEdgeAtPosition(i);
-				if(edge.data() == null)
+				if(edge.isInitial())
 					continue;
 				
-				NormalNodeFlowData incomingData = edge.data();
+				NormalNodeFlowData incomingData = edge.getData();
 				
 				int use = instruction.getUse(i);
 				

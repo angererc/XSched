@@ -13,6 +13,7 @@ import com.ibm.wala.fixedpoint.impl.AbstractStatement;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSACFG;
+import com.ibm.wala.ssa.SSACFG.BasicBlock;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.Acyclic;
 import com.ibm.wala.util.intset.IBinaryNaturalRelation;
@@ -24,9 +25,10 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 			System.out.println("=================================================================");
 			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
 			TaskScheduleSolver solver = new TaskScheduleSolver(ir);
-			solver.solve((IProgressMonitor)null);			
-			NormalNodeFlowData result = (NormalNodeFlowData)solver.getIn(ir.getControlFlowGraph().exit());
-			System.out.println("+++ RESULT +++");
+			solver.solve((IProgressMonitor)null);
+			BasicBlock exit = ir.getControlFlowGraph().exit();
+			NormalNodeFlowData result = (NormalNodeFlowData)solver.getIn(exit);
+			System.out.println("+++ RESULT for exit block " + exit + " +++");
 			result.print(System.out);
 			System.out.println("=================================================================");
 		} catch (CancelException e) {			
@@ -80,6 +82,7 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 		if (IN && n.equals(cfg.entry())) {
 			entry = result;
 			result.initEmpty();
+			result.addLoopContext(LoopContext.emptyLoopContext());
 		}
 		return result;
 	}

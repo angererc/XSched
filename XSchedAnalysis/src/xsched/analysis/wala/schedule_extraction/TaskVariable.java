@@ -12,7 +12,7 @@ public class TaskVariable {
 		
 	@Override
 	public int hashCode() {
-		return ssaVariable;
+		return ssaVariable * 9973 + loopContext.hashCode();
 	}
 	
 	@Override
@@ -21,7 +21,7 @@ public class TaskVariable {
 			return true;
 		} else if (otherObject instanceof TaskVariable) {
 			TaskVariable other = (TaskVariable)otherObject;
-			return other.ssaVariable == ssaVariable;			
+			return other.ssaVariable == ssaVariable && other.loopContext.equals(loopContext);			
 		} else {
 			return false;
 		}
@@ -29,6 +29,6 @@ public class TaskVariable {
 	
 	@Override
 	public String toString() {
-		return "<" + ssaVariable + ">";
+		return loopContext + "<" + ssaVariable + ">";
 	}
 }

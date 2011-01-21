@@ -5,30 +5,35 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 public class EdgeFlowData extends FlowData {
 
 	//data can be null when the edge has not yet been evaluated
-	NormalNodeFlowData data; 
+	private final NormalNodeFlowData data; 
 	
 	final ISSABasicBlock from;
 	final ISSABasicBlock to;
 	
 	EdgeFlowData(ISSABasicBlock src, ISSABasicBlock trgt) {
+		this.data = new NormalNodeFlowData(src);
 		this.from = src;
 		this.to = trgt;
 	}
 	
-	NormalNodeFlowData data() {
+	boolean isInitial() {
+		return data.isInitial();
+	}
+	
+	NormalNodeFlowData getData() {
 		return data;
 	}
 	
 	@Override
 	boolean stateEquals(FlowData other) {
 		assert other != null;
-		return data == null ? false : data.stateEquals(other);
+		return data.stateEquals(other);
 	}
 	
 	@Override
 	public void copyState(FlowData v) {
 		assert v instanceof NormalNodeFlowData;
-		this.data = (NormalNodeFlowData)v;
+		this.data.copyState(v);
 	}
 	
 	@Override

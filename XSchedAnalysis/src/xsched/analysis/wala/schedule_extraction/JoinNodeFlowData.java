@@ -9,6 +9,8 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 
 public final class JoinNodeFlowData extends NormalNodeFlowData {
 
+	private static final boolean DEBUG = false;
+	
 	private final EdgeFlowData[] incoming;
 	
 	JoinNodeFlowData(ISSABasicBlock basicBlock, int numIncomingEdges) {
@@ -23,19 +25,27 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		this.incoming = incoming;
 		
 		//we do not create a new happensBeforeMap because we have to do the intersection of all
-		//and for that we need the null as a flag of "nothing happened yet"
-		
-		System.out.println("JoinNodeFlowData: joining " + basicBlock);
+		//and for that we need the null as a flag of "nothing happened yet"		
+		if(DEBUG)
+			System.out.println("JoinNodeFlowData: joining " + basicBlock);
 		for(int i = 0; i < incoming.length; i++) {
 			EdgeFlowData edge = incoming[i];
 			assert edge != null; //should not happen after we ran the meet operator
 			this.mergeState(edge);			
 		}
+		
+		//now we unioned all edges; check that for all edges if an incoming data "knows" about lhs and rhs, it also knows the edge;
+		//otherwise they disagree and we can't keep the edge
+		HashSet<HappensBeforeEdge> hbedges = new HashSet<HappensBeforeEdge>(this.happensBeforeEdges);
+		for(int i = 0; i < incoming.length; i++) {
+			EdgeFlowData edge = incoming[i];			
+			this.filterUnreliableEdges(edge, hbedges);			
+		}
 	}
 	
 	@Override
-	JoinNodeFlowData duplicate() {
-		JoinNodeFlowData data = new JoinNodeFlowData(basicBlock, incoming);
+	JoinNodeFlowData duplicate(ISSABasicBlock forBasicBlock) {
+		JoinNodeFlowData data = new JoinNodeFlowData(forBasicBlock, incoming);
 		data.copyState(this);
 		return data;
 	}
@@ -52,7 +62,9 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 	NormalNodeFlowData incomingDataAtPosition(int pos) {
 		EdgeFlowData edge = incoming[pos];
 		if(edge != null) {
-			return edge.data();
+			NormalNodeFlowData data = edge.getData();
+			assert ! data.isInitial();
+			return data;
 		} else {
 			return null;
 		}
@@ -76,33 +88,42 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		return super.stateEquals(otherData);
 	}
 	
+	protected void filterUnreliableEdges(EdgeFlowData edge, HashSet<HappensBeforeEdge> hbedges) {
+		if(!edge.isInitial()) {
+			NormalNodeFlowData other = edge.getData();
+			
+			for(HappensBeforeEdge hbEdge : hbedges) {
+				if(other.scheduledTasks.contains(hbEdge.lhs) && other.scheduledTasks.contains(hbEdge.rhs)) {
+					if(! other.happensBeforeEdges.contains(hbEdge))
+						this.happensBeforeEdges.remove(hbEdge);
+				}				
+			}
+		}
+	}
+	
 	//called in the constructor
 	protected void mergeState(EdgeFlowData edge) {
 		
-		NormalNodeFlowData other = edge.data();
-		if(other != null) {
+		if(!edge.isInitial()) {
+			NormalNodeFlowData other = edge.getData();
 			assert ! other.isInitial();		
 			
 			this.loopContexts.addAll(other.loopContexts);
 			this.scheduledTasks.addAll(other.scheduledTasks);
-			
-			if(happensBeforeEdges == null) {
-				this.happensBeforeEdges.addAll(other.happensBeforeEdges);
-			} else {
-				this.happensBeforeEdges.retainAll(other.happensBeforeEdges);
-			}
+			this.happensBeforeEdges.addAll(other.happensBeforeEdges);
 			
 			if (other.phiMappings != null) {
 				for(Entry<PhiVariable, Set<TaskVariable>> entry : other.phiMappings.entrySet()) {
 					this.addAllPhiVariables(entry.getKey(), entry.getValue());
 				}
 			}
-		}
-		
-		if(edge instanceof BackEdgeFlowData) {
-			BackEdgeFlowData backEdge = (BackEdgeFlowData)edge;
-			for(LoopContext lc : this.loopContexts) {
-				this.loopContexts.add(lc.contextByAddingLoop(backEdge));
+			
+			//we saw this edge, so add it to the list of loop contexts
+			if(edge instanceof BackEdgeFlowData) {
+				BackEdgeFlowData backEdge = (BackEdgeFlowData)edge;
+				for(LoopContext lc : this.loopContexts) {
+					this.loopContexts.add(lc.contextByAddingLoop(backEdge));
+				}
 			}
 		}
 		

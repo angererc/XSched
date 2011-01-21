@@ -12,6 +12,8 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 
 public class NormalNodeFlowData extends FlowData {
 
+	private static boolean DEBUG = false;
+	
 	//null for fresh sets; in meet operations, we will call mergeWithForward edge etc multiple times which will instantiate those
 	//in node analysis operations we call duplicate which instantiates those
 	//in the initial setup code we call initEmpty()	
@@ -60,8 +62,8 @@ public class NormalNodeFlowData extends FlowData {
 		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>();	
 	}
 	
-	NormalNodeFlowData duplicate() {
-		NormalNodeFlowData data = new NormalNodeFlowData(basicBlock);
+	NormalNodeFlowData duplicate(ISSABasicBlock forBasicBlock) {
+		NormalNodeFlowData data = new NormalNodeFlowData(forBasicBlock);
 		data.copyState(this);
 		return data;
 	}
@@ -77,21 +79,28 @@ public class NormalNodeFlowData extends FlowData {
 		
 		//ssaVariable is not a phi node, then it must be a scheduled task
 		TaskVariable scheduledTask = new TaskVariable(ctxt, ssaVariable);
-		if(scheduledTask != null)
+		if(scheduledTasks.contains(scheduledTask)) {
 			return Collections.singleton(scheduledTask);
-		else
+		} else {
 			return Collections.emptySet();
+		}
 	}
 	
 	void addLoopContext(LoopContext lc) {
+		if(DEBUG)
+			System.out.println("NormalNodeFlowData: node of block " + basicBlock.getGraphNodeId() + " adding loop context: " + lc);
 		this.loopContexts.add(lc);
 	}
 	
-	void addTaskScheduleSite(TaskVariable variable) {		
+	void addTaskScheduleSite(TaskVariable variable) {
+		if(DEBUG)
+			System.out.println("NormalNodeFlowData: node of block " + basicBlock.getGraphNodeId() + " adding task variable: " + variable);
 		scheduledTasks.add(variable);
 	}
 	
 	void addHappensBeforeEdge(HappensBeforeEdge edge) {
+		if(DEBUG)
+			System.out.println("NormalNodeFlowData: node of block " + basicBlock.getGraphNodeId() + " adding hb edge: " + edge);
 		this.happensBeforeEdges.add(edge);
 	}
 	
@@ -129,7 +138,10 @@ public class NormalNodeFlowData extends FlowData {
 		assert(v instanceof NormalNodeFlowData);
 		assert v != null;
 		NormalNodeFlowData other = (NormalNodeFlowData)v;
-		assert other.loopContexts != null;
+		assert ! other.isInitial();
+		//when duplicating, the basic blocks can be different
+		//assert this.isInitial() || other.basicBlock.equals(basicBlock);
+		
 		this.loopContexts = new HashSet<LoopContext>(other.loopContexts);
 		this.scheduledTasks = new HashSet<TaskVariable>(other.scheduledTasks);
 		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>(other.happensBeforeEdges);	

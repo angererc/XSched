@@ -7,6 +7,14 @@ public class LoopContext {
 	
 	private final Set<BackEdgeFlowData> backEdges = new HashSet<BackEdgeFlowData>();
 	
+	private LoopContext() {
+		
+	}
+	
+	public static LoopContext emptyLoopContext() {
+		return new LoopContext();
+	}
+	
 	LoopContext contextByAddingLoop(BackEdgeFlowData backEdge) {
 		if(backEdges.contains(backEdge))
 			return this;
