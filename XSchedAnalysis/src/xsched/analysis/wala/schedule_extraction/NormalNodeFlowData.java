@@ -1,6 +1,7 @@
 package xsched.analysis.wala.schedule_extraction;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -108,6 +109,17 @@ public class NormalNodeFlowData extends FlowData {
 		assert  (loopContexts != null && happensBeforeEdges != null && scheduledTasks != null) 
 			|| (loopContexts == null && phiMappings == null && happensBeforeEdges == null && scheduledTasks == null);
 		return loopContexts == null;
+	}
+	
+	void killHappensBeforeRelationshipsContaining(TaskVariable task) {
+		ArrayList<HappensBeforeEdge> toDelete = new ArrayList<HappensBeforeEdge>();
+		
+		for(HappensBeforeEdge edge : happensBeforeEdges) {
+			if(edge.lhs.equals(task) || edge.rhs.equals(task))
+				toDelete.add(edge);
+		}
+		
+		happensBeforeEdges.removeAll(toDelete);
 	}
 
 	@Override

@@ -91,7 +91,7 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 	protected void filterUnreliableEdges(EdgeFlowData edge, HashSet<HappensBeforeEdge> hbedges) { //iterate a copy of my hb edges and check whether the incoming data agrees
 		if(!edge.isInitial()) {
 			NormalNodeFlowData other = edge.getData();
-			
+			//TODO shortcut: if other.hbedges.size()==0 return
 			for(HappensBeforeEdge hbEdge : hbedges) {
 				if(other.scheduledTasks.contains(hbEdge.lhs) && other.scheduledTasks.contains(hbEdge.rhs)) {
 					if(! other.happensBeforeEdges.contains(hbEdge))
