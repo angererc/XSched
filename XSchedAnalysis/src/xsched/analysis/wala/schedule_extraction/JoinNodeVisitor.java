@@ -10,11 +10,8 @@ import com.ibm.wala.ssa.SSAReturnInstruction;
 
 class JoinNodeVisitor extends NormalNodeVisitor {
 
-	private final JoinNodeFlowData data;
-	
 	public JoinNodeVisitor(JoinNodeFlowData data) {	
 		super(data);
-		this.data = data;
 	}
 
 	private boolean isTaskPhi(SSAPhiInstruction instruction) {
@@ -22,7 +19,7 @@ class JoinNodeVisitor extends NormalNodeVisitor {
 		int numUses = instruction.getNumberOfUses();
 		for(int i = 0; i < numUses; i++) {
 			int use = instruction.getUse(i);
-			if(data.isTask(use))
+			if(((JoinNodeFlowData)data).isTask(use))
 				return true;			
 		}
 		return false;
@@ -36,7 +33,7 @@ class JoinNodeVisitor extends NormalNodeVisitor {
 			int phi = instruction.getDef();
 			
 			for(int i = 0; i < instruction.getNumberOfUses(); i++) {				
-				EdgeFlowData edge = data.incomingEdgeAtPosition(i);
+				EdgeFlowData edge = ((JoinNodeFlowData)data).incomingEdgeAtPosition(i);
 				if(edge.isInitial())
 					continue;
 				
@@ -59,7 +56,7 @@ class JoinNodeVisitor extends NormalNodeVisitor {
 					
 					Set<TaskVariable> tasks = incomingData.taskVariableForSSAVariable(lc, use);
 					for(TaskVariable task : tasks) {						
-						data.addPhiVariable(new PhiVariable(nextContext, phi), task);						
+						((JoinNodeFlowData)data).addPhiVariable(new PhiVariable(nextContext, phi), task);						
 					}
 				}
 								

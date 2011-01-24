@@ -19,10 +19,14 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		incoming = new EdgeFlowData[numIncomingEdges];
 	}
 	
-	JoinNodeFlowData(ISSABasicBlock basicBlock, EdgeFlowData[] incoming) {
-		super(basicBlock);
+	void initAndMergeFromIncoming(EdgeFlowData[] incoming) {
 		this.initEmpty();
-		this.incoming = incoming;
+		
+		assert this.incoming.length == incoming.length;
+		
+		for(int i = 0; i < incoming.length; i++) {
+			this.incoming[i] = incoming[i];
+		}
 		
 		//we do not create a new happensBeforeMap because we have to do the intersection of all
 		//and for that we need the null as a flag of "nothing happened yet"		
@@ -37,15 +41,15 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		//now we unioned all edges; check that for all edges if an incoming data "knows" about lhs and rhs, it also knows the edge;
 		//otherwise they disagree and we can't keep the edge
 		HashSet<HappensBeforeEdge> hbedges = new HashSet<HappensBeforeEdge>(this.happensBeforeEdges);
-		for(int i = 0; i < incoming.length; i++) {
-			EdgeFlowData edge = incoming[i];			
+		for(int i = 0; i < this.incoming.length; i++) {
+			EdgeFlowData edge = this.incoming[i];			
 			this.filterUnreliableEdges(edge, hbedges);			
 		}
 	}
 	
 	@Override
 	JoinNodeFlowData duplicate(ISSABasicBlock forBasicBlock) {
-		JoinNodeFlowData data = new JoinNodeFlowData(forBasicBlock, incoming);
+		JoinNodeFlowData data = new JoinNodeFlowData(forBasicBlock, incoming.length);
 		data.copyState(this);
 		return data;
 	}
@@ -102,7 +106,7 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 	}
 	
 	//called in the constructor
-	protected void mergeState(EdgeFlowData edge) {
+	private void mergeState(EdgeFlowData edge) {
 		
 		if(!edge.isInitial()) {
 			NormalNodeFlowData other = edge.getData();

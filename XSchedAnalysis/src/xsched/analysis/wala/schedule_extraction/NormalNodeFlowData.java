@@ -130,7 +130,7 @@ public class NormalNodeFlowData extends FlowData {
 				
 		return ! isInitial() && other.loopContexts.equals(loopContexts) 
 			&& other.scheduledTasks.equals(scheduledTasks) 
-			&& other.happensBeforeEdges.equals(happensBeforeEdges);
+			&& other.happensBeforeEdges.equals(happensBeforeEdges) && other.phiMappings.equals(phiMappings);
 	}
 	
 	protected void addAllPhiVariables(PhiVariable phi, Collection<TaskVariable> toAdd) {

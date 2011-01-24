@@ -7,12 +7,14 @@ import java.util.Iterator;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.dataflow.graph.BasicFramework;
 import com.ibm.wala.dataflow.graph.DataflowSolver;
 import com.ibm.wala.fixedpoint.impl.AbstractStatement;
+import com.ibm.wala.ipa.cfg.PrunedCFG;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
-import com.ibm.wala.ssa.SSACFG;
+import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.graph.Acyclic;
@@ -21,10 +23,13 @@ import com.ibm.wala.util.intset.IBinaryNaturalRelation;
 public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData> {
 
 	public static void solve(IR ir) {
-		try {
+		try {			
 			System.out.println("=================================================================");
 			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
-			TaskScheduleSolver solver = new TaskScheduleSolver(ir);
+			
+			PrunedCFG<SSAInstruction, ISSABasicBlock> prunedCFG = AutomaticExceptionPrunedCFG.make(ir.getControlFlowGraph());
+			TaskScheduleSolver solver = new TaskScheduleSolver(prunedCFG);
+			
 			solver.solve((IProgressMonitor)null);
 			BasicBlock exit = ir.getControlFlowGraph().exit();
 			NormalNodeFlowData result = (NormalNodeFlowData)solver.getIn(exit);
@@ -40,13 +45,13 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 	/**
 	 * 
 	 */
-	final SSACFG cfg;
+	final ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg;
 	final IBinaryNaturalRelation backEdges;
 	private FlowData entry;
 	
-	public TaskScheduleSolver(IR ir) {
-		super(new BasicFramework<ISSABasicBlock, FlowData>(ir.getControlFlowGraph(), new TransferFunctionProvider()));
-		this.cfg = ir.getControlFlowGraph();
+	public TaskScheduleSolver(ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg) {
+		super(new BasicFramework<ISSABasicBlock, FlowData>(cfg, new TransferFunctionProvider()));
+		this.cfg = cfg;
 		this.backEdges = Acyclic.computeBackEdges(cfg, cfg.entry());
 	}
 

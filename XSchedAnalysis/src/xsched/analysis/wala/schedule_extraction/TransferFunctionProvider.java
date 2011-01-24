@@ -56,7 +56,8 @@ final class TransferFunctionProvider implements ITransferFunctionProvider<ISSABa
 				incoming[i] = edge;
 			}
 						
-			JoinNodeFlowData result = new JoinNodeFlowData(((JoinNodeFlowData)lhs).basicBlock, incoming);
+			JoinNodeFlowData result = new JoinNodeFlowData(((JoinNodeFlowData)lhs).basicBlock, incoming.length);
+			result.initAndMergeFromIncoming(incoming);
 			
 			if(lhs.stateEquals(result)) {
 				if(DEBUG)

@@ -15,7 +15,7 @@ import com.ibm.wala.util.debug.Assertions;
 
 class NormalNodeVisitor extends Visitor {
 
-	private final NormalNodeFlowData data;
+	protected final NormalNodeFlowData data;
 	
 	public NormalNodeVisitor(NormalNodeFlowData data) {
 		assert data != null;
