@@ -2,6 +2,9 @@ package xsched.analysis.wala;
 
 import java.io.IOException;
 import java.util.HashSet;
+
+import xsched.analysis.core.TaskSchedule;
+import xsched.analysis.wala.schedule_extraction.NormalNodeFlowData;
 import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
 
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
@@ -70,7 +73,19 @@ public class WalaScheduleAnalysisDriver {
 		
 		//have to add the fake entry method as a task 
 		for(IR ir : taskMethods) {
-			TaskScheduleSolver.solve(ir);
+			NormalNodeFlowData flowData = TaskScheduleSolver.solve(ir);
+			TaskSchedule<Integer> taskSchedule = flowData.makeTaskSchedule();
+			
+			System.out.println("=================================================================");
+			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
+			
+			System.out.println("+++ Flow Data +++");
+			flowData.print(System.out);
+			System.out.println("+++ Schedule +++");
+			taskSchedule.print(System.out);
+			System.out.println("=================================================================");
+			
+			
 			
 		}
 		

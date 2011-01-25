@@ -1,6 +1,7 @@
 package xsched.analysis.wala.schedule_extraction;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import xsched.analysis.core.TaskSchedule;
 import xsched.analysis.wala.util.SimpleGraph;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
+import com.ibm.wala.util.graph.traverse.FloydWarshall;
 
 public class NormalNodeFlowData extends FlowData {
 
@@ -151,7 +153,8 @@ public class NormalNodeFlowData extends FlowData {
 		//assert this.isInitial() || other.basicBlock.equals(basicBlock);
 		
 		this.loopContexts = new HashSet<LoopContext>(other.loopContexts);
-		this.schedule = new SimpleGraph<TaskVariable>(other.schedule);	
+		this.schedule = new SimpleGraph<TaskVariable>();
+		this.schedule.addAllNodesAndEdges(other.schedule);
 		
 		if (other.phiMappings != null) {
 			this.phiMappings = new HashMap<PhiVariable, Set<TaskVariable>>();
@@ -161,10 +164,138 @@ public class NormalNodeFlowData extends FlowData {
 		}
 	}
 	
+	/**
+	 * compress the node flow data into a task schedule where each task ssa variable is related with each other
+	 * @return
+	 */
 	public TaskSchedule<Integer> makeTaskSchedule() {
-		TaskSchedule<Integer> result = new TaskSchedule<Integer>();
-		
-		
+		TaskSchedule<Integer> result = new TaskSchedule<Integer>() {
+			
+			//a map from ssa Variable to node numbers in the schedule
+			private HashMap<Integer, Set<Integer>> occurrences;
+			
+			private void computeOccurrences() {
+				occurrences = new HashMap<Integer, Set<Integer>>();
+				Iterator<TaskVariable> taskVariables = schedule.iterator();
+				while(taskVariables.hasNext()) {
+					TaskVariable task = taskVariables.next();
+					Set<Integer> occs = occurrences.get(task.ssaVariable);
+					if(occs == null) {
+						occs = new HashSet<Integer>();
+						occurrences.put(task.ssaVariable, occs);
+					}
+					occs.add(schedule.getNumber(task));
+				}
+			}
+			
+			private boolean isOutsideLoop(int occurrence) {
+				TaskVariable variable = schedule.getNode(occurrence);
+				return variable.loopContext.isEmpty();
+			}
+			
+			private Relation computeRelation(int[][] paths, int lhs, int rhs) {
+				Relation result = null;
+				
+				if(lhs == rhs) {
+					Set<Integer> occs = occurrences.get(lhs);
+					if(occs.size() == 1) {
+						assert isOutsideLoop(occs.iterator().next()) : "there can't be a node inside a loop without having at least one duplicate";
+						//a single node that is not in a loop
+						return Relation.singleton;
+					} else {
+						//more than one occurrence of the same task 
+						//the task can be at most ordered
+						result = Relation.ordered;
+						for(int lhsNode : occurrences.get(lhs)) {
+							for(int rhsNode : occurrences.get(rhs)) {
+								if(lhsNode == rhsNode && isOutsideLoop(lhsNode)) {
+									//that's OK; it's the first iteration of the loop
+								} else if(lhsNode == rhsNode && ! isOutsideLoop(lhsNode)) {
+									//make sure that the node is ordered with itself
+									if(paths[lhsNode][lhsNode] == Integer.MAX_VALUE)
+										result = Relation.unordered;
+								}
+							}
+						}
+						return result;
+					}
+				}
+				
+				for(int lhsNode : occurrences.get(lhs)) {
+					for(int rhsNode : occurrences.get(rhs)) {
+						assert lhsNode != rhsNode; //lhs != rhs and therefore their occurrences must be different, too
+						
+						if(paths[lhsNode][rhsNode] == Integer.MAX_VALUE) {
+							//no lhs->rhs path
+							if(paths[rhsNode][lhsNode] == Integer.MAX_VALUE) {
+								//no lhs->rhs and no rhs->lhs 
+								result = Relation.unordered;						
+							} else {
+								//no lhs-> but lhs<-rhs
+								if(result == null) {
+									result = Relation.happensAfter;
+								} else {
+									switch(result) {
+									case happensBefore: result = Relation.ordered; break;
+									//we don't change ordered or unordered
+									}
+								}
+							}
+						} else {
+							//lhs -> rhs
+							if(paths[rhsNode][lhsNode] == Integer.MAX_VALUE) {
+								//lhs->rhs but not rhs->lhs 
+								if(result == null) {
+									result = Relation.happensBefore;
+								} else {
+									switch(result) {
+									case happensAfter: result = Relation.ordered; break;
+									//we don't change ordered or unordered
+									}
+								}
+							} else {
+								//lhs<->rhs
+								if(result == null) {
+									 result = Relation.ordered;
+								} else {
+									switch(result) {
+									case happensBefore: result = Relation.ordered; break;
+									case happensAfter: result = Relation.ordered; break;
+									//we don't change ordered or unordered
+									}
+								}
+							}
+						}
+					}
+				}
+				
+				return result;
+			}
+			
+			@Override
+			protected void computeFullSchedule() {
+				//for transitive information
+				int[][] paths = FloydWarshall.shortestPathLengths(schedule);
+				
+				//
+				computeOccurrences();
+				
+				//force the occurrences (ssa variables) into a nice array so that we can iterate in a diagonal matrix style
+				ArrayList<Integer> tasks = new ArrayList<Integer>(occurrences.keySet());
+				int numTasks = tasks.size();
+				for(int lhsIndex = 0; lhsIndex < numTasks; lhsIndex++) {
+					for(int rhsIndex = lhsIndex; rhsIndex < numTasks; rhsIndex++) {
+						int lhs = tasks.get(lhsIndex);
+						int rhs = tasks.get(rhsIndex);
+						Relation relation = computeRelation(paths, lhs, rhs);
+						//the addRelation automatically adds the inverse, too
+						this.addRelation(lhs, relation, rhs);
+					}
+				}
+				
+			}
+			
+		};
 		
 		return result;
 	}

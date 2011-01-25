@@ -15,6 +15,10 @@ public class LoopContext {
 		return new LoopContext();
 	}
 	
+	public boolean isEmpty() {
+		return backEdges.isEmpty();
+	}
+	
 	LoopContext contextByAddingLoop(BackEdgeFlowData backEdge) {
 		if(backEdges.contains(backEdge))
 			return this;

@@ -17,28 +17,26 @@ import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
 import com.ibm.wala.util.CancelException;
+import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.Acyclic;
 import com.ibm.wala.util.intset.IBinaryNaturalRelation;
 
 public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData> {
 
-	public static void solve(IR ir) {
+	public static NormalNodeFlowData solve(IR ir) {
 		try {			
-			System.out.println("=================================================================");
-			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
-			
 			PrunedCFG<SSAInstruction, ISSABasicBlock> prunedCFG = AutomaticExceptionPrunedCFG.make(ir.getControlFlowGraph());
 			TaskScheduleSolver solver = new TaskScheduleSolver(prunedCFG);
 			
 			solver.solve((IProgressMonitor)null);
 			BasicBlock exit = ir.getControlFlowGraph().exit();
-			NormalNodeFlowData result = (NormalNodeFlowData)solver.getIn(exit);
-			System.out.println("+++ RESULT for exit block " + exit + " +++");
-			result.print(System.out);
-			System.out.println("=================================================================");
+			return (NormalNodeFlowData)solver.getIn(exit);			
 		} catch (CancelException e) {			
 			//
 		}
+		
+		Assertions.UNREACHABLE();
+		return null;
 		
 	};
 	

@@ -1,13 +1,15 @@
 package xsched.analysis.core;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 //the abstract schedule of a task
-public class TaskSchedule<SS> {
+public abstract class TaskSchedule<SS> {
 	
 	public enum Relation {
+		singleton,
 		happensBefore,
 		happensAfter,
 		ordered,
@@ -15,6 +17,7 @@ public class TaskSchedule<SS> {
 		
 		public Relation inverse() {
 			switch(this) {
+			case singleton: return singleton;
 			case happensBefore: return happensAfter;
 			case happensAfter: return happensBefore;
 			case ordered: return ordered;
@@ -31,7 +34,13 @@ public class TaskSchedule<SS> {
 		return scheduleSites;
 	}
 	
-	public void addRelation(SS lhs, Relation rel, SS rhs) {
+	protected TaskSchedule() {
+		this.computeFullSchedule();
+	}
+	
+	protected abstract void computeFullSchedule();
+	
+	protected void addRelation(SS lhs, Relation rel, SS rhs) {
 		HashMap<SS, Relation> lhsRelations = relations.get(lhs);
 		if(lhsRelations == null) {
 			lhsRelations = new HashMap<SS, Relation>();
@@ -40,7 +49,15 @@ public class TaskSchedule<SS> {
 		assert ! lhsRelations.containsKey(rhs);
 		
 		lhsRelations.put(rhs, rel);
-		addRelation(rhs, rel.inverse(), lhs);
+		
+		HashMap<SS, Relation> rhsRelations = relations.get(rhs);
+		if(rhsRelations == null) {
+			rhsRelations = new HashMap<SS, Relation>();
+			relations.put(rhs, rhsRelations);
+		}
+		assert ! rhsRelations.containsKey(lhs) || rhsRelations.get(lhs).equals(rel.inverse());
+		
+		rhsRelations.put(lhs, rel.inverse());
 	}
 	
 	public Relation relation(SS lhs, SS rhs) {
@@ -48,5 +65,9 @@ public class TaskSchedule<SS> {
 		assert lhsRelations != null;
 		assert lhsRelations.containsKey(rhs);
 		return lhsRelations.get(rhs);
+	}
+	
+	public void print(PrintStream out) {
+		out.println(relations);
 	}
 }
