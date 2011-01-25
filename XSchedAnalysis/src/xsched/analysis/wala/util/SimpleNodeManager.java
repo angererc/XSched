@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.ConcurrentModificationException;
 import java.util.Iterator;
 
-import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.NumberedNodeManager;
 import com.ibm.wala.util.intset.IntIterator;
 import com.ibm.wala.util.intset.IntSet;

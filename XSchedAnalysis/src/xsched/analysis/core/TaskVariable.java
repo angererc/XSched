@@ -2,14 +2,14 @@ package xsched.analysis.core;
 import java.util.HashSet;
 
 
-public abstract class TaskVariable<T> {
+public abstract class TaskVariable<TV> {
 	
-	public final T id;
+	public final TV id;
 	
 	private HashSet<TaskVariable<?>> happensBeforeEdges = new HashSet<TaskVariable<?>>();
 	
 	//use ScheduleSite.scheduleSiteForID() and FormalTaskParameter.formalTaskParameterForID() methods
-	protected TaskVariable(T id) {
+	protected TaskVariable(TV id) {
 		this.id = id;
 	}
 	

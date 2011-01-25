@@ -3,6 +3,7 @@ package xsched.analysis.wala;
 import java.io.IOException;
 import java.util.HashSet;
 
+import xsched.analysis.core.AnalysisSchedule;
 import xsched.analysis.core.TaskSchedule;
 import xsched.analysis.wala.schedule_extraction.NormalNodeFlowData;
 import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
@@ -25,6 +26,9 @@ import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.shrikeBT.analysis.Analyzer.FailureException;
 import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 
@@ -71,11 +75,15 @@ public class WalaScheduleAnalysisDriver {
 			}
 		}
 		
+		AnalysisSchedule<CGNode, Integer, Pair<SSANewInstruction, SSAInvokeInstruction>> analysis = new AnalysisSchedule<CGNode, Integer, Pair<SSANewInstruction, SSAInvokeInstruction>>();
+		
 		//have to add the fake entry method as a task 
 		for(IR ir : taskMethods) {
 			NormalNodeFlowData flowData = TaskScheduleSolver.solve(ir);
-			TaskSchedule<Integer> taskSchedule = flowData.makeTaskSchedule();
 			
+			WalaScheduleSitesInformation info = WalaScheduleSitesInformation.make(cache.getSSACache(), options.getSSAOptions(), ir.getMethod());
+			TaskSchedule<Integer, Pair<SSANewInstruction, SSAInvokeInstruction>> taskSchedule = flowData.makeTaskSchedule(info);
+					
 			System.out.println("=================================================================");
 			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
 			
@@ -85,7 +93,9 @@ public class WalaScheduleAnalysisDriver {
 			taskSchedule.print(System.out);
 			System.out.println("=================================================================");
 			
-			
+			for(CGNode node : cg.getNodes(ir.getMethod().getReference())) {
+				analysis.createTask(node, taskSchedule);
+			}
 			
 		}
 		

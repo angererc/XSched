@@ -1,12 +1,11 @@
 package xsched.analysis.core;
 
-public class AnalysisResult<T, SS> {
+public class AnalysisResult<Instance, TV, SS> {
 
-	public final ParallelTasksResult<T, SS> parallelTasksResult;
-	public final FormalParameterResult<T, SS> formalParameterResult;
+	public final ParallelTasksResult<Instance, TV, SS> parallelTasksResult;
+	public final FormalParameterResult<Instance, TV, SS> formalParameterResult;
 	
-	public AnalysisResult(ParallelTasksResult<T, SS> a,
-			FormalParameterResult<T, SS> b) {
+	public AnalysisResult(ParallelTasksResult<Instance, TV, SS> a, FormalParameterResult<Instance, TV, SS> b) {
 		this.parallelTasksResult = a;
 		this.formalParameterResult = b;
 	}

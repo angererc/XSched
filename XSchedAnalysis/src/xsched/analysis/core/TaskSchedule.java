@@ -2,11 +2,14 @@ package xsched.analysis.core;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 
 //the abstract schedule of a task
-public abstract class TaskSchedule<SS> {
+public abstract class TaskSchedule<TV, SS> {
+	
+	public interface SiteMapper<T, SS> {
+		public SS scheduleSiteForTask(T t);
+	}
 	
 	public enum Relation {
 		singleton,
@@ -27,47 +30,65 @@ public abstract class TaskSchedule<SS> {
 		}
 	}
 	
-	private final ArrayList<SS> scheduleSites = new ArrayList<SS>();
-	private final HashMap<SS, HashMap<SS, Relation>> relations = new HashMap<SS, HashMap<SS, Relation>>();
+	private final ArrayList<TV> nodes;
+	private final Relation[][] relations;
+	private final SiteMapper<TV, SS> siteMapper;
 	
-	public List<SS> scheduleSites() {
-		return scheduleSites;
-	}
-	
-	protected TaskSchedule() {
+	protected TaskSchedule(SiteMapper<TV, SS> siteMapper, Set<TV> nodeSet) {
+		this.siteMapper = siteMapper;
+		this.nodes = new ArrayList<TV>(nodeSet);
+		int dimensions = nodes.size();
+		relations = new Relation[dimensions][dimensions];
 		this.computeFullSchedule();
+		assert matrixIsFull();
 	}
 	
+	private boolean matrixIsFull() {
+		for(int i = 0; i < relations.length; i++) {
+			for(int j = 0; j < relations.length; j++) {
+				if(relations[i][j] == null)
+					return false;
+			}
+		}
+		return true;
+	}
+
 	protected abstract void computeFullSchedule();
 	
-	protected void addRelation(SS lhs, Relation rel, SS rhs) {
-		HashMap<SS, Relation> lhsRelations = relations.get(lhs);
-		if(lhsRelations == null) {
-			lhsRelations = new HashMap<SS, Relation>();
-			relations.put(lhs, lhsRelations);
-		}
-		assert ! lhsRelations.containsKey(rhs);
-		
-		lhsRelations.put(rhs, rel);
-		
-		HashMap<SS, Relation> rhsRelations = relations.get(rhs);
-		if(rhsRelations == null) {
-			rhsRelations = new HashMap<SS, Relation>();
-			relations.put(rhs, rhsRelations);
-		}
-		assert ! rhsRelations.containsKey(lhs) || rhsRelations.get(lhs).equals(rel.inverse());
-		
-		rhsRelations.put(lhs, rel.inverse());
+	public int nodeNumber(TV node) {
+		return nodes.indexOf(node);
 	}
 	
-	public Relation relation(SS lhs, SS rhs) {
-		HashMap<SS, Relation> lhsRelations = relations.get(lhs);
-		assert lhsRelations != null;
-		assert lhsRelations.containsKey(rhs);
-		return lhsRelations.get(rhs);
+	protected void addRelation(TV lhs, Relation rel, TV rhs) {
+		int lhsIndex = nodeNumber(lhs);
+		int rhsIndex = nodeNumber(rhs);
+		assert relations[lhsIndex][rhsIndex] == null;
+		relations[lhsIndex][rhsIndex] = rel;
+		
+		if(lhs.equals(rhs))
+			return;
+		
+		assert relations[rhsIndex][lhsIndex] == null;
+		relations[rhsIndex][lhsIndex] = rel.inverse();	
+	}
+	
+	public SS scheduleSite(TV node) {
+		return siteMapper.scheduleSiteForTask(node);
+	}
+	
+	public Relation relation(TV lhs, TV rhs) {
+		int lhsIndex = nodeNumber(lhs);
+		int rhsIndex = nodeNumber(rhs);
+		return relations[lhsIndex][rhsIndex];		
 	}
 	
 	public void print(PrintStream out) {
-		out.println(relations);
+		for(int i = 0; i < relations.length; i++) {
+			for(int j = 0; j < relations.length; j++) {
+				out.println(i + " " + relations[i][j] + " " + j);			
+			}
+		}
+		
 	}
+	
 }

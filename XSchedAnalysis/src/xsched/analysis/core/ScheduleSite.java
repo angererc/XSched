@@ -3,27 +3,27 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class ScheduleSite<T, SS> extends TaskVariable<SS> {
+public class ScheduleSite<Instance, TV, SS> extends TaskVariable<TV> {
 	
-	private HashSet<AnalysisTask<T, SS>> possibleTargetTasks = new HashSet<AnalysisTask<T, SS>>();
+	private HashSet<AnalysisTask<Instance, TV, SS>> possibleTargetTasks = new HashSet<AnalysisTask<Instance, TV, SS>>();
 	private HashMap<Integer, TaskVariable<?>> actualParameters = new HashMap<Integer, TaskVariable<?>>();
-	private Set<AnalysisTask<T, SS>> childrenCache;
+	private Set<AnalysisTask<Instance, TV, SS>> childrenCache;
 	
 	public enum Multiplicity {
 		single, multipleUnordered, multipleOrdered;
 	}
 	public final Multiplicity multiplicity;
 	
-	ScheduleSite(SS id, Multiplicity multiplicity) {
+	ScheduleSite(TV id, Multiplicity multiplicity) {
 		super(id);
 		this.multiplicity = multiplicity;
 	}
 	
-	public void addPossibleTaskTarget(AnalysisTask<T, SS> task) {
+	public void addPossibleTaskTarget(AnalysisTask<Instance, TV, SS> task) {
 		possibleTargetTasks.add(task);
 	}
 	
-	public Set<AnalysisTask<T, SS>> possibleTargetTasks() {
+	public Set<AnalysisTask<Instance, TV, SS>> possibleTargetTasks() {
 		assert possibleTargetTasks.size() > 0;
 		return possibleTargetTasks;
 	}
@@ -45,13 +45,13 @@ public class ScheduleSite<T, SS> extends TaskVariable<SS> {
 		return actualParameters.size();
 	}
 	
-	public Set<AnalysisTask<T, SS>> children() {
+	public Set<AnalysisTask<Instance, TV, SS>> children() {
 		if(childrenCache != null)
 			return childrenCache;
 		
-		HashSet<AnalysisTask<T, SS>> allChildren = new HashSet<AnalysisTask<T, SS>>();
+		HashSet<AnalysisTask<Instance, TV, SS>> allChildren = new HashSet<AnalysisTask<Instance, TV, SS>>();
 		
-		for(AnalysisTask<T, SS> task : possibleTargetTasks) {
+		for(AnalysisTask<Instance, TV, SS> task : possibleTargetTasks) {
 			allChildren.addAll(task.children());
 		}
 		

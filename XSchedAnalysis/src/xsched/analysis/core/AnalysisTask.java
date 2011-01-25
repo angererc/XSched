@@ -5,44 +5,48 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
-public class AnalysisTask<T, SS> {
+//TV: task variable type
+//SS: schedule site type
+public class AnalysisTask<Instance, TV, SS> {
 		
-	public final T id;
+	public final Instance id;
+	public final TaskSchedule<TV, SS> taskSchedule;
 	
 	private ArrayList<FormalTaskParameter> formalParameters = new ArrayList<FormalTaskParameter>();
-	private HashMap<SS, ScheduleSite<T, SS>> scheduleSites = new HashMap<SS, ScheduleSite<T, SS>>();
+	private HashMap<TV, ScheduleSite<Instance, TV, SS>> scheduleSites = new HashMap<TV, ScheduleSite<Instance, TV, SS>>();
 	
-	private HashMap<FormalParameterConstraints, AnalysisResult<T, SS>> resultsCache = new HashMap<FormalParameterConstraints, AnalysisResult<T, SS>>();
+	private HashMap<FormalParameterConstraints, AnalysisResult<Instance, TV, SS>> resultsCache = new HashMap<FormalParameterConstraints, AnalysisResult<Instance, TV, SS>>();
 	 
-	private HashSet<AnalysisTask<T, SS>> childrenCache;
+	private HashSet<AnalysisTask<Instance, TV, SS>> childrenCache;
 		
-	AnalysisTask(T id) {
+	AnalysisTask(Instance id, TaskSchedule<TV, SS> taskSchedule) {
 		this.id = id;
+		this.taskSchedule = taskSchedule;
 	}
 	
 	//call this method and it will compute the parallelTasks set for all tasks that are directly or indirectly scheduled when
 	//this is a root task
-	public AnalysisResult<T, SS> solveAsRoot() {
+	public AnalysisResult<Instance, TV, SS> solveAsRoot() {
 		return analyze(new FormalParameterConstraints());
 	}
 	
-	private AnalysisResult<T, SS> analyze(FormalParameterConstraints myParamConstraints) {
-		AnalysisResult<T, SS> myResult = resultsCache.get(myParamConstraints);
+	private AnalysisResult<Instance, TV, SS> analyze(FormalParameterConstraints myParamConstraints) {
+		AnalysisResult<Instance, TV, SS> myResult = resultsCache.get(myParamConstraints);
 		if(myResult != null)
 			return myResult;
 		
 		//add the result to the cache immediately to avoid infinite recursion
-		myResult = new AnalysisResult<T, SS>(new ParallelTasksResult<T, SS>(), new FormalParameterResult<T, SS>(formalParameters.size()));
+		myResult = new AnalysisResult<Instance, TV, SS>(new ParallelTasksResult<Instance, TV, SS>(), new FormalParameterResult<Instance, TV, SS>(formalParameters.size()));
 		resultsCache.put(myParamConstraints, myResult);
 		
 		//analyze each schedule site and then compare it with each schedule site and each formal param O(n^2)
-		for(ScheduleSite<T, SS> scheduleSite : scheduleSites.values()) {
+		for(ScheduleSite<Instance, TV, SS> scheduleSite : scheduleSites.values()) {
 			FormalParameterConstraints scheduleSiteConstraints = new FormalParameterConstraints(scheduleSite.actualParameters());
 			
 			//for each possible target task of the schedule site, get the analysis result and aggregate all of them			
-			FormalParameterResult<T, SS> aggregate = new FormalParameterResult<T, SS>(scheduleSite.numActualParameters());
-			for(AnalysisTask<T, SS> siteTask : scheduleSite.possibleTargetTasks()) {
-				AnalysisResult<T, SS> siteResult = siteTask.analyze(scheduleSiteConstraints);
+			FormalParameterResult<Instance, TV, SS> aggregate = new FormalParameterResult<Instance, TV, SS>(scheduleSite.numActualParameters());
+			for(AnalysisTask<Instance, TV, SS> siteTask : scheduleSite.possibleTargetTasks()) {
+				AnalysisResult<Instance, TV, SS> siteResult = siteTask.analyze(scheduleSiteConstraints);
 				myResult.parallelTasksResult.mergeWith(siteResult.parallelTasksResult);				
 				aggregate.mergeWith(siteResult.formalParameterResult);				
 			}
@@ -58,22 +62,22 @@ public class AnalysisTask<T, SS> {
 				
 				//"fold" the parameters and compute the effect for the formal parameter
 				//pessimistically assume that the parameter is parallel to all of the schedule site's children
-				UnorderedTasksSets<T, SS> unorderedChildren = foldParameters(scheduleSite, aggregate, myFormalParam);
+				UnorderedTasksSets<Instance, TV, SS> unorderedChildren = foldParameters(scheduleSite, aggregate, myFormalParam);
 				myResult.formalParameterResult.setTasksNotOrderedBefore(myFormalParam.id, unorderedChildren.tasksNotOrderedBefore);
 				myResult.formalParameterResult.setTasksNotOrderedAfter(myFormalParam.id, unorderedChildren.tasksNotOrderedAfter);
 				
 			}
 			
-			for(ScheduleSite<T, SS> otherScheduleSite : scheduleSites.values()) {
+			for(ScheduleSite<Instance, TV, SS> otherScheduleSite : scheduleSites.values()) {
 				if(! scheduleSite.equals(otherScheduleSite) || scheduleSite.multiplicity == ScheduleSite.Multiplicity.multipleUnordered) {
 					//if schedule sites are unordered, their tasks are unordered
 					if(! otherScheduleSite.isOrderedWith(scheduleSite)) {
 						myResult.parallelTasksResult.setParallel(otherScheduleSite.possibleTargetTasks(), scheduleSite.possibleTargetTasks());
 					}
 				
-					UnorderedTasksSets<T, SS> unorderedChildren = foldParameters(scheduleSite, aggregate, otherScheduleSite);
+					UnorderedTasksSets<Instance, TV, SS> unorderedChildren = foldParameters(scheduleSite, aggregate, otherScheduleSite);
 					//intersect tasks that are not ordered before and not ordered after
-					HashSet<AnalysisTask<T, SS>> unordered = new HashSet<AnalysisTask<T, SS>>(unorderedChildren.tasksNotOrderedBefore);
+					HashSet<AnalysisTask<Instance, TV, SS>> unordered = new HashSet<AnalysisTask<Instance, TV, SS>>(unorderedChildren.tasksNotOrderedBefore);
 					unordered.retainAll(unorderedChildren.tasksNotOrderedAfter);
 					myResult.parallelTasksResult.setParallel(otherScheduleSite.possibleTargetTasks(), unordered);					
 				}
@@ -84,9 +88,9 @@ public class AnalysisTask<T, SS> {
 		return myResult;
 	}
 	
-	private UnorderedTasksSets<T, SS> foldParameters(ScheduleSite<T, SS> scheduleSite, FormalParameterResult<T, SS> aggregate, TaskVariable<?> taskVariable) {
+	private UnorderedTasksSets<Instance, TV, SS> foldParameters(ScheduleSite<Instance, TV, SS> scheduleSite, FormalParameterResult<Instance, TV, SS> aggregate, TaskVariable<?> taskVariable) {
 		//pessimistically assume that the parameter is parallel to all of the schedule site's children
-		UnorderedTasksSets<T, SS> unorderedChildren = new UnorderedTasksSets<T, SS>(new HashSet<AnalysisTask<T, SS>>(scheduleSite.children()), new HashSet<AnalysisTask<T, SS>>(scheduleSite.children()));
+		UnorderedTasksSets<Instance, TV, SS> unorderedChildren = new UnorderedTasksSets<Instance, TV, SS>(new HashSet<AnalysisTask<Instance, TV, SS>>(scheduleSite.children()), new HashSet<AnalysisTask<Instance, TV, SS>>(scheduleSite.children()));
 		for(int i = 0; i < scheduleSite.numActualParameters(); i++) {
 			TaskVariable<?> actual = scheduleSite.actualParameter(i);
 			
@@ -105,16 +109,16 @@ public class AnalysisTask<T, SS> {
 		return unorderedChildren;
 	}
 	
-	public Set<AnalysisTask<T, SS>> children() {
+	public Set<AnalysisTask<Instance, TV, SS>> children() {
 		if(childrenCache != null)
 			return childrenCache;
 		
-		childrenCache = new HashSet<AnalysisTask<T, SS>>();
+		childrenCache = new HashSet<AnalysisTask<Instance, TV, SS>>();
 		
-		for(ScheduleSite<T, SS> site : scheduleSites.values()) {
-			Set<AnalysisTask<T, SS>> possibleTasks = site.possibleTargetTasks();
+		for(ScheduleSite<Instance, TV, SS> site : scheduleSites.values()) {
+			Set<AnalysisTask<Instance, TV, SS>> possibleTasks = site.possibleTargetTasks();
 			childrenCache.addAll(possibleTasks);
-			for(AnalysisTask<T, SS> possibleTask : possibleTasks) {
+			for(AnalysisTask<Instance, TV, SS> possibleTask : possibleTasks) {
 				childrenCache.addAll(possibleTask.children());
 			}
 		}
@@ -122,18 +126,18 @@ public class AnalysisTask<T, SS> {
 		return childrenCache;
 	}
 	
-	public Collection<ScheduleSite<T,SS>> scheduleSites() {
+	public Collection<ScheduleSite<Instance, TV, SS>> scheduleSites() {
 		return scheduleSites.values();
 	}
 	
-	public ScheduleSite<T, SS> scheduleSite(SS variableID) {
+	public ScheduleSite<Instance, TV, SS> scheduleSite(SS variableID) {
 		return scheduleSites.get(variableID);
 	}
 	
 	//isMultiple: can this schedule site be executed multiple times? (in a loop/through recursion)
-	public ScheduleSite<T, SS> addScheduleSite(SS variableID, ScheduleSite.Multiplicity multiplicity) {
+	public ScheduleSite<Instance, TV, SS> addScheduleSite(TV variableID, ScheduleSite.Multiplicity multiplicity) {
 		assert ! scheduleSites.containsKey(variableID);
-		ScheduleSite<T, SS> site = new ScheduleSite<T, SS>(variableID, multiplicity);
+		ScheduleSite<Instance, TV, SS> site = new ScheduleSite<Instance, TV, SS>(variableID, multiplicity);
 		scheduleSites.put(variableID, site);
 		return site;
 	}

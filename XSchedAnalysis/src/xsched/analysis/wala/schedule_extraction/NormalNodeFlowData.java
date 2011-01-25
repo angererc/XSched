@@ -11,9 +11,13 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import xsched.analysis.core.TaskSchedule;
+import xsched.analysis.wala.WalaScheduleSitesInformation;
 import xsched.analysis.wala.util.SimpleGraph;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
+import com.ibm.wala.ssa.SSAInvokeInstruction;
+import com.ibm.wala.ssa.SSANewInstruction;
+import com.ibm.wala.util.collections.Pair;
 import com.ibm.wala.util.graph.traverse.FloydWarshall;
 
 public class NormalNodeFlowData extends FlowData {
@@ -164,29 +168,32 @@ public class NormalNodeFlowData extends FlowData {
 		}
 	}
 	
+	//a map from ssa variable to node in the schedule graph
+	private HashMap<Integer, Set<Integer>> computeOccurrences() {
+		HashMap<Integer, Set<Integer>> occurrences = new HashMap<Integer, Set<Integer>>();
+		Iterator<TaskVariable> taskVariables = schedule.iterator();
+		while(taskVariables.hasNext()) {
+			TaskVariable task = taskVariables.next();
+			Set<Integer> occs = occurrences.get(task.ssaVariable);
+			if(occs == null) {
+				occs = new HashSet<Integer>();
+				occurrences.put(task.ssaVariable, occs);
+			}
+			occs.add(schedule.getNumber(task));
+		}
+		return occurrences;
+	}
+	
 	/**
 	 * compress the node flow data into a task schedule where each task ssa variable is related with each other
 	 * @return
 	 */
-	public TaskSchedule<Integer> makeTaskSchedule() {
-		TaskSchedule<Integer> result = new TaskSchedule<Integer>() {
-			
-			//a map from ssa Variable to node numbers in the schedule
-			private HashMap<Integer, Set<Integer>> occurrences;
-			
-			private void computeOccurrences() {
-				occurrences = new HashMap<Integer, Set<Integer>>();
-				Iterator<TaskVariable> taskVariables = schedule.iterator();
-				while(taskVariables.hasNext()) {
-					TaskVariable task = taskVariables.next();
-					Set<Integer> occs = occurrences.get(task.ssaVariable);
-					if(occs == null) {
-						occs = new HashSet<Integer>();
-						occurrences.put(task.ssaVariable, occs);
-					}
-					occs.add(schedule.getNumber(task));
-				}
-			}
+	public TaskSchedule<Integer, Pair<SSANewInstruction, SSAInvokeInstruction>> makeTaskSchedule(WalaScheduleSitesInformation info) {
+		
+		final HashMap<Integer, Set<Integer>> occurrences = computeOccurrences();
+		
+		
+		TaskSchedule<Integer, Pair<SSANewInstruction, SSAInvokeInstruction>> result = new TaskSchedule<Integer, Pair<SSANewInstruction, SSAInvokeInstruction>>(info, occurrences.keySet()) {
 			
 			private boolean isOutsideLoop(int occurrence) {
 				TaskVariable variable = schedule.getNode(occurrence);
@@ -276,10 +283,7 @@ public class NormalNodeFlowData extends FlowData {
 			protected void computeFullSchedule() {
 				//for transitive information
 				int[][] paths = FloydWarshall.shortestPathLengths(schedule);
-				
-				//
-				computeOccurrences();
-				
+								
 				//force the occurrences (ssa variables) into a nice array so that we can iterate in a diagonal matrix style
 				ArrayList<Integer> tasks = new ArrayList<Integer>(occurrences.keySet());
 				int numTasks = tasks.size();
