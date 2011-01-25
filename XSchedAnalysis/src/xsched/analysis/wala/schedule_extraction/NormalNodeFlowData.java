@@ -1,13 +1,16 @@
 package xsched.analysis.wala.schedule_extraction;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
+
+import xsched.analysis.core.TaskSchedule;
+import xsched.analysis.wala.util.SimpleGraph;
 
 import com.ibm.wala.ssa.ISSABasicBlock;
 
@@ -19,10 +22,9 @@ public class NormalNodeFlowData extends FlowData {
 	//in node analysis operations we call duplicate which instantiates those
 	//in the initial setup code we call initEmpty()	
 	protected Set<LoopContext> loopContexts;
-	protected Set<TaskVariable> scheduledTasks;
-	protected Set<HappensBeforeEdge> happensBeforeEdges;
 	//a phi node in a certain context can point to multiple task variables from different contexts
 	protected HashMap<PhiVariable, Set<TaskVariable>> phiMappings;
+	protected SimpleGraph<TaskVariable> schedule; 
 	
 	protected NormalNodeVisitor visitor;
 	
@@ -45,10 +47,13 @@ public class NormalNodeFlowData extends FlowData {
 	}
 	
 	boolean isTask(int ssaVariable) {
-		for(TaskVariable task : scheduledTasks) {
-			if(task.ssaVariable == ssaVariable)
+		Iterator<TaskVariable> nodes = this.schedule.iterator();
+		while(nodes.hasNext()) {
+			TaskVariable node = nodes.next();
+			if(node.ssaVariable == ssaVariable)
 				return true;
 		}
+		
 		return false;
 	}
 	
@@ -59,8 +64,7 @@ public class NormalNodeFlowData extends FlowData {
 	void initEmpty() {
 		assert this.isInitial();
 		this.loopContexts = new HashSet<LoopContext>();
-		this.scheduledTasks = new HashSet<TaskVariable>();
-		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>();	
+		this.schedule = new SimpleGraph<TaskVariable>();	
 	}
 	
 	NormalNodeFlowData duplicate(ISSABasicBlock forBasicBlock) {
@@ -80,7 +84,7 @@ public class NormalNodeFlowData extends FlowData {
 		
 		//ssaVariable is not a phi node, then it must be a scheduled task
 		TaskVariable scheduledTask = new TaskVariable(ctxt, ssaVariable);
-		if(scheduledTasks.contains(scheduledTask)) {
+		if(schedule.containsNode(scheduledTask)) {
 			return Collections.singleton(scheduledTask);
 		} else {
 			return Collections.emptySet();
@@ -96,30 +100,23 @@ public class NormalNodeFlowData extends FlowData {
 	void addTaskScheduleSite(TaskVariable variable) {
 		if(DEBUG)
 			System.out.println("NormalNodeFlowData: node of block " + basicBlock.getGraphNodeId() + " adding task variable: " + variable);
-		scheduledTasks.add(variable);
+		schedule.addNode(variable);
 	}
 	
-	void addHappensBeforeEdge(HappensBeforeEdge edge) {
+	void addHappensBeforeEdge(TaskVariable src, TaskVariable trgt) {
 		if(DEBUG)
-			System.out.println("NormalNodeFlowData: node of block " + basicBlock.getGraphNodeId() + " adding hb edge: " + edge);
-		this.happensBeforeEdges.add(edge);
+			System.out.println("NormalNodeFlowData: node of block " + basicBlock.getGraphNodeId() + " adding hb edge: " + src + "->" + trgt);		
+		this.schedule.addEdge(src, trgt);
 	}
 	
 	boolean isInitial() {
-		assert  (loopContexts != null && happensBeforeEdges != null && scheduledTasks != null) 
-			|| (loopContexts == null && phiMappings == null && happensBeforeEdges == null && scheduledTasks == null);
+		assert  (loopContexts != null && schedule != null) 
+			|| (loopContexts == null && phiMappings == null && schedule == null);
 		return loopContexts == null;
 	}
 	
 	void killHappensBeforeRelationshipsContaining(TaskVariable task) {
-		ArrayList<HappensBeforeEdge> toDelete = new ArrayList<HappensBeforeEdge>();
-		
-		for(HappensBeforeEdge edge : happensBeforeEdges) {
-			if(edge.lhs.equals(task) || edge.rhs.equals(task))
-				toDelete.add(edge);
-		}
-		
-		happensBeforeEdges.removeAll(toDelete);
+		this.schedule.removeAllIncidentEdges(task);		
 	}
 
 	@Override
@@ -128,9 +125,8 @@ public class NormalNodeFlowData extends FlowData {
 		NormalNodeFlowData other = (NormalNodeFlowData)otherData;
 		assert ! other.isInitial();
 				
-		return ! isInitial() && other.loopContexts.equals(loopContexts) 
-			&& other.scheduledTasks.equals(scheduledTasks) 
-			&& other.happensBeforeEdges.equals(happensBeforeEdges) && other.phiMappings.equals(phiMappings);
+		return ! isInitial() && other.loopContexts.equals(loopContexts) 			
+			&& other.schedule.stateEquals(schedule) && other.phiMappings.equals(phiMappings);
 	}
 	
 	protected void addAllPhiVariables(PhiVariable phi, Collection<TaskVariable> toAdd) {
@@ -155,8 +151,7 @@ public class NormalNodeFlowData extends FlowData {
 		//assert this.isInitial() || other.basicBlock.equals(basicBlock);
 		
 		this.loopContexts = new HashSet<LoopContext>(other.loopContexts);
-		this.scheduledTasks = new HashSet<TaskVariable>(other.scheduledTasks);
-		this.happensBeforeEdges = new HashSet<HappensBeforeEdge>(other.happensBeforeEdges);	
+		this.schedule = new SimpleGraph<TaskVariable>(other.schedule);	
 		
 		if (other.phiMappings != null) {
 			this.phiMappings = new HashMap<PhiVariable, Set<TaskVariable>>();
@@ -166,6 +161,14 @@ public class NormalNodeFlowData extends FlowData {
 		}
 	}
 	
+	public TaskSchedule<Integer> makeTaskSchedule() {
+		TaskSchedule<Integer> result = new TaskSchedule<Integer>();
+		
+		
+		
+		return result;
+	}
+	
 	@Override
 	public String toString() {
 		return "Node Flow Data " + basicBlock.getGraphNodeId();
@@ -173,8 +176,9 @@ public class NormalNodeFlowData extends FlowData {
 	
 	public void print(PrintStream out) {
 		out.println("Loop Contexts: " + loopContexts);
-		out.println("Scheduled Tasks: " + scheduledTasks);
+		out.println("Scheduled Tasks: " + this.schedule.nodesToString());
 		out.println("Phi Mappings: " + phiMappings);
-		out.println("HB Edges: " + happensBeforeEdges);
+		out.println("HB Edges: " + this.schedule.edgesToString());
 	}
+	
 }

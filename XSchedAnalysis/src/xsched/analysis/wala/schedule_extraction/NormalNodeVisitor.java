@@ -35,7 +35,7 @@ class NormalNodeVisitor extends Visitor {
 				Set<TaskVariable> rhsVariables = data.taskVariableForSSAVariable(loopContext, rhs);
 				for(TaskVariable lhsVariable : lhsVariables) {
 					for(TaskVariable rhsVariable : rhsVariables) {
-						data.addHappensBeforeEdge(new HappensBeforeEdge(lhsVariable, rhsVariable));
+						data.addHappensBeforeEdge(lhsVariable, rhsVariable);
 					}
 				}				
 			}			

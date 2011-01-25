@@ -2,6 +2,7 @@ package xsched.analysis.wala.schedule_extraction;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -40,10 +41,10 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		
 		//now we unioned all edges; check that for all edges if an incoming data "knows" about lhs and rhs, it also knows the edge;
 		//otherwise they disagree and we can't keep the edge
-		HashSet<HappensBeforeEdge> hbedges = new HashSet<HappensBeforeEdge>(this.happensBeforeEdges);
+		
 		for(int i = 0; i < this.incoming.length; i++) {
 			EdgeFlowData edge = this.incoming[i];			
-			this.filterUnreliableEdges(edge, hbedges);			
+			this.filterUnreliableEdges(edge);			
 		}
 	}
 	
@@ -92,16 +93,26 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		return super.stateEquals(otherData);
 	}
 	
-	protected void filterUnreliableEdges(EdgeFlowData edge, HashSet<HappensBeforeEdge> hbedges) { //iterate a copy of my hb edges and check whether the incoming data agrees
+	protected void filterUnreliableEdges(EdgeFlowData edge) { //iterate a copy of my hb edges and check whether the incoming data agrees
 		if(!edge.isInitial()) {
 			NormalNodeFlowData other = edge.getData();
-			//TODO shortcut: if other.hbedges.size()==0 return
-			for(HappensBeforeEdge hbEdge : hbedges) {
-				if(other.scheduledTasks.contains(hbEdge.lhs) && other.scheduledTasks.contains(hbEdge.rhs)) {
-					if(! other.happensBeforeEdges.contains(hbEdge))
-						this.happensBeforeEdges.remove(hbEdge);
-				}				
-			}
+			
+			Iterator<TaskVariable> lhsNodes = this.schedule.iterator();
+			while(lhsNodes.hasNext()) {
+				TaskVariable lhs = lhsNodes.next();
+				
+				Iterator<TaskVariable> rhsNodes = this.schedule.getSuccNodes(lhs);
+				while(rhsNodes.hasNext()) {
+					TaskVariable rhs = rhsNodes.next();
+					
+					//check for each edge whether the other guy agrees on a) the existence of the task variables and b) on the edge lhs->rhs
+					if(other.schedule.containsNode(lhs) && other.schedule.containsNode(rhs)) {
+						if(! other.schedule.hasEdge(lhs, rhs))
+							//not sure if this throws an concurrent modification exception
+							this.schedule.removeEdge(lhs, rhs);
+					}
+				}
+			}			
 		}
 	}
 	
@@ -113,8 +124,7 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 			assert ! other.isInitial();		
 			
 			this.loopContexts.addAll(other.loopContexts);
-			this.scheduledTasks.addAll(other.scheduledTasks);
-			this.happensBeforeEdges.addAll(other.happensBeforeEdges);
+			this.schedule.addAllNodesAndEdges(other.schedule);
 			
 			if (other.phiMappings != null) {
 				for(Entry<PhiVariable, Set<TaskVariable>> entry : other.phiMappings.entrySet()) {
