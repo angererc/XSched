@@ -162,11 +162,51 @@ public class ScheduleExtractionTest {
 	}
 	
 	void checkSchedule_A2(TaskSchedule<Integer, WalaTaskScheduleManager> schedule) {
+		this.checkNumberOfNodesAndIterator(schedule, 1, 3);
+		
+		assertEquals(1, schedule.actualsForTaskVariable(1).length);
+		assertEquals(1, schedule.actualsForTaskVariable(2).length);
+		assertEquals(1, schedule.actualsForTaskVariable(3).length);
+		
+		//now
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(0, 0));
+		assertEquals(TaskSchedule.Relation.happensBefore, schedule.relationForTaskVariables(0, 1));
+		assertEquals(TaskSchedule.Relation.happensBefore, schedule.relationForTaskVariables(0, 2));
+		assertEquals(TaskSchedule.Relation.happensBefore, schedule.relationForTaskVariables(0, 3));
+		
+		
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(1, 1));
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(2, 2));
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(3, 3));
+		
+		//TODO here, we should be able to deduce exclusive for 1 and 2!
+		assertEquals(TaskSchedule.Relation.happensBefore, schedule.relationForTaskVariables(1, 3));
+		assertEquals(TaskSchedule.Relation.happensBefore, schedule.relationForTaskVariables(2, 3));
+		assertEquals(TaskSchedule.Relation.unordered, schedule.relationForTaskVariables(1, 2));
+		
 	}
 	
 	void checkSchedule_A3(TaskSchedule<Integer, WalaTaskScheduleManager> schedule) {
+		this.checkNumberOfNodesAndIterator(schedule, 1, 2);
+		
+		assertEquals(1, schedule.actualsForTaskVariable(1).length);
+		assertEquals(1, schedule.actualsForTaskVariable(2).length);
+		
+		//now
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(0, 0));
+		assertEquals(TaskSchedule.Relation.happensAfter, schedule.relationForTaskVariables(1, 0));
+		assertEquals(TaskSchedule.Relation.happensAfter, schedule.relationForTaskVariables(2, 0));
+		
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(1, 1));
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(2, 2));
+		
+		assertEquals(TaskSchedule.Relation.unordered, schedule.relationForTaskVariables(1, 2));
 	}
 	
 	void checkSchedule_B(TaskSchedule<Integer, WalaTaskScheduleManager> schedule) {
+		this.checkNumberOfNodesAndIterator(schedule, 1, 0);
+	
+		//now
+		assertEquals(TaskSchedule.Relation.singleton, schedule.relationForTaskVariables(0, 0));
 	}
 }
