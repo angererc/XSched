@@ -97,19 +97,19 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 		if(!edge.isInitial()) {
 			NormalNodeFlowData other = edge.getData();
 			
-			Iterator<TaskVariable> lhsNodes = this.schedule.iterator();
+			Iterator<TaskVariable> lhsNodes = this.partialSchedule.iterator();
 			while(lhsNodes.hasNext()) {
 				TaskVariable lhs = lhsNodes.next();
 				
-				Iterator<TaskVariable> rhsNodes = this.schedule.getSuccNodes(lhs);
+				Iterator<TaskVariable> rhsNodes = this.partialSchedule.getSuccNodes(lhs);
 				while(rhsNodes.hasNext()) {
 					TaskVariable rhs = rhsNodes.next();
 					
 					//check for each edge whether the other guy agrees on a) the existence of the task variables and b) on the edge lhs->rhs
-					if(other.schedule.containsNode(lhs) && other.schedule.containsNode(rhs)) {
-						if(! other.schedule.hasEdge(lhs, rhs))
+					if(other.partialSchedule.containsNode(lhs) && other.partialSchedule.containsNode(rhs)) {
+						if(! other.partialSchedule.hasEdge(lhs, rhs))
 							//not sure if this throws an concurrent modification exception
-							this.schedule.removeEdge(lhs, rhs);
+							this.partialSchedule.removeEdge(lhs, rhs);
 					}
 				}
 			}			
@@ -124,7 +124,7 @@ public final class JoinNodeFlowData extends NormalNodeFlowData {
 			assert ! other.isInitial();		
 			
 			this.loopContexts.addAll(other.loopContexts);
-			this.schedule.addAllNodesAndEdges(other.schedule);
+			this.partialSchedule.addAllNodesAndEdges(other.partialSchedule);
 			
 			if (other.phiMappings != null) {
 				for(Entry<PhiVariable, Set<TaskVariable>> entry : other.phiMappings.entrySet()) {

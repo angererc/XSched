@@ -7,6 +7,8 @@ import java.util.Iterator;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 
+import xsched.analysis.wala.WalaConstants;
+
 import com.ibm.wala.cfg.ControlFlowGraph;
 import com.ibm.wala.dataflow.graph.BasicFramework;
 import com.ibm.wala.dataflow.graph.DataflowSolver;
@@ -16,6 +18,7 @@ import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.ISSABasicBlock;
 import com.ibm.wala.ssa.SSAInstruction;
 import com.ibm.wala.ssa.SSACFG.BasicBlock;
+import com.ibm.wala.types.TypeReference;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.debug.Assertions;
 import com.ibm.wala.util.graph.Acyclic;
@@ -26,7 +29,7 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 	public static NormalNodeFlowData solve(IR ir) {
 		try {			
 			PrunedCFG<SSAInstruction, ISSABasicBlock> prunedCFG = AutomaticExceptionPrunedCFG.make(ir.getControlFlowGraph());
-			TaskScheduleSolver solver = new TaskScheduleSolver(prunedCFG);
+			TaskScheduleSolver solver = new TaskScheduleSolver(ir, prunedCFG);
 			
 			solver.solve((IProgressMonitor)null);
 			BasicBlock exit = ir.getControlFlowGraph().exit();
@@ -43,12 +46,14 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 	/**
 	 * 
 	 */
+	final IR ir;
 	final ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg;
 	final IBinaryNaturalRelation backEdges;
-	private FlowData entry;
+	private NormalNodeFlowData entry;
 	
-	public TaskScheduleSolver(ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg) {
+	public TaskScheduleSolver(IR ir, ControlFlowGraph<SSAInstruction, ISSABasicBlock> cfg) {
 		super(new BasicFramework<ISSABasicBlock, FlowData>(cfg, new TransferFunctionProvider()));
+		this.ir = ir;
 		this.cfg = cfg;
 		this.backEdges = Acyclic.computeBackEdges(cfg, cfg.entry());
 	}
@@ -105,6 +110,16 @@ public class TaskScheduleSolver extends DataflowSolver<ISSABasicBlock, FlowData>
 
 	@Override
 	protected void initializeVariables() {
-		super.initializeVariables();	      
+		super.initializeVariables();
+		
+		//make sure we know the parameters
+		for(int i = 0; i < ir.getNumberOfParameters(); i++) {
+			TypeReference paramType = ir.getParameterType(i);
+			if(WalaConstants.isTaskType(paramType)) {
+				int ssaVariable = ir.getParameter(i);
+				entry.addFormalTaskParameter(ssaVariable);
+			}
+		}
+		
 	}
 }

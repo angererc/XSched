@@ -2,14 +2,12 @@ package xsched.analysis.core;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Set;
+import java.util.ConcurrentModificationException;
+import java.util.Iterator;
+import java.util.List;
 
 //the abstract schedule of a task
-public abstract class TaskSchedule<TV, SS> {
-	
-	public interface SiteMapper<T, SS> {
-		public SS scheduleSiteForTask(T t);
-	}
+public final class TaskSchedule<TV, SM extends TaskScheduleManager<TV>> {
 	
 	public enum Relation {
 		singleton,
@@ -30,16 +28,26 @@ public abstract class TaskSchedule<TV, SS> {
 		}
 	}
 	
+	//an ordering of all nodes; a "task variable" is the integer index of this array. the first n entries are all parameters coming into this task, the others
+	//are local schedule sites
 	private final ArrayList<TV> nodes;
+	//the last parameter task variable is numTaskParameters - 1
+	private final int numFormalTaskParameters;
 	private final Relation[][] relations;
-	private final SiteMapper<TV, SS> siteMapper;
 	
-	protected TaskSchedule(SiteMapper<TV, SS> siteMapper, Set<TV> nodeSet) {
-		this.siteMapper = siteMapper;
-		this.nodes = new ArrayList<TV>(nodeSet);
-		int dimensions = nodes.size();
-		relations = new Relation[dimensions][dimensions];
-		this.computeFullSchedule();
+	//the 'user data' that can be piggy backed to store additional information from a TV object to other data structures, such as the SSA instructions of where a task comes from etc
+	//it also has some callbacks for the task schedule to get some information about parameters and such 
+	private final SM scheduleManager;
+	
+	public TaskSchedule(SM scheduleManager) {
+		this.scheduleManager = scheduleManager;
+		
+		nodes = new ArrayList<TV>(scheduleManager.formalTaskParameterNodes());
+		numFormalTaskParameters = nodes.size();
+		nodes.addAll(scheduleManager.scheduleSiteNodes());			
+		relations = new Relation[nodes.size()][nodes.size()];
+		
+		scheduleManager.initializeFullSchedule(this);
 		assert matrixIsFull();
 	}
 	
@@ -52,34 +60,140 @@ public abstract class TaskSchedule<TV, SS> {
 		}
 		return true;
 	}
-
-	protected abstract void computeFullSchedule();
 	
-	public int nodeNumber(TV node) {
-		return nodes.indexOf(node);
+	public int numberOfAllTaskVariables() {
+		return nodes.size();	
 	}
 	
-	protected void addRelation(TV lhs, Relation rel, TV rhs) {
-		int lhsIndex = nodeNumber(lhs);
-		int rhsIndex = nodeNumber(rhs);
+	public int numberOfFormalParameterTaskVariables() {
+		return numFormalTaskParameters;
+	}
+	
+	public int numberOfNonParameterTaskVariables() {
+		return numberOfAllTaskVariables() - numberOfFormalParameterTaskVariables();
+	}
+	
+	public boolean isFormalParameterTaskVariable(int var) {
+		return var < numFormalTaskParameters;
+	}
+	
+	public int taskVariableForNode(TV node) {
+		return nodes.indexOf(node);	
+	}
+	
+	public TV nodeForTaskVariable(int taskVariable) {
+		return nodes.get(taskVariable);	
+	}
+	
+	public Iterator<Integer> iterateNonParameterTaskVariables() {
+		final int len = nodes.size();
+		return new Iterator<Integer>() {
+			private int nextIndex = numFormalTaskParameters;
+			@Override
+			public boolean hasNext() {
+				return nextIndex < len;
+			}
+
+			@Override
+			public Integer next() {
+				int res = nextIndex++;
+				return res;
+			}
+
+			@Override
+			public void remove() {
+				throw new ConcurrentModificationException();
+			}
+			
+		};
+	}
+	
+	public Iterator<Integer> iterateFormalParameterTaskVariables() {
+		
+		return new Iterator<Integer>() {
+			private int nextIndex = 0;
+			@Override
+			public boolean hasNext() {
+				return nextIndex < numFormalTaskParameters;
+			}
+
+			@Override
+			public Integer next() {
+				int res = nextIndex++;
+				return res;
+			}
+
+			@Override
+			public void remove() {
+				throw new ConcurrentModificationException();
+			}
+			
+		};
+	}
+	
+	public Iterator<Integer> iterateAllTaskVariables() {
+		final int len = nodes.size();
+		return new Iterator<Integer>() {
+			private int nextIndex = 0;
+			@Override
+			public boolean hasNext() {
+				return nextIndex < len;
+			}
+
+			@Override
+			public Integer next() {
+				int res = nextIndex++;
+				return res;
+			}
+
+			@Override
+			public void remove() {
+				throw new ConcurrentModificationException();
+			}
+			
+		};
+	}
+
+	public int[] actualsForTaskVariable(int taskVariable) {
+		assert ! isFormalParameterTaskVariable(taskVariable);
+		List<TV> params = scheduleManager.actualParametersForNode(nodeForTaskVariable(taskVariable));
+		int[] result = new int[params.size()];
+		for(int i = 0; i < result.length; i++) {
+			result[i] = taskVariableForNode(params.get(i));
+		}
+		return result;
+	}
+		
+	//only use this in the task schedule manager initializeTaskSchedule() method!
+	public void addRelationForTaskVariables(int lhsIndex, Relation rel, int rhsIndex) {
 		assert relations[lhsIndex][rhsIndex] == null;
 		relations[lhsIndex][rhsIndex] = rel;
 		
-		if(lhs.equals(rhs))
+		if(lhsIndex == rhsIndex)
 			return;
 		
 		assert relations[rhsIndex][lhsIndex] == null;
 		relations[rhsIndex][lhsIndex] = rel.inverse();	
 	}
 	
-	public SS scheduleSite(TV node) {
-		return siteMapper.scheduleSiteForTask(node);
+	public void addRelationForNodes(TV lhs, Relation rel, TV rhs) {
+		int lhsIndex = taskVariableForNode(lhs);
+		int rhsIndex = taskVariableForNode(rhs);
+		addRelationForTaskVariables(lhsIndex, rel, rhsIndex);	
 	}
 	
-	public Relation relation(TV lhs, TV rhs) {
-		int lhsIndex = nodeNumber(lhs);
-		int rhsIndex = nodeNumber(rhs);
+	public SM taskScheduleManager() {
+		return scheduleManager;
+	}
+	
+	public Relation relationForNodes(TV lhs, TV rhs) {
+		int lhsIndex = taskVariableForNode(lhs);
+		int rhsIndex = taskVariableForNode(rhs);
 		return relations[lhsIndex][rhsIndex];		
+	}
+	
+	public Relation relationForTaskVariables(int lhs, int rhs) {	
+		return relations[lhs][rhs];		
 	}
 	
 	public void print(PrintStream out) {

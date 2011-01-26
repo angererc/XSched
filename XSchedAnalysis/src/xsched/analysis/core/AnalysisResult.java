@@ -1,11 +1,19 @@
 package xsched.analysis.core;
 
-public class AnalysisResult<Instance, TV, SS> {
+/**
+ * AnalysisResult is just a tuple to return the results for parallel tasks together with the results for formal parameters
+ * @author angererc
+ *
+ * @param <Instance>
+ * @param <TV>
+ * @param <SM>
+ */
+public class AnalysisResult<Instance, TV, SM extends TaskScheduleManager<TV>> {
 
-	public final ParallelTasksResult<Instance, TV, SS> parallelTasksResult;
-	public final FormalParameterResult<Instance, TV, SS> formalParameterResult;
+	public final ParallelTasksResult<Instance, TV, SM> parallelTasksResult;
+	public final FormalParameterResult<Instance, TV, SM> formalParameterResult;
 	
-	public AnalysisResult(ParallelTasksResult<Instance, TV, SS> a, FormalParameterResult<Instance, TV, SS> b) {
+	public AnalysisResult(ParallelTasksResult<Instance, TV, SM> a, FormalParameterResult<Instance, TV, SM> b) {
 		this.parallelTasksResult = a;
 		this.formalParameterResult = b;
 	}

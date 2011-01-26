@@ -1,34 +1,35 @@
 package xsched.analysis.wala;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
-import xsched.analysis.core.AnalysisSchedule;
+import xsched.analysis.core.AnalysisResult;
+import xsched.analysis.core.AnalysisSession;
+import xsched.analysis.core.AnalysisTask;
+import xsched.analysis.core.AnalysisTaskResolver;
+import xsched.analysis.core.ParallelTasksResult;
 import xsched.analysis.core.TaskSchedule;
 import xsched.analysis.wala.schedule_extraction.NormalNodeFlowData;
 import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
 
+import com.ibm.wala.classLoader.IClass;
+import com.ibm.wala.classLoader.IMethod;
 import com.ibm.wala.ipa.callgraph.AnalysisCache;
 import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
-import com.ibm.wala.ipa.callgraph.ContextSelector;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.AllApplicationEntrypoints;
-import com.ibm.wala.ipa.callgraph.impl.DefaultContextSelector;
-import com.ibm.wala.ipa.callgraph.impl.Util;
-import com.ibm.wala.ipa.callgraph.propagation.PropagationCallGraphBuilder;
-import com.ibm.wala.ipa.callgraph.propagation.cfa.nCFAContextSelector;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
-import com.ibm.wala.shrikeBT.analysis.Analyzer.FailureException;
-import com.ibm.wala.shrikeCT.InvalidClassFileException;
 import com.ibm.wala.ssa.IR;
 import com.ibm.wala.ssa.SSAInvokeInstruction;
-import com.ibm.wala.ssa.SSANewInstruction;
-import com.ibm.wala.util.collections.Pair;
+import com.ibm.wala.types.ClassLoaderReference;
 import com.ibm.wala.util.config.AnalysisScopeReader;
 import com.ibm.wala.util.ref.ReferenceCleanser;
 
@@ -38,145 +39,142 @@ public class WalaScheduleAnalysisDriver {
 
 	private static final ClassLoader MY_CLASSLOADER = WalaScheduleAnalysisDriver.class.getClassLoader();
 	
+	private final AnalysisProperties properties;
 	
-
-	public void runScheduleAnalysis(AnalysisProperties properties) throws IOException, ClassHierarchyException, IllegalArgumentException, CallGraphBuilderCancelException, IllegalStateException, InvalidClassFileException, FailureException {
-
-		AnalysisCache cache = new AnalysisCache();
-		AnalysisScope scope = AnalysisScopeReader.readJavaScope(properties.standardScopeFile, properties.openExclusionsFile(), MY_CLASSLOADER);
+	private AnalysisCache cache;
+	private AnalysisScope scope;
+	private ClassHierarchy classHierarchy;
+	private Iterable<Entrypoint> entrypoints;
+	private AnalysisOptions options;
+	private CallGraph cg;
+	private HashSet<IMethod> taskMethods;
+	//all main tasks; those are included in the taskMethods, too!
+	private HashSet<IMethod> mainTaskMethods;
+	private AnalysisSession<CGNode, Integer, WalaTaskScheduleManager> analysis;
+	
+	public WalaScheduleAnalysisDriver(AnalysisProperties properties) {
+		this.properties = properties;	
+	}
+	
+	public Set<IMethod> taskMethods() {
+		return taskMethods;
+	}
+	
+	public Set<IMethod> mainTaskMethods() {
+		return mainTaskMethods;
+	}
+	
+	public void _1_setUp() throws IOException, ClassHierarchyException {
+		assert cache == null;
+		cache = new AnalysisCache();
+		ReferenceCleanser.registerCache(cache);
+		//
+		scope = AnalysisScopeReader.readJavaScope(properties.standardScopeFile, properties.openExclusionsFile(), MY_CLASSLOADER);
 		for(String s : properties.applicationFiles) {
 			AnalysisScope appScope = AnalysisScopeReader.makeJavaBinaryAnalysisScope(s, properties.openExclusionsFile());
 			scope.addToScope(appScope);
 		}
-		
-		ClassHierarchy classHierarchy = ClassHierarchy.make(scope);
-
+		//
+		classHierarchy = ClassHierarchy.make(scope);
 		ReferenceCleanser.registerClassHierarchy(classHierarchy);
-		ReferenceCleanser.registerCache(cache);
-
-		Iterable<Entrypoint> entrypoints = new AllApplicationEntrypoints(scope, classHierarchy);
-		AnalysisOptions options = new AnalysisOptions(scope, entrypoints);
-
-		ContextSelector def = new DefaultContextSelector(options);
-	    ContextSelector nCFAContextSelector = new nCFAContextSelector(1, def);
-	    
-	    TaskStringContextSelector customSelector = new TaskStringContextSelector(nCFAContextSelector);
-
-		PropagationCallGraphBuilder cgBuilder = Util.makeZeroCFABuilder(options, cache, classHierarchy, scope, customSelector, null);
+		//
+		this.entrypoints = new AllApplicationEntrypoints(scope, classHierarchy);
+		this.options = new AnalysisOptions(scope, entrypoints);
 		
-		//create call graph and perform points-to analysis
-		CallGraph cg = cgBuilder.makeCallGraph(options, null);
+		//
+		analysis = new AnalysisSession<CGNode, Integer, WalaTaskScheduleManager>();
+	}
 
-		//XXX note: in FakeRootClass, Wala imitates schedules of all task methods, it seems; that's of course bad and should be prevented or dealt with
-		HashSet<IR> taskMethods = new HashSet<IR>();
-		for(CGNode node : cg) {
-			if(WalaConstants.isTaskMethod(node.getMethod().getReference())) {
-				taskMethods.add(node.getIR());
+	public void _2_findTaskMethods() {
+		this.taskMethods = new HashSet<IMethod>();
+		this.mainTaskMethods = new HashSet<IMethod>();
+		Iterator<IClass> classes = classHierarchy.iterator();
+		while(classes.hasNext()) {
+			IClass clazz = classes.next();
+			//we don't have to look in the standard library because they don't have any task methods
+			if( ! clazz.getClassLoader().getReference().equals(ClassLoaderReference.Primordial)) {
+				for(IMethod method : clazz.getDeclaredMethods()) {
+					if(WalaConstants.isTaskMethod(method.getReference())) {
+						taskMethods.add(method);
+						if(WalaConstants.isMainTaskMethod(method.getReference())) {
+							mainTaskMethods.add(method);
+						}
+					}
+				}
 			}
 		}
-		
-		AnalysisSchedule<CGNode, Integer, Pair<SSANewInstruction, SSAInvokeInstruction>> analysis = new AnalysisSchedule<CGNode, Integer, Pair<SSANewInstruction, SSAInvokeInstruction>>();
-		
-		//have to add the fake entry method as a task 
-		for(IR ir : taskMethods) {
-			NormalNodeFlowData flowData = TaskScheduleSolver.solve(ir);
+	}
+	
+	public void _3_makeCallGraph() throws IllegalArgumentException, CallGraphBuilderCancelException {
+		cg = properties.createCallGraphBuilder(options, cache, scope, classHierarchy).makeCallGraph(options, null);
+	}
+	
+	public NormalNodeFlowData _n_computeNodeFlowData(IR ir) {
+		NormalNodeFlowData flowData = TaskScheduleSolver.solve(ir);
+		return flowData;
+	}
+	
+	//this method will call computeNodeFlowData() so you con't have to do that if you don't need the flow data
+	public TaskSchedule<Integer, WalaTaskScheduleManager> _n_computeTaskSchedule(IR ir) {
+		NormalNodeFlowData flowData = _n_computeNodeFlowData(ir);
+		WalaTaskScheduleManager manager = WalaTaskScheduleManager.make(cache.getSSACache(), ir, flowData);
+		TaskSchedule<Integer, WalaTaskScheduleManager> taskSchedule = flowData.makeTaskSchedule(manager);
+		return taskSchedule;
+	}
+	
+	public AnalysisTaskResolver<CGNode, Integer, WalaTaskScheduleManager> createResolver() {
+		return new AnalysisTaskResolver<CGNode, Integer,WalaTaskScheduleManager>() {
+			@Override
+			public Collection<CGNode> possibleTargetTasksForSite(
+					AnalysisTask<CGNode, Integer, WalaTaskScheduleManager> task,
+					Integer scheduleNode) {
+				WalaTaskScheduleManager manager = task.taskSchedule().taskScheduleManager();
+				SSAInvokeInstruction invoke = manager.scheduleSiteForNode(scheduleNode);
+				return cg.getNodes(invoke.getDeclaredTarget());					
+			}
+		};
+	}
+	
+	public IR irForMethod(IMethod method) {
+		return cache.getIR(method);
+	}
+	
+	public void _4_createAnalysisTasks() {
+		for(IMethod taskMethod : taskMethods) {
+			TaskSchedule<Integer, WalaTaskScheduleManager> taskSchedule = _n_computeTaskSchedule(irForMethod(taskMethod));
 			
-			WalaScheduleSitesInformation info = WalaScheduleSitesInformation.make(cache.getSSACache(), options.getSSAOptions(), ir.getMethod());
-			TaskSchedule<Integer, Pair<SSANewInstruction, SSAInvokeInstruction>> taskSchedule = flowData.makeTaskSchedule(info);
-					
-			System.out.println("=================================================================");
-			System.out.println("TaskScheduleSolver: solving method " + ir.getMethod());
-			
-			System.out.println("+++ Flow Data +++");
-			flowData.print(System.out);
-			System.out.println("+++ Schedule +++");
-			taskSchedule.print(System.out);
-			System.out.println("=================================================================");
-			
-			for(CGNode node : cg.getNodes(ir.getMethod().getReference())) {
+			for(CGNode node : cg.getNodes(taskMethod.getReference())) {
 				analysis.createTask(node, taskSchedule);
-			}
-			
+			}	
 		}
+	}
+	
+	public ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager> _5_runAnalysisOnMainTaskMethods() {
+		AnalysisTaskResolver<CGNode, Integer, WalaTaskScheduleManager> resolver = createResolver();
 		
-		//AnalysisSchedule<CGNode, WalaScheduleSite> analysis = ScheduleInference.populateScheduleAnalysis(cg, taskMethodNodes);		
+		ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager> result = new ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager>();
+		//now solve the analysis for each main task
+		for(IMethod mainTaskMethod : mainTaskMethods) {
+			for(CGNode node : cg.getNodes(mainTaskMethod.getReference())) {
+				AnalysisTask<CGNode, Integer, WalaTaskScheduleManager> task = analysis.taskForID(node);
+				
+				AnalysisResult<CGNode, Integer, WalaTaskScheduleManager> analysisResult = task.solveAsRoot(resolver);
+				assert analysisResult.formalParameterResult.numTaskParameters() == 0;
+				result.mergeWith(analysisResult.parallelTasksResult);
+			}
+		}
+		return result;
+	}
 		
-		//do it like this:
-		//use a TaskForrestCallGraph to cut the call graph into disjoint forests with the task methods at their root
-		//then use the loop finder to find loops in the call graph (which are then only loops within a task, excluding recursive task activation)
-		//then for each task collect all reachable nodes which are then all methods that this task may directly or indirectly execute
-		//and then i don't know...
+	public ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager> runScheduleAnalysis() throws IOException, ClassHierarchyException, IllegalArgumentException, CallGraphBuilderCancelException {
 		
-		/*
-		 * or think about that:
-		 * for an arrow, we require that at least one side is a local schedule statement (coupled)
-		 * the other side can be a) local, b) a task parameter c) a method parameter d) a phi node or e) something else
-		 * for e) we just ignore the hb edge
-		 * for a) we just record it (maybe upgrade a "multiple unordered" to a "multiple ordered"?)
-		 * for b) we record it, too
-		 * for c) we are inside a non-task method; try to find where the parameter comes from and if we find a good unambiguous one, use that
-		 * for d) dunno; check whether all elements of the phi node come from direct schedule statements; then we can record a hb between all of those
-		 * because they are exclusive; well, as long as we are not inside a loop....
-		 */
+		this._1_setUp();
+		this._2_findTaskMethods();
+		this._3_makeCallGraph();
+		this._4_createAnalysisTasks();
+		return this._5_runAnalysisOnMainTaskMethods();
 		
-		/*
-		 * the mathematical property is:
-		 * there is a hb edge if there is one in the code AND
-		 * it is guaranteed that hb is executed for ALL lhs and ALL rhs
-		 * 
-		 * maybe I should try to classify each schedule site in a separate pass?
-		 * a) singleton or multiple
-		 * b) ssite1 exclusive with ssite2
-		 * 
-		 *  then if lhs reaches hb and all ssites(lhs) are exclusive I can record an edge (if there's no loop)
-		 *  
-		 *  if lhs reaches hb and one ssite in lhs dominates hb and one (the rest) are dominated by hb then we are in a loop and the second things are multiple-ordered
-		 */
-		
-		/*
-		 * coupled: 
-		 * at least one side of the hb statement is a direct schedule statement and
-		 * hb post-dominates this schedule statement
-		 * => whatever comes in of the other side is guaranteed to be ordered with the schedule statement
-		 * 
-		 * now if other side is a direct schedule statement we can record the arrow (hb does not need to post-dominate the other statement)
-		 * 
-		 * maybe i should first classify all task variables as: direct schedule statement, loop variable, other
-		 * 
-		 *  and then "loop transitivity": an edge that connects a loop variable accross iterations
-		 *  
-		 *  a loop transitive hb statement is a statement where
-		 *  one side s1 is a direct statement, hb post-dominates s1, and the other side s2 is a phi that contains s1
-		 */
-		
-		/*
-		 * or maybe like this:
-		 * just record all schedule sites and all hb relationships and flag
-		 * schedule sites as "multiple" if inside a loop
-		 * then check for each edge to or from a schedule site whether the edge is guaranteed for all cases
-		 * cases: 
-		 * both sides are singleton: edge post=dominates at least one side (?)
-		 * etc... hm...
-		 * 
-		 * more like this:
-		 * record all schedule sites and mark them as multiple if in loop
-		 * iterate over all the edges. try to proof that an edge always orders all instances in both sides
-		 * if yes, upgrade nodes to "multiple ordered" and/or add edges between them
-		 * 
-		 * proof obligation: if program reaches lhs AND program reaches RHS then it must reach lhs->rhs
-		 * but that's not yet enough... 
-		 */
-		
-		/*
-		 * probably: instead of those simple stupid Multiplicity flags I should have a better data structure that can answer happens-before questions
-		 * this data structure should support nested loops etc as I described in the onward paper
-		 */
-		
-		//XXX missing:
-		//check what happens with schedule sites outside a task method
-		//check what arrows I can rely on
-		
-		//System.out.println(cg);
+		//XXX note: in FakeRootClass, Wala imitates schedules of all task methods, it seems; is that a problem?	
 	}
 
 }

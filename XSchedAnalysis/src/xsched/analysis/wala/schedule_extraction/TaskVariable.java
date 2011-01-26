@@ -9,6 +9,14 @@ public class TaskVariable {
 		this.loopContext = loopContext;
 		this.ssaVariable = ssaVariable;
 	}
+	
+	public int ssaVariable() {
+		return ssaVariable;
+	}
+	
+	public LoopContext loopContext() {
+		return loopContext;
+	}
 		
 	@Override
 	public int hashCode() {

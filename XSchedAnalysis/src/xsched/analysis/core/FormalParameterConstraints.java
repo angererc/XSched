@@ -1,87 +1,43 @@
 package xsched.analysis.core;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-
+/**
+ * constraints relating each pair of actual parameters.
+ * those constraints are assembled by the parent task before recursing analysis into the child
+ * @author angererc
+ *
+ */
 public class FormalParameterConstraints {
-
-	public enum Relation {
-		equal, happensBefore, happensAfter, ordered, unordered;
-	}
 	
-	private static class Entry {		
-		public final Relation relation;
-		public final int rhs;
-		
-		public Entry(Relation relation, int rhs) {
-			this.relation = relation;
-			this.rhs = rhs;
-		}
-	}
-	
-	private HashMap<Integer, ArrayList<Entry>> entries = new HashMap<Integer, ArrayList<Entry>>();
+	private final TaskSchedule.Relation[][] relations;
 	
 	public FormalParameterConstraints() {
-		
+		this.relations = new TaskSchedule.Relation[0][0];
 	}
 	
-	public FormalParameterConstraints(HashMap<Integer, TaskVariable<?>> actuals) {
-		int size = actuals.size();
+	public FormalParameterConstraints(TaskSchedule<?,?> taskSchedule, int scheduleSite) {
+		
+		int[] actuals = taskSchedule.actualsForTaskVariable(scheduleSite);
+		
+		int size = actuals.length;
+		this.relations = new TaskSchedule.Relation[size][size];
+		//compare parameter 0 with 1, 2, 3... then 1 with 2, 3, ... etc
 		for(int i = 0; i < size-1; i++) {
 			for(int j = i+1; j < size; j++) {
-				TaskVariable<?> lhs = actuals.get(i);
-				TaskVariable<?> rhs = actuals.get(j);
-				if(lhs.equals(rhs)) {
-					addEntry(i, Relation.equal, j);
-				} else if(lhs.doesHappenBefore(rhs)) {
-					addEntry(i, Relation.happensBefore, j);
-				} else if(lhs.doesHappenAfter(rhs)) {
-					addEntry(i, Relation.happensAfter, j);
-				} else if(lhs.isOrderedWith(rhs)) {
-					addEntry(i, Relation.ordered, j);
-				} else {
-					addEntry(i, Relation.unordered, j);
-				}
+				int lhs = actuals[i];
+				int rhs = actuals[j];
+				
+				relations[i][j] = taskSchedule.relationForTaskVariables(lhs, rhs);
+				relations[j][i] = taskSchedule.relationForTaskVariables(rhs, lhs);				
 			}
 		}
 	}
-		
-	private Entry findEntryWithRHS(ArrayList<Entry> entryList, int rhs) {
-		for(Entry entry : entryList) {
-			if(entry.rhs == rhs) {
-				return entry;
-			}
-		}
-		return null;
+	
+	public int numActualParameters() {
+		return relations.length;
 	}
 	
-	//add a relation between the lhs parameter and the rhs parameter; lhs and rhs must be ordered with respect to their parameter positions
-	//that is #lhs < #rhs
-	private void addEntry(int lhs, Relation relation, int rhs) {
-		assert lhs < rhs;
-		
-		ArrayList<Entry> entryList = entries.get(lhs);
-		if(entryList == null) {
-			entryList = new ArrayList<Entry>();
-			entries.put(lhs, entryList);
-		}
-		
-		assert findEntryWithRHS(entryList, rhs) == null;
-		entryList.add(new Entry(relation, rhs));		
-	}
-	
-	public Relation relation(int lhs, int rhs) {
-		assert lhs != rhs;
-		if(lhs > rhs)
-			return relation(rhs, lhs);
-		
-		ArrayList<Entry> entryList = entries.get(lhs);
-		assert(entryList != null);
-		
-		Entry entry = findEntryWithRHS(entryList, rhs);
-		assert(entry != null);
-		
-		return entry.relation;
+	public TaskSchedule.Relation relation(int lhs, int rhs) {
+		return relations[lhs][rhs];
 	}
 	
 }
