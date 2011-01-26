@@ -10,7 +10,6 @@ import xsched.analysis.core.AnalysisResult;
 import xsched.analysis.core.AnalysisSession;
 import xsched.analysis.core.AnalysisTask;
 import xsched.analysis.core.AnalysisTaskResolver;
-import xsched.analysis.core.ParallelTasksResult;
 import xsched.analysis.core.TaskSchedule;
 import xsched.analysis.wala.schedule_extraction.NormalNodeFlowData;
 import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
@@ -149,24 +148,23 @@ public class WalaScheduleAnalysisDriver {
 		}
 	}
 	
-	public ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager> _5_runAnalysisOnMainTaskMethods() {
+	public AnalysisResult<CGNode> _5_runAnalysisOnMainTaskMethods() {
 		AnalysisTaskResolver<CGNode, Integer, WalaTaskScheduleManager> resolver = createResolver();
 		
-		ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager> result = new ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager>();
+		AnalysisResult<CGNode> result = new AnalysisResult<CGNode>();
 		//now solve the analysis for each main task
 		for(IMethod mainTaskMethod : mainTaskMethods) {
 			for(CGNode node : cg.getNodes(mainTaskMethod.getReference())) {
 				AnalysisTask<CGNode, Integer, WalaTaskScheduleManager> task = analysis.taskForID(node);
 				
-				AnalysisResult<CGNode, Integer, WalaTaskScheduleManager> analysisResult = task.solveAsRoot(resolver);
-				assert analysisResult.formalParameterResult.numTaskParameters() == 0;
-				result.mergeWith(analysisResult.parallelTasksResult);
+				AnalysisResult<CGNode> analysisResult = task.solveAsRoot(resolver);			
+				result.mergeWith(analysisResult);
 			}
 		}
 		return result;
 	}
 		
-	public ParallelTasksResult<CGNode, Integer, WalaTaskScheduleManager> runScheduleAnalysis() throws IOException, ClassHierarchyException, IllegalArgumentException, CallGraphBuilderCancelException {
+	public AnalysisResult<CGNode> runScheduleAnalysis() throws IOException, ClassHierarchyException, IllegalArgumentException, CallGraphBuilderCancelException {
 		
 		this._1_setUp();
 		this._2_findTaskMethods();

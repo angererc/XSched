@@ -10,7 +10,7 @@ import java.util.Map.Entry;
 //for each task it contains other tasks that have been found to be potentially parallel
 //if t1 is parallel to t2 then t2 is parallel to t1
 public class ParallelTasksResult<Instance, TV, SM extends TaskScheduleManager<TV>> {
-	private HashMap<AnalysisTask<Instance, TV, SM>, HashSet<AnalysisTask<Instance, TV, SM>>> parallelTasksMap =  new HashMap<AnalysisTask<Instance, TV, SM>, HashSet<AnalysisTask<Instance, TV, SM>>>();
+	HashMap<AnalysisTask<Instance, TV, SM>, HashSet<AnalysisTask<Instance, TV, SM>>> parallelTasksMap =  new HashMap<AnalysisTask<Instance, TV, SM>, HashSet<AnalysisTask<Instance, TV, SM>>>();
 	
 	private void addIntoMap(AnalysisTask<Instance, TV, SM> key, AnalysisTask<Instance, TV, SM> value) {
 		HashSet<AnalysisTask<Instance, TV, SM>> set = parallelTasksMap.get(key);

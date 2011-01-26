@@ -8,7 +8,7 @@ public class ClassUsingTasks {
 		return System.currentTimeMillis() % 8 == 0;
 	}
 	
-	public void xschedTask_A1(Task<Void> now) {
+	public void xschedMainTask_A1(Task<Void> now) {
 		//simple linked list with t1->t2 and t2->t2
 		Task<Void> t1;
 		this.xschedTask_B((t1 = new Task<Void>()));
@@ -22,7 +22,7 @@ public class ClassUsingTasks {
 		
 	}
 
-	public void xschedTask_A2(Task<Void> now) {
+	public void xschedMainTask_A2(Task<Void> now) {
 		//since t1_1 and t1_2 are exclusive, we can say that t1_1->t2 and t1_2->t2
 		Task<Void> t1;
 		if(random()) {
@@ -36,7 +36,7 @@ public class ClassUsingTasks {
 		t1.hb(t2);		
 	}
 	
-	public void xschedTask_A3(Task<Void> now) {
+	public void xschedMainTask_A3(Task<Void> now) {
 		//shouldn't result in any hb relationships because exception is handled and
 		//if something happens before t1->t2 we have two scheduled tasks but no hb relationship
 		Task<Void> t1;
@@ -56,6 +56,6 @@ public class ClassUsingTasks {
 	
 	public static void main(String[] args) {
 		ClassUsingTasks c = new ClassUsingTasks();
-		c.xschedTask_A1(new Task<Void>());
+		c.xschedMainTask_A1(new Task<Void>());
 	}
 }

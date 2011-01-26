@@ -15,7 +15,7 @@ public class AnalysisTask<Instance, TV, SM  extends TaskScheduleManager<TV>> {
 	
 	//map from task varible int to a collection of possible targets
 	private HashMap<Integer, Collection<AnalysisTask<Instance, TV, SM>>> possibleTargetTasksCache;
-	private HashMap<FormalParameterConstraints, AnalysisResult<Instance, TV, SM>> resultsCache = new HashMap<FormalParameterConstraints, AnalysisResult<Instance, TV, SM>>();
+	private HashMap<FormalParameterConstraints, AnalysisStepResult<Instance, TV, SM>> resultsCache = new HashMap<FormalParameterConstraints, AnalysisStepResult<Instance, TV, SM>>();
 	 
 	private HashSet<AnalysisTask<Instance, TV, SM>> childrenCache;
 		
@@ -31,8 +31,11 @@ public class AnalysisTask<Instance, TV, SM  extends TaskScheduleManager<TV>> {
 	
 	//call this method and it will compute the parallelTasks set for all tasks that are directly or indirectly scheduled when
 	//this is a root task
-	public AnalysisResult<Instance, TV, SM> solveAsRoot(AnalysisTaskResolver<Instance, TV, SM> resolver) {
-		return analyze(resolver, new FormalParameterConstraints());
+	public AnalysisResult<Instance> solveAsRoot(AnalysisTaskResolver<Instance, TV, SM> resolver) {
+		AnalysisStepResult<Instance, TV, SM> result = analyze(resolver, new FormalParameterConstraints());
+		//a main task only has the now param	
+		assert(result.formalParameterResult.numTaskParameters() == 1);
+		return new AnalysisResult<Instance>(result.parallelTasksResult);
 	}
 	
 	private void populatePossibleTaskTargetsCache(AnalysisTaskResolver<Instance, TV, SM> resolver) {
@@ -47,15 +50,15 @@ public class AnalysisTask<Instance, TV, SM  extends TaskScheduleManager<TV>> {
 		}
 	}
 	
-	private AnalysisResult<Instance, TV, SM> analyze(AnalysisTaskResolver<Instance, TV, SM> resolver, FormalParameterConstraints myParamConstraints) {
-		AnalysisResult<Instance, TV, SM> myResult = resultsCache.get(myParamConstraints);
+	private AnalysisStepResult<Instance, TV, SM> analyze(AnalysisTaskResolver<Instance, TV, SM> resolver, FormalParameterConstraints myParamConstraints) {
+		AnalysisStepResult<Instance, TV, SM> myResult = resultsCache.get(myParamConstraints);
 		if(myResult != null)
 			return myResult;
 		
 		this.populatePossibleTaskTargetsCache(resolver);
 		
 		//add the result to the cache immediately to avoid infinite recursion
-		myResult = new AnalysisResult<Instance, TV, SM>(new ParallelTasksResult<Instance, TV, SM>(), new FormalParameterResult<Instance, TV, SM>(taskSchedule.numberOfFormalParameterTaskVariables()));
+		myResult = new AnalysisStepResult<Instance, TV, SM>(new ParallelTasksResult<Instance, TV, SM>(), new FormalParameterResult<Instance, TV, SM>(taskSchedule.numberOfFormalParameterTaskVariables()));
 		resultsCache.put(myParamConstraints, myResult);
 		
 		//analyze each schedule site and then compare it with each schedule site and each formal param O(n^2)
@@ -69,7 +72,7 @@ public class AnalysisTask<Instance, TV, SM  extends TaskScheduleManager<TV>> {
 			//for each possible target task of the schedule site, get the analysis result and aggregate all of them			
 			FormalParameterResult<Instance, TV, SM> aggregate = new FormalParameterResult<Instance, TV, SM>(scheduleSiteConstraints.numActualParameters());
 			for(AnalysisTask<Instance, TV, SM> siteTask : possibleTargetTasks) {
-				AnalysisResult<Instance, TV, SM> siteResult = siteTask.analyze(resolver, scheduleSiteConstraints);
+				AnalysisStepResult<Instance, TV, SM> siteResult = siteTask.analyze(resolver, scheduleSiteConstraints);
 				myResult.parallelTasksResult.mergeWith(siteResult.parallelTasksResult);				
 				aggregate.mergeWith(siteResult.formalParameterResult);				
 			}

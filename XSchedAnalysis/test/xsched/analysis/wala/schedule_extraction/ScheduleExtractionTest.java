@@ -28,11 +28,11 @@ public class ScheduleExtractionTest {
 		
 		for(IMethod taskMethod : driver.taskMethods()) {
 			NormalNodeFlowData flowDat = driver._n_computeNodeFlowData(driver.irForMethod(taskMethod));
-			if(taskMethod.getReference().getName().toString().equals("xschedTask_A1")) {
+			if(taskMethod.getReference().getName().toString().equals("xschedMainTask_A1")) {
 				checkFlowData_A1(flowDat);
-			} else if(taskMethod.getReference().getName().toString().equals("xschedTask_A2")) {
+			} else if(taskMethod.getReference().getName().toString().equals("xschedMainTask_A2")) {
 				checkFlowData_A2(flowDat);
-			} else if(taskMethod.getReference().getName().toString().equals("xschedTask_A3")) {
+			} else if(taskMethod.getReference().getName().toString().equals("xschedMainTask_A3")) {
 				checkFlowData_A3(flowDat);
 			} else if(taskMethod.getReference().getName().toString().equals("xschedTask_B")) {
 				checkFlowData_B(flowDat);
@@ -98,11 +98,11 @@ public class ScheduleExtractionTest {
 		for(IMethod taskMethod : driver.taskMethods()) {
 			TaskSchedule<Integer, WalaTaskScheduleManager> schedule = driver._n_computeTaskSchedule(driver.irForMethod(taskMethod));
 			
-			if(taskMethod.getReference().getName().toString().equals("xschedTask_A1")) {
+			if(taskMethod.getReference().getName().toString().equals("xschedMainTask_A1")) {
 				checkSchedule_A1(schedule);
-			} else if(taskMethod.getReference().getName().toString().equals("xschedTask_A2")) {
+			} else if(taskMethod.getReference().getName().toString().equals("xschedMainTask_A2")) {
 				checkSchedule_A2(schedule);
-			} else if(taskMethod.getReference().getName().toString().equals("xschedTask_A3")) {
+			} else if(taskMethod.getReference().getName().toString().equals("xschedMainTask_A3")) {
 				checkSchedule_A3(schedule);
 			} else if(taskMethod.getReference().getName().toString().equals("xschedTask_B")) {
 				checkSchedule_B(schedule);
