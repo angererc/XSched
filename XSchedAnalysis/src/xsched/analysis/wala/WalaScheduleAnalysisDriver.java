@@ -21,9 +21,11 @@ import com.ibm.wala.ipa.callgraph.AnalysisOptions;
 import com.ibm.wala.ipa.callgraph.AnalysisScope;
 import com.ibm.wala.ipa.callgraph.CGNode;
 import com.ibm.wala.ipa.callgraph.CallGraph;
+import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.AllApplicationEntrypoints;
+import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
 import com.ibm.wala.ssa.IR;
@@ -46,6 +48,7 @@ public class WalaScheduleAnalysisDriver {
 	private Iterable<Entrypoint> entrypoints;
 	private AnalysisOptions options;
 	private CallGraph cg;
+	private PointerAnalysis pointerAnalysis;
 	private HashSet<IMethod> taskMethods;
 	//all main tasks; those are included in the taskMethods, too!
 	private HashSet<IMethod> mainTaskMethods;
@@ -61,6 +64,26 @@ public class WalaScheduleAnalysisDriver {
 	
 	public Set<IMethod> mainTaskMethods() {
 		return mainTaskMethods;
+	}
+	
+	public Iterable<Entrypoint> entrypoints() {
+		assert entrypoints != null;
+		return this.entrypoints;
+	}
+	
+	public CallGraph callGraph() {
+		assert cg != null;
+		return this.cg;
+	}
+	
+	public PointerAnalysis pointerAnalysis() {
+		assert pointerAnalysis != null;
+		return pointerAnalysis;
+	}
+	
+	public ClassHierarchy classHierarchy() {
+		assert classHierarchy != null;
+		return classHierarchy;
 	}
 	
 	public void _1_setUp() throws IOException, ClassHierarchyException {
@@ -105,7 +128,9 @@ public class WalaScheduleAnalysisDriver {
 	}
 	
 	public void _3_makeCallGraph() throws IllegalArgumentException, CallGraphBuilderCancelException {
-		cg = properties.createCallGraphBuilder(options, cache, scope, classHierarchy).makeCallGraph(options, null);
+		CallGraphBuilder builder = properties.createCallGraphBuilder(options, cache, scope, classHierarchy);
+		cg = builder.makeCallGraph(options, null);
+		pointerAnalysis = builder.getPointerAnalysis();
 	}
 	
 	public NormalNodeFlowData _n_computeNodeFlowData(IR ir) {
