@@ -22,7 +22,8 @@ public class ScheduleAnalysisTest {
 		
 		WalaScheduleAnalysisDriver driver = new WalaScheduleAnalysisDriver(properties);
 		
-		AnalysisResult<CGNode> result = driver.runScheduleAnalysis();
+		driver.runScheduleAnalysis();
+		AnalysisResult<CGNode> result = driver.scheduleAnalysisResult();
 		AnalysisResult<IMethod> resultByMethod = result.collapse(new AnalysisResult.MappingOperation<CGNode, IMethod>() {
 			@Override
 			public IMethod map(CGNode i) {

@@ -84,6 +84,10 @@ public class AnalysisResult<Instance> {
 		return ! isParallel(one, other);
 	}
 	
+	public Set<Instance> tasks() {
+		return parallelTasksMap.keySet();
+	}
+	
 	public Set<Instance> parallelTasksFor(Instance task) {
 		HashSet<Instance> set = parallelTasksMap.get(task);
 		if(set == null)

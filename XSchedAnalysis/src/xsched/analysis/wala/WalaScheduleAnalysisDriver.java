@@ -56,6 +56,9 @@ public class WalaScheduleAnalysisDriver {
 	private HashSet<IMethod> mainTaskMethods;
 	private AnalysisSession<CGNode, Integer, WalaTaskScheduleManager> analysis;
 	
+	private AnalysisResult<CGNode> scheduleAnalysisResult;
+	private Set<InstanceKey> escapeAnalysisResult;
+	
 	public WalaScheduleAnalysisDriver(AnalysisProperties properties) {
 		this.properties = properties;	
 	}
@@ -191,20 +194,29 @@ public class WalaScheduleAnalysisDriver {
 		return result;
 	}
 		
-	public AnalysisResult<CGNode> runScheduleAnalysis() throws IOException, ClassHierarchyException, IllegalArgumentException, CallGraphBuilderCancelException {
+	public AnalysisResult<CGNode> scheduleAnalysisResult() {
+		assert scheduleAnalysisResult != null;
+		return scheduleAnalysisResult;
+	}
+	
+	public void runScheduleAnalysis() throws IOException, ClassHierarchyException, IllegalArgumentException, CallGraphBuilderCancelException {
 		
 		this._1_setUp();
 		this._2_findTaskMethods();
 		this._3_makeCallGraph();
 		this._4_createAnalysisTasks();
-		return this._5_runAnalysisOnMainTaskMethods();
+		this.scheduleAnalysisResult = this._5_runAnalysisOnMainTaskMethods();
 		
 		//XXX note: in FakeRootClass, Wala imitates schedules of all task methods, it seems; is that a problem?	
 	}
 	
-	public Set<InstanceKey> runTaskEscapeAnalysis() {
+	public Set<InstanceKey> escapeAnalysisResult() {
+		return this.escapeAnalysisResult;
+	}
+	
+	public void runTaskEscapeAnalysis() {
 		TaskEscapeAnalysis analysis = new TaskEscapeAnalysis(this);
-		return analysis.collectEscapingInstanceKeys();
+		this.escapeAnalysisResult = analysis.collectEscapingInstanceKeys();
 	}
 
 }
