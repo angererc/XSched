@@ -24,14 +24,14 @@ import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.intset.OrdinalSet;
 
-public class EscapeAnalysis {
+public class TaskEscapeAnalysis {
 
 	private final WalaScheduleAnalysisDriver driver;
 
 	/**
 	 * The two input parameters define the program to analyze: the jars of .class files and the main class to start from.
 	 */
-	public EscapeAnalysis(WalaScheduleAnalysisDriver driver) {
+	public TaskEscapeAnalysis(WalaScheduleAnalysisDriver driver) {
 		this.driver = driver;
 	}
 
