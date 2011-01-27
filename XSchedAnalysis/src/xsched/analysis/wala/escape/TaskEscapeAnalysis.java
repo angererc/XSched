@@ -1,6 +1,5 @@
 package xsched.analysis.wala.escape;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
@@ -19,7 +18,7 @@ import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.callgraph.propagation.PointerKey;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
-import com.ibm.wala.ipa.cha.ClassHierarchyException;
+import com.ibm.wala.ssa.IR;
 import com.ibm.wala.util.CancelException;
 import com.ibm.wala.util.collections.HashSetFactory;
 import com.ibm.wala.util.intset.OrdinalSet;
@@ -40,8 +39,7 @@ public class TaskEscapeAnalysis {
 	 * @throws CancelException
 	 * @throws IllegalArgumentException
 	 */
-	public Set<InstanceKey> collectEscapingInstanceKeys() throws IOException, ClassHierarchyException, IllegalArgumentException,
-	CancelException {
+	public Set<InstanceKey> collectEscapingInstanceKeys() {
 		
 		ClassHierarchy classHierarchy = driver.classHierarchy();
 		//
@@ -71,12 +69,14 @@ public class TaskEscapeAnalysis {
 
 		// 2) parameters to task methods
 		for(IMethod taskMethod : driver.taskMethods()) {
+			IR ir = driver.irForMethod(taskMethod);
 			Set<CGNode> nodes = cg.getNodes(taskMethod.getReference());
 			for(CGNode node : nodes) {
 				for(int i = 0; i < taskMethod.getNumberOfParameters(); i++) {
 					//don't count task objects as escaping because you can't write to them anyways; reduces size of the sets
 					if(! WalaConstants.isTaskType(taskMethod.getParameterType(i))) {
-						escapeAnalysisRoots.add(heapModel.getPointerKeyForLocal(node, i));
+						int ssaVariable = ir.getParameter(i);
+						escapeAnalysisRoots.add(heapModel.getPointerKeyForLocal(node, ssaVariable));
 					}
 				}
 			}

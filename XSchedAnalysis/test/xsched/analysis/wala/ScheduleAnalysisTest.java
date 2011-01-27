@@ -31,5 +31,7 @@ public class ScheduleAnalysisTest {
 		);
 		assertEquals(3, driver.mainTaskMethods().size());
 		System.out.println(resultByMethod);
+		
+		driver.runTaskEscapeAnalysis();
 	}
 }

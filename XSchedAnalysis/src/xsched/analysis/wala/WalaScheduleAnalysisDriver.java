@@ -11,6 +11,7 @@ import xsched.analysis.core.AnalysisSession;
 import xsched.analysis.core.AnalysisTask;
 import xsched.analysis.core.AnalysisTaskResolver;
 import xsched.analysis.core.TaskSchedule;
+import xsched.analysis.wala.escape.TaskEscapeAnalysis;
 import xsched.analysis.wala.schedule_extraction.NormalNodeFlowData;
 import xsched.analysis.wala.schedule_extraction.TaskScheduleSolver;
 
@@ -25,6 +26,7 @@ import com.ibm.wala.ipa.callgraph.CallGraphBuilder;
 import com.ibm.wala.ipa.callgraph.CallGraphBuilderCancelException;
 import com.ibm.wala.ipa.callgraph.Entrypoint;
 import com.ibm.wala.ipa.callgraph.impl.AllApplicationEntrypoints;
+import com.ibm.wala.ipa.callgraph.propagation.InstanceKey;
 import com.ibm.wala.ipa.callgraph.propagation.PointerAnalysis;
 import com.ibm.wala.ipa.cha.ClassHierarchy;
 import com.ibm.wala.ipa.cha.ClassHierarchyException;
@@ -198,6 +200,11 @@ public class WalaScheduleAnalysisDriver {
 		return this._5_runAnalysisOnMainTaskMethods();
 		
 		//XXX note: in FakeRootClass, Wala imitates schedules of all task methods, it seems; is that a problem?	
+	}
+	
+	public Set<InstanceKey> runTaskEscapeAnalysis() {
+		TaskEscapeAnalysis analysis = new TaskEscapeAnalysis(this);
+		return analysis.collectEscapingInstanceKeys();
 	}
 
 }
