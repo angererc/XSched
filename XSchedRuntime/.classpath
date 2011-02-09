@@ -4,5 +4,6 @@
 	<classpathentry kind="src" path="test"/>
 	<classpathentry kind="src" path="shared"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="libs/javassist.jar" sourcepath="/Users/angererc/Projects/_ThirdPartyProjects/javassist-3.14.0-GA/src/main"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

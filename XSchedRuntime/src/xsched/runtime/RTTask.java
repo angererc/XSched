@@ -175,8 +175,7 @@ public class RTTask<R> extends Task<R> implements Runnable {
 			this.retainedTasks = new ArrayList<RTTask<?>>();
 		
 		this.retainedTasks.add(later);
-		int count = later.retainCount.incrementAndGet();
-		System.out.println(this + " retains " + later +"; new retain count is " + count);
+		later.retainCount.incrementAndGet();
 	}
 
 	private synchronized void release() {
