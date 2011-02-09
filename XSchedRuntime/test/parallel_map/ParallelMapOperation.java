@@ -2,7 +2,6 @@ package parallel_map;
 
 import java.util.Vector;
 import xsched.Task;
-import xsched.runtime.RTTask;
 
 public class ParallelMapOperation {
 	Vector<String> out = new Vector<String>();
@@ -10,7 +9,7 @@ public class ParallelMapOperation {
     public void xschedTask_process(Task<String> now, Object data) {
     	System.out.println("processing " + data);
     	try {
-			Thread.sleep(1);
+			Thread.sleep(100);
 		} catch (InterruptedException e) {}
         now.setResult(data.toString());
     }
@@ -29,11 +28,10 @@ public class ParallelMapOperation {
         
         for(Object data : input) {
             Task<String> process;
-            //this.xschedTask_process(process = new Task<String>(), data);
-            process = new RTTask<String>(this, "xschedTask_process", data);
+            this.xschedTask_process(process = new Task<String>(), data);
+            
             Task<Void> write;
-            //this.xschedTask_write(write = new Task<Void>(), process);
-            write = new RTTask<Void>(this, "xschedTask_write", process);
+            this.xschedTask_write(write = new Task<Void>(), process);
             
             lastProcess.hb(process);
             process.hb(write);
@@ -53,8 +51,7 @@ public class ParallelMapOperation {
     	v.add(new String("Hello world!"));
     	
     	ParallelMapOperation map = new ParallelMapOperation();
-    	//map.xschedMainTask_writeToOut(new Task<Void>(), v);
-    	new RTTask<Void>(map, "xschedMainTask_writeToOut", v);
+    	map.xschedMainTask_writeToOut(new Task<Void>(), v);
     	
     	System.out.println(map.out);
     }

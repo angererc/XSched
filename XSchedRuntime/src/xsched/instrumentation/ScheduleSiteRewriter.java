@@ -27,26 +27,27 @@ public class ScheduleSiteRewriter implements ClassFileTransformer {
 
 			@Override
 			public void edit(MethodCall m) throws CannotCompileException {
-				if(m.getMethodName().startsWith(Task.NormalTaskMethodPrefix)) {
-					try {
-						Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					String statement = "new xsched.runtime.RTTask(this, \"" + m.getMethodName() + "\", null);";
-					System.out.println("found schedule site: " + m + "; replacing it with " + statement);
+				if(m.getMethodName().startsWith(Task.MainTaskMethodPrefix)) {
+					String statement = "{ xsched.Runtime.scheduleMainTask($0, \"" + m.getMethodName() + "\", $args); }";							
+					//System.out.println("found schedule site: " + m + "; replacing it with " + statement);
+					m.replace(statement);
+				} else if (m.getMethodName().startsWith(Task.NormalTaskMethodPrefix)) {
+					String statement = "{ xsched.Runtime.scheduleNormalTask($0, \"" + m.getMethodName() + "\", $args); }";							
+					//System.out.println("found schedule site: " + m + "; replacing it with " + statement);
 					m.replace(statement);
 				}
 			}
 
 			@Override
 			public void edit(NewExpr e) throws CannotCompileException {
-				// TODO Auto-generated method stub
-				super.edit(e);
+				if(e.getClassName().equals(Task.class)) {
+					e.replace("");
+				}
 			}
 			
 		});
+		
+		
 	}
 	
 	@Override
@@ -54,24 +55,24 @@ public class ScheduleSiteRewriter implements ClassFileTransformer {
 			Class<?> classBeingRedefined, ProtectionDomain protectionDomain,
 			byte[] classfileBuffer) throws IllegalClassFormatException {
 		
-		System.out.println("about to really instrument class " + className);
+		//System.out.println("about to really instrument class " + className);
 		CtClass cc = null;
 		
 		String javaClassName = className.replace('/', '.');
 		
 		try {
 			cc = classPool.makeClass(new java.io.ByteArrayInputStream(classfileBuffer));
-			System.out.println("did insert class in class pool");
+			//System.out.println("did insert class in class pool");
 			//cc = classPool.get(className);
-			System.out.println("got class from class pool ");
+			//System.out.println("got class from class pool ");
 			//Thread.sleep(1000);
 			CtMethod[] methods = cc.getMethods();
 			for (int k=0; k<methods.length; k++) {				
 				if (methods[k].getLongName().startsWith(javaClassName)) {
-					System.out.println("instrumenting method " + methods[k]);
+					//System.out.println("instrumenting method " + methods[k]);
 					instrumentMethod(methods[k]);					
 				} else {
-					System.out.println("no body; cannot instrument method " + methods[k].getLongName() + " (class name = " + javaClassName + ")");
+					//System.out.println("no body; cannot instrument method " + methods[k].getLongName() + " (class name = " + javaClassName + ")");
 				}
 			}
 			
