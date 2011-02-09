@@ -5,16 +5,48 @@ import java.lang.instrument.ClassFileTransformer;
 import java.lang.instrument.IllegalClassFormatException;
 import java.security.ProtectionDomain;
 
+import xsched.Task;
+
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtMethod;
+import javassist.expr.ExprEditor;
+import javassist.expr.MethodCall;
+import javassist.expr.NewExpr;
 
 public class ScheduleSiteRewriter implements ClassFileTransformer {
 	
 	final ClassPool classPool;
 	public ScheduleSiteRewriter() {
 		classPool = ClassPool.getDefault();	
+	}
+	
+	private void instrumentMethod(CtMethod method) throws CannotCompileException {
+		method.instrument(new ExprEditor() {
+
+			@Override
+			public void edit(MethodCall m) throws CannotCompileException {
+				if(m.getMethodName().startsWith(Task.NormalTaskMethodPrefix)) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					String statement = "new xsched.runtime.RTTask(this, \"" + m.getMethodName() + "\", null);";
+					System.out.println("found schedule site: " + m + "; replacing it with " + statement);
+					m.replace(statement);
+				}
+			}
+
+			@Override
+			public void edit(NewExpr e) throws CannotCompileException {
+				// TODO Auto-generated method stub
+				super.edit(e);
+			}
+			
+		});
 	}
 	
 	@Override
@@ -37,8 +69,7 @@ public class ScheduleSiteRewriter implements ClassFileTransformer {
 			for (int k=0; k<methods.length; k++) {				
 				if (methods[k].getLongName().startsWith(javaClassName)) {
 					System.out.println("instrumenting method " + methods[k]);
-					methods[k].insertBefore("System.out.println(\"Entering " + methods[k].getLongName() + "\");");
-					methods[k].insertAfter("System.out.println(\"Exiting " + methods[k].getLongName() + "\");");
+					instrumentMethod(methods[k]);					
 				} else {
 					System.out.println("no body; cannot instrument method " + methods[k].getLongName() + " (class name = " + javaClassName + ")");
 				}
