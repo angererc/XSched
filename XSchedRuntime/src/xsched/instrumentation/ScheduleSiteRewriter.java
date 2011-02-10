@@ -34,12 +34,13 @@ public class ScheduleSiteRewriter implements ClassFileTransformer {
 			public void edit(MethodCall m) throws CannotCompileException {
 				if(m.getMethodName().startsWith(Task.MainTaskMethodPrefix)) {
 					String statement = "{ xsched.Runtime.scheduleMainTask($0, \"" + m.getMethodName() + "\", $args); }";							
-					System.out.println("found schedule site: " + m.getMethodName() + " in " + method.getLongName() + "; replacing it with " + statement);
-
+					if(Task.DEBUG)
+						System.out.println("found schedule site: " + m.getMethodName() + " in " + method.getLongName() + "; replacing it with " + statement);
 					m.replace(statement);
 				} else if (m.getMethodName().startsWith(Task.NormalTaskMethodPrefix)) {
-					String statement = "{ xsched.Runtime.scheduleNormalTask($0, \"" + m.getMethodName() + "\", $args); }";							
-					System.out.println("found schedule site: " + m.getMethodName() + " in  " + method.getLongName() + "; replacing it with " + statement);
+					String statement = "{ xsched.Runtime.scheduleNormalTask($0, \"" + m.getMethodName() + "\", $args); }";
+					if(Task.DEBUG)
+						System.out.println("found schedule site: " + m.getMethodName() + " in  " + method.getLongName() + "; replacing it with " + statement);
 					m.replace(statement);
 				}
 			}

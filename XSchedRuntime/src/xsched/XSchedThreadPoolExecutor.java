@@ -18,7 +18,6 @@ public class XSchedThreadPoolExecutor extends ThreadPoolExecutor {
 	@Override
 	public void execute(Runnable command) {
 		executing.incrementAndGet();
-		System.out.println("execute: " + command + " count=" + executing.get());
 		super.execute(command);
 	}
 
@@ -27,7 +26,6 @@ public class XSchedThreadPoolExecutor extends ThreadPoolExecutor {
 	protected void afterExecute(Runnable r, Throwable t) {
 		super.afterExecute(r, t);
 		int count = executing.decrementAndGet();
-		System.out.println("thread pool afterExecute: " + r + ", count=" + executing.get());
 		if(count == 0) {
 			this.shutdown();
 		}
