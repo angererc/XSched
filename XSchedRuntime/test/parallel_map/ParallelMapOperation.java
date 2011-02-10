@@ -53,8 +53,7 @@ public class ParallelMapOperation {
     	for(int i = 0; i < 100; i++) {
     		v.add(new Integer(i));
     	}
-    	//v.add(new Integer(15));
-    	//v.add(new Boolean(false));
+    	v.add(new Boolean(false));
     	v.add(new String("Hello world!"));
     	
     	ParallelMapOperation map = new ParallelMapOperation();
