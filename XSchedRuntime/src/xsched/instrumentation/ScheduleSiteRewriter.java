@@ -13,7 +13,6 @@ import javassist.CtClass;
 import javassist.CtMethod;
 import javassist.expr.ExprEditor;
 import javassist.expr.MethodCall;
-import javassist.expr.NewExpr;
 
 public class ScheduleSiteRewriter implements ClassFileTransformer {
 	
@@ -22,26 +21,26 @@ public class ScheduleSiteRewriter implements ClassFileTransformer {
 		classPool = ClassPool.getDefault();	
 	}
 	
-	private void instrumentMethod(CtMethod method) throws CannotCompileException {
+	private void instrumentMethod(final CtMethod method) throws CannotCompileException {
+		//there are GeneratedMethodAccessor2.invoke() methods out there (from the use of reflection in Task)
+		//that call xschedTask methods
+		//and if we rewrite them we get weird behavior...
+		if(method.getLongName().startsWith("sun.reflect."))
+			return;
+		
 		method.instrument(new ExprEditor() {
 
 			@Override
 			public void edit(MethodCall m) throws CannotCompileException {
 				if(m.getMethodName().startsWith(Task.MainTaskMethodPrefix)) {
 					String statement = "{ xsched.Runtime.scheduleMainTask($0, \"" + m.getMethodName() + "\", $args); }";							
-					//System.out.println("found schedule site: " + m + "; replacing it with " + statement);
+					System.out.println("found schedule site: " + m.getMethodName() + " in " + method.getLongName() + "; replacing it with " + statement);
+
 					m.replace(statement);
 				} else if (m.getMethodName().startsWith(Task.NormalTaskMethodPrefix)) {
 					String statement = "{ xsched.Runtime.scheduleNormalTask($0, \"" + m.getMethodName() + "\", $args); }";							
-					//System.out.println("found schedule site: " + m + "; replacing it with " + statement);
+					System.out.println("found schedule site: " + m.getMethodName() + " in  " + method.getLongName() + "; replacing it with " + statement);
 					m.replace(statement);
-				}
-			}
-
-			@Override
-			public void edit(NewExpr e) throws CannotCompileException {
-				if(e.getClassName().equals(Task.class)) {
-					e.replace("");
 				}
 			}
 			
